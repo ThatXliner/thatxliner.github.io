@@ -1,3 +1,11 @@
-imma add content later. For now, there's my [discord stuff](./discord) or [school stuff](./school)
+# Hello there!
 
-I have a [blog](./blog) as well
+My GitHub profile has more content.
+
+ - [Discord stuff](./discord)
+ - [School stuff](./school)
+ - [Apps I made](./apps)
+
+I have a [blog](./blog) as well. I rarely update it though.
+
+
