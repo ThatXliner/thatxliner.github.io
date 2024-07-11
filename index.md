@@ -1,6 +1,6 @@
 # Hello there!
 
-My GitHub profile has more content.
+My GitHub profile has more content. ([@ThatXliner](https://github.com/ThatXliner)
 
  - [Discord stuff](./discord)
  - [School stuff](./school)
@@ -8,4 +8,5 @@ My GitHub profile has more content.
 
 I have a [blog](./blog) as well. I rarely update it though.
 
+Check out my [resume](./resume) (in progress)
 
