@@ -55,7 +55,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
       {/* ── Photography & Production — Bento Grid ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-5xl font-bold mb-3 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold mb-3 text-center">
             Photography & Production
           </h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
@@ -128,7 +128,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
       {/* ── Music — Bento Grid ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-5xl font-bold mb-3 text-center">Music</h2>
+          <h2 className="text-3xl md:text-5xl font-bold mb-3 text-center">Music</h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
             Pianist, trombonist, and composer.
           </p>
