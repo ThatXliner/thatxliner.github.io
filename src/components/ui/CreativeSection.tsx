@@ -103,26 +103,27 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
             </StaggerItem>
           ))}
 
-          {/* Gear — wide card spanning full width */}
-          <StaggerItem className="col-span-2 md:col-span-4">
-            <div className={`${card} p-6 h-full flex flex-col justify-center`}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                My Gear
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {gear.map((item) => (
-                  <span
-                    key={item.name}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm"
-                  >
-                    {item.name}
-                    <span className="text-xs text-gray-500">{item.type}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </StaggerItem>
         </StaggerContainer>
+
+        {/* Gear — outside the fixed-row grid so it can size to content */}
+        <ScrollReveal className="max-w-4xl mx-auto mt-4">
+          <div className={`${card} p-6 flex flex-col justify-center`}>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
+              My Gear
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {gear.map((item) => (
+                <span
+                  key={item.name}
+                  className="inline-flex items-center gap-1.5 md:gap-2 rounded-full border border-white/10 bg-white/[0.04] px-2.5 md:px-3.5 py-1 md:py-1.5 text-xs md:text-sm"
+                >
+                  {item.name}
+                  <span className="text-xs text-gray-500">{item.type}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
       </div>
 
       {/* ── Music — Bento Grid ── */}
