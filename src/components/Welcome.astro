@@ -6,6 +6,7 @@ import me from "../assets/me_stand.png";
 import { Icon } from "astro-icon/components";
 import PerspectiveHoverCard from "./ui/hover-card";
 
+
 const icons = [
     "logos:git-icon",
     "logos:supabase-icon",
@@ -84,6 +85,27 @@ const icons = [
                 text={"I'm a full-stack developer, freelance photographer, camera operator, musician, and passionate creator."}
             />
         </p>
+
+        <div class="flex flex-wrap justify-center gap-3 mt-4">
+            <a
+                href="https://bryanhu.com/blog/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm sm:text-base font-medium text-white bg-white/15 hover:bg-white/25 rounded-lg border border-white/20 backdrop-blur-sm transition-all duration-200 hover:scale-105"
+            >
+                <Icon name="lucide:pen-line" size={18} />
+                Read my blog
+            </a>
+            <a
+                href="https://discord.gg/7YHfbBUh4n"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm sm:text-base font-medium text-white bg-[#5865F2] hover:bg-[#4752C4] rounded-lg transition-all duration-200 hover:scale-105"
+            >
+                <Icon name="simple-icons:discord" size={18} />
+                Join my Discord
+            </a>
+        </div>
     </div>
     <LightRays />
 </div>
