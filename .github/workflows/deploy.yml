@@ -24,6 +24,7 @@ jobs:
         uses: withastro/action@v2
         with:
           package-manager: bun@latest
+          node-version: 24
         env: # Or as an environment variable
           ASTRO_GITHUB_TOKEN: ${{ secrets.ASTRO_GITHUB_TOKEN }}
 
