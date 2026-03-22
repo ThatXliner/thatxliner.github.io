@@ -1,7 +1,9 @@
 ---
 import ProjectCard from "./ui/ProjectCard";
 import type { Project } from "./ui/ProjectCard";
+import ProjectGrid from "./ui/ProjectGrid";
 import ContributionCard from "./ui/ContributionCard";
+import ContributionGrid from "./ui/ContributionGrid";
 import type { Contribution } from "./ui/ContributionCard";
 
 
@@ -189,13 +191,7 @@ const contributions = [
     A closer look at my most notable work
   </p>
 
-  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-    {
-      projects.map((project) => (
-        <ProjectCard client:only project={project} />
-      ))
-    }
-  </div>
+  <ProjectGrid client:only projects={projects} />
 
   <h2
     class="text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
@@ -208,11 +204,5 @@ const contributions = [
     Organizations I've built and contributed to
   </p>
 
-  <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-    {
-      contributions.map((c) => (
-        <ContributionCard client:only contribution={c} />
-      ))
-    }
-  </div>
+  <ContributionGrid client:only contributions={contributions} />
 </div>

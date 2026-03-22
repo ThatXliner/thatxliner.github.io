@@ -54,10 +54,10 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
       {/* ── Photography & Production ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-3xl font-bold mb-3">
+          <h2 className="text-3xl font-bold mb-3 text-center">
             Photography & Production
           </h2>
-          <p className="text-base text-gray-400 mb-12 max-w-xl">
+          <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
             Freelance photographer and production crew member — behind both
             the camera and the switcher.
           </p>
@@ -65,7 +65,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
 
         {/* Production Experience — featured with C200 image */}
         <ScrollReveal animation="fadeUp" delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mb-14">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto mb-14">
             {c200Src && (
               <div
                 className={`${card} p-10 flex items-center justify-center`}
@@ -105,8 +105,8 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
 
         {/* Gear */}
         <ScrollReveal animation="fadeUp" delay={0.15}>
-          <h3 className="text-lg font-semibold mb-4">My Gear</h3>
-          <div className="flex flex-wrap gap-3">
+          <h3 className="text-lg font-semibold mb-4 text-center">My Gear</h3>
+          <div className="flex flex-wrap gap-3 justify-center">
             {gear.map((item) => (
               <span
                 key={item.name}
@@ -123,10 +123,10 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
       {/* ── Music ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-3xl font-bold mb-3">
+          <h2 className="text-3xl font-bold mb-3 text-center">
             Music
           </h2>
-          <p className="text-base text-gray-400 mb-12 max-w-xl">
+          <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
             Pianist, trombonist, and composer.
           </p>
         </ScrollReveal>
@@ -134,7 +134,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
         {/* Instruments */}
         <StaggerContainer
           stagger={0.15}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mb-14"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto mb-14"
         >
           {musicBackground.map((m) => (
             <StaggerItem key={m.instrument}>
