@@ -191,22 +191,25 @@ async function getForkedRepositories() {
     const login = json.data.viewer.login;
     const repos = json.data.viewer.repositories.nodes;
 
-    // Filter to only forks where we have merged PRs upstream
+    // Filter to only forks where we have merged PRs upstream (using GraphQL search)
     const reposWithContributions = await Promise.all(
         repos.map(async (repo: any) => {
             const parent = repo.parent?.nameWithOwner;
             if (!parent) return null;
-            const searchRes = await fetch(
-                `https://api.github.com/search/issues?q=${encodeURIComponent(`is:pr author:${login} repo:${parent} is:merged`)}&per_page=1`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${import.meta.env.ASTRO_GITHUB_TOKEN}`,
-                    },
+
+            const searchQuery = `query { search(query: "is:pr author:${login} repo:${parent} is:merged", type: ISSUE, first: 1) { issueCount } }`;
+            const searchRes = await fetch("https://api.github.com/graphql", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    Authorization: `Bearer ${import.meta.env.ASTRO_GITHUB_TOKEN}`,
                 },
-            );
+                body: JSON.stringify({ query: searchQuery }),
+            });
             if (!searchRes.ok) return null;
             const searchJson = await searchRes.json();
-            return searchJson.total_count > 0 ? repo : null;
+            return (searchJson.data?.search?.issueCount ?? 0) > 0 ? repo : null;
         }),
     );
 
