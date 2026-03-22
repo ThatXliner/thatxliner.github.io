@@ -14,14 +14,14 @@ const awards = [
 
 const frcAwards = [
   // 2025
-  { label: "Creativity Award — Daly Division (Champs)", year: 2025 },
-  { label: "Excellence in Engineering — Contra Costa Regional", year: 2025 },
-  { label: "Innovation in Control — Ventura County Regional", year: 2025 },
-  { label: "Engineering Inspiration — San Francisco Regional", year: 2025 },
-  { label: "Judges' Award — Capital City Classic", year: 2025 },
+  { label: "Creativity Award — Daly Division (Champs)", year: 2025, url: "https://www.thebluealliance.com/event/2025dal#awards" },
+  { label: "Excellence in Engineering — Contra Costa Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025capt#awards" },
+  { label: "Innovation in Control — Ventura County Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025cave#awards" },
+  { label: "Engineering Inspiration — San Francisco Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025casf#awards" },
+  { label: "Judges' Award — Capital City Classic", year: 2025, url: "https://www.thebluealliance.com/event/2025cacc#awards" },
   // 2024
-  { label: "Regional Finalists — Silicon Valley Regional", year: 2024 },
-  { label: "Engineering Inspiration — Arizona Valley Regional", year: 2024 },
+  { label: "Regional Finalists — Silicon Valley Regional", year: 2024, url: "https://www.thebluealliance.com/event/2024casj#awards" },
+  { label: "Engineering Inspiration — Arizona Valley Regional", year: 2024, url: "https://www.thebluealliance.com/event/2024azva#awards" },
 ];
 
 
@@ -226,11 +226,16 @@ const contributions = [
     </summary>
     <div class="flex flex-wrap justify-center gap-2 mt-4">
       {frcAwards.map((award) => (
-        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300/80 border border-amber-500/15">
+        <a
+          href={award.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300/80 border border-amber-500/15 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
+        >
           <Icon name="simple-icons:first" class="w-3 h-3" />
           {award.label}
           <span class="text-amber-300/40">{award.year}</span>
-        </span>
+        </a>
       ))}
     </div>
   </details>
