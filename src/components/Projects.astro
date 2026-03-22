@@ -3,8 +3,8 @@ import ProjectCard from "./ui/ProjectCard";
 import type { Project } from "./ui/ProjectCard";
 import ContributionCard from "./ui/ContributionCard";
 import type { Contribution } from "./ui/ContributionCard";
-import { TextAnimate } from "./ui/text-animate";
-import { LightRays } from "./ui/light-rays";
+
+
 
 async function getRepoHomepage(repoName: string): Promise<string | null> {
   const token = import.meta.env.ASTRO_GITHUB_TOKEN;
@@ -55,7 +55,7 @@ const projects: Project[] = [
     name: "pyt2",
     tagline: "Opinionated Python project template",
     description:
-      "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with **Poetry|https://python-poetry.org/**, **pre-commit|https://pre-commit.com/**, **Ruff|https://docs.astral.sh/ruff/**, **MyPy|https://mypy-lang.org/**, **Hypothesis|https://hypothesis.readthedocs.io/** testing, multi-platform **GitHub Actions CI|https://github.com/features/actions**, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and **Sphinx|https://www.sphinx-doc.org/** docs.",
+      "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with Poetry, pre-commit, **Ruff|https://docs.astral.sh/ruff/**, MyPy, Hypothesis testing, multi-platform GitHub Actions CI, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and Sphinx docs.",
     url: "https://github.com/ThatXliner/pyt2",
     language: "Jinja",
     languageColor: "#a52a22",
@@ -179,19 +179,14 @@ const contributions = [
 
 <div class="w-full py-16 px-6" id="projects">
   <h1
-    class="text-6xl font-bold text-center mb-4 hover-glow pointer-events-none"
+    class="text-6xl font-bold text-center mb-2 pointer-events-none"
   >
     Featured Projects
   </h1>
   <p
-    class="text-center text-lg text-slate-200/60 mb-12 max-w-2xl mx-auto italic"
+    class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12"
   >
-    <TextAnimate
-      animation="blurIn"
-      as="p"
-      client:only
-      text="A closer look at my most notable work"
-    />
+    A closer look at my most notable work
   </p>
 
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -203,19 +198,14 @@ const contributions = [
   </div>
 
   <h2
-    class="text-4xl font-bold text-center mt-24 mb-4 hover-glow pointer-events-none"
+    class="text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
   >
     Community & Contributions
   </h2>
   <p
-    class="text-center text-lg text-slate-200/60 mb-12 max-w-2xl mx-auto italic"
+    class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12"
   >
-    <TextAnimate
-      animation="blurIn"
-      as="p"
-      client:only
-      text="Organizations I've built and contributed to"
-    />
+    Organizations I've built and contributed to
   </p>
 
   <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -225,5 +215,4 @@ const contributions = [
       ))
     }
   </div>
-  <LightRays />
 </div>

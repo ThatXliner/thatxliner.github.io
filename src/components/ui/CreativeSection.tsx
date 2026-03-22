@@ -56,18 +56,18 @@ const awards = [
   },
 ];
 
-export default function CreativeSection() {
+export default function CreativeSection({ c200Src }: { c200Src?: string }) {
   return (
     <div className="w-full max-w-6xl mx-auto space-y-28">
       {/* ── Photography & Production ── */}
       <div>
         <ScrollReveal>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gray-700" />
-            <span className="text-xs uppercase tracking-[0.3em] text-gray-500 font-medium">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-800/50" />
+            <span className="text-xs uppercase tracking-[0.3em] text-amber-400/60 font-medium">
               Photography & Production
             </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gray-700" />
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-800/50" />
           </div>
         </ScrollReveal>
 
@@ -77,49 +77,55 @@ export default function CreativeSection() {
           </p>
         </ScrollReveal>
 
-        {/* Gear Grid */}
-        <ScrollReveal animation="fadeUp" delay={0.15}>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Icon icon="lucide:aperture" className="w-5 h-5 text-gray-400" />
-            My Gear
-          </h3>
+        {/* Production Experience — featured with C200 image */}
+        <ScrollReveal animation="fadeUp" delay={0.1}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {/* C200 hero card */}
+            {c200Src && (
+              <div className="relative overflow-hidden rounded-xl border border-amber-900/30 bg-amber-950/20 p-8 flex items-center justify-center">
+                <img
+                  src={c200Src}
+                  alt="Canon C200 cinema camera"
+                  className="max-h-56 object-contain opacity-90 select-none"
+                  draggable={false}
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-3">
+              {productionExperience.map((exp) => (
+                <div
+                  key={exp.title}
+                  className="relative overflow-hidden rounded-xl border border-amber-900/30 bg-amber-950/20 p-5 hover:border-amber-700/40 transition-colors flex-1"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-900/30 border border-amber-800/30 shrink-0">
+                      <Icon icon={exp.icon} className="w-5 h-5 text-amber-400/80" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-white">{exp.title}</h4>
+                      <p className="text-xs text-amber-400/70 font-medium">{exp.detail}</p>
+                      <p className="text-xs text-gray-500 mt-1">{exp.context}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </ScrollReveal>
 
-        <StaggerContainer stagger={0.08} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-12">
+        {/* Gear Grid */}
+        <ScrollReveal animation="fadeUp" delay={0.15}>
+          <h3 className="text-lg font-semibold text-white mb-4">My Gear</h3>
+        </ScrollReveal>
+
+        <StaggerContainer stagger={0.08} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {gear.map((item) => (
             <StaggerItem key={item.name}>
-              <div className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/40 p-4 hover:border-gray-600 transition-colors">
+              <div className="flex items-center gap-3 rounded-lg border border-amber-900/30 bg-amber-950/20 p-4 hover:border-amber-700/40 transition-colors">
                 <Icon icon={item.icon} className="w-5 h-5 text-amber-400/80 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-white">{item.name}</p>
                   <p className="text-xs text-gray-500">{item.type}</p>
-                </div>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
-
-        {/* Production Experience */}
-        <ScrollReveal animation="fadeUp" delay={0.1}>
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Icon icon="lucide:clapperboard" className="w-5 h-5 text-gray-400" />
-            Production Experience
-          </h3>
-        </ScrollReveal>
-
-        <StaggerContainer stagger={0.12} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {productionExperience.map((exp) => (
-            <StaggerItem key={exp.title}>
-              <div className="relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900/40 p-5 hover:border-gray-600 transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-800 border border-gray-700 shrink-0">
-                    <Icon icon={exp.icon} className="w-5 h-5 text-blue-400/80" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-white">{exp.title}</h4>
-                    <p className="text-xs text-blue-400/70 font-medium">{exp.detail}</p>
-                    <p className="text-xs text-gray-500 mt-1">{exp.context}</p>
-                  </div>
                 </div>
               </div>
             </StaggerItem>
@@ -131,11 +137,11 @@ export default function CreativeSection() {
       <div>
         <ScrollReveal>
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-gray-700" />
-            <span className="text-xs uppercase tracking-[0.3em] text-gray-500 font-medium">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-purple-800/50" />
+            <span className="text-xs uppercase tracking-[0.3em] text-purple-400/60 font-medium">
               Music
             </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-gray-700" />
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-purple-800/50" />
           </div>
         </ScrollReveal>
 
@@ -149,10 +155,10 @@ export default function CreativeSection() {
         <StaggerContainer stagger={0.15} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
           {musicBackground.map((m) => (
             <StaggerItem key={m.instrument}>
-              <div className="relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900/40 p-6 hover:border-gray-600 transition-colors">
-                <div className="flex items-center justify-between mb-3">
+              <div className="relative overflow-hidden rounded-xl border border-purple-900/30 bg-purple-950/20 p-6 hover:border-purple-700/40 transition-colors">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-800 border border-gray-700">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-900/30 border border-purple-800/30">
                       <Icon icon={m.icon} className="w-5 h-5 text-purple-400/80" />
                     </div>
                     <div>
@@ -172,16 +178,13 @@ export default function CreativeSection() {
 
         {/* Awards */}
         <ScrollReveal animation="fadeUp">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Icon icon="lucide:trophy" className="w-5 h-5 text-gray-400" />
-            Awards
-          </h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Awards</h3>
         </ScrollReveal>
 
         <StaggerContainer stagger={0.1} className="space-y-2 mb-10">
           {awards.map((award) => (
             <StaggerItem key={award.title}>
-              <div className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-900/40 p-4 hover:border-gray-600 transition-colors">
+              <div className="flex items-center gap-3 rounded-lg border border-purple-900/30 bg-purple-950/20 p-4 hover:border-purple-700/40 transition-colors">
                 <Icon icon={award.icon} className="w-5 h-5 text-amber-400/80 shrink-0" />
                 <div>
                   <p className="text-sm font-medium text-white">{award.title}</p>
@@ -194,7 +197,7 @@ export default function CreativeSection() {
 
         {/* Streaming Links */}
         <ScrollReveal animation="scaleUp" delay={0.1}>
-          <div className="flex flex-col items-center gap-6 rounded-xl border border-gray-800 bg-gray-900/40 p-10">
+          <div className="flex flex-col items-center gap-6 rounded-xl border border-purple-900/30 bg-purple-950/20 p-10">
             <p className="text-base text-gray-300 font-medium">Listen to my original music</p>
             <div className="flex gap-4">
               <a

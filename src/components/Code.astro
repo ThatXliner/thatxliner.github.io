@@ -1,9 +1,8 @@
 ---
-import { LightRays } from "./ui/light-rays";
 import { Marquee } from "./ui/marquee";
 import { Icon } from "astro-icon/components";
 import Repo from "./ui/Repo";
-import { TextAnimate } from "./ui/text-animate";
+
 
 async function getAllRepositories() {
     const isDev = import.meta.env.DEV;
@@ -259,23 +258,14 @@ const forksSecondRow = forks.slice(forks.length / 2);
 
 <!-- <Font cssVariable="--font-inter" preload /> -->
 <div class="h-screen w-full py-4" id="code">
-    <h1 class="text-6xl font-bold text-center mb-16 hover-glow">
-        <a href="https://github.com/ThatXliner?tab=repositories"
-            >My Code <Icon name="lucide:external-link" class="inline" /></a
+    <h1 class="text-6xl font-bold text-center mb-4">
+        <a href="https://github.com/ThatXliner?tab=repositories" class="hover:text-gray-300 transition-colors"
+            >My Code <Icon name="lucide:external-link" class="inline w-8 h-8 opacity-40" /></a
         >
     </h1>
-    <div class="flex w-full justify-center">
-        <p
-            class="w-full text-center text-lg text-slate-800/80 md:text-xl dark:text-slate-200/80 italic"
-        >
-            <TextAnimate
-                animation="blurIn"
-                as="h3"
-                client:only
-                text={"Source Repositories: Projects I've started myself"}
-            />
-        </p>
-    </div>
+    <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12">
+        Source repositories &mdash; projects I've started myself
+    </p>
 
     <div
         class="relative flex w-full flex-col items-center justify-center overflow-hidden mt-8"
@@ -296,18 +286,9 @@ const forksSecondRow = forks.slice(forks.length / 2);
         </div>
     </div>
 
-    <div class="flex w-full justify-center">
-        <p
-            class="w-full text-center text-lg text-slate-800/80 md:text-xl dark:text-slate-200/80 italic"
-        >
-            <TextAnimate
-                animation="blurIn"
-                as="h3"
-                client:only
-                text={"Forks: My contributions to OSS"}
-            />
-        </p>
-    </div>
+    <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mt-8">
+        Forks &mdash; my contributions to open source
+    </p>
 
     <div
         class="relative flex w-full flex-col items-center justify-center overflow-hidden mt-8"
@@ -327,5 +308,5 @@ const forksSecondRow = forks.slice(forks.length / 2);
         >
         </div>
     </div>
-    <LightRays />
+
 </div>
