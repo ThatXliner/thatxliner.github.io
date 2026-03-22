@@ -5,6 +5,24 @@ import ProjectGrid from "./ui/ProjectGrid";
 import ContributionCard from "./ui/ContributionCard";
 import ContributionGrid from "./ui/ContributionGrid";
 import type { Contribution } from "./ui/ContributionCard";
+import { Icon } from "astro-icon/components";
+
+const awards = [
+  { label: "USACO Silver", icon: "lucide:code", url: "https://usaco.org/" },
+  { label: "picoCTF 2026 — 174th / 8,747", icon: "lucide:shield", url: "https://picoctf.org/" },
+];
+
+const frcAwards = [
+  // 2025
+  { label: "Creativity Award — Daly Division (Champs)", year: 2025 },
+  { label: "Excellence in Engineering — Contra Costa Regional", year: 2025 },
+  { label: "Innovation in Control — Ventura County Regional", year: 2025 },
+  { label: "Engineering Inspiration — San Francisco Regional", year: 2025 },
+  { label: "Judges' Award — Capital City Classic", year: 2025 },
+  // 2024
+  { label: "Regional Finalists — Silicon Valley Regional", year: 2024 },
+  { label: "Engineering Inspiration — Arizona Valley Regional", year: 2024 },
+];
 
 
 
@@ -148,18 +166,6 @@ const projects: Project[] = [
     tags: ["Discord", "bot", "retired"],
     icon: "simple-icons:discord",
   },
-  {
-    name: "ipdt",
-    tagline: "Iterated Prisoner's Dilemma tournament",
-    description:
-      "A tournament engine for the **Iterated Prisoner's Dilemma|https://en.wikipedia.org/wiki/Prisoner%27s_dilemma#The_iterated_prisoner's_dilemma** in Rust. Supports **Lua|https://www.lua.org/** and **Python** strategies with planned **WASM|https://webassembly.org/** support. A computational exploration of game theory and emergent cooperation.",
-    url: "https://github.com/ThatXliner/ipdt",
-    language: "Rust",
-    languageColor: "#dea584",
-    stars: 1,
-    tags: ["game theory", "Lua", "simulation"],
-    icon: "simple-icons:rust",
-  },
 ];
 
 const contributions = [
@@ -187,26 +193,48 @@ const contributions = [
     url: "https://github.com/Team3256",
     icon: "simple-icons:first",
   },
-  {
-    name: "Apps",
-    role: "Developer",
-    description:
-      "A collection of apps and tools I've built, from utilities to experiments.",
-    url: "https://github.com/ThatXliner/apps",
-    icon: "lucide:smartphone",
-  },
-  {
-    name: "School",
-    role: "Student",
-    description:
-      "School-related projects, notes, and resources.",
-    url: "https://bryanhu.com/school/",
-    icon: "lucide:graduation-cap",
-  },
 ];
 ---
 
 <div class="w-full py-16 px-6" id="projects">
+  <div class="flex flex-wrap justify-center gap-3 mb-6">
+    {awards.map((award) =>
+      award.url ? (
+        <a
+          href={award.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
+        >
+          <Icon name={award.icon} class="w-4 h-4" />
+          {award.label}
+        </a>
+      ) : (
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
+          <Icon name={award.icon} class="w-4 h-4" />
+          {award.label}
+        </span>
+      )
+    )}
+  </div>
+
+  <details class="max-w-2xl mx-auto mb-16 group">
+    <summary class="flex items-center justify-center gap-2 cursor-pointer text-sm font-medium text-gray-400 hover:text-amber-300 transition-colors select-none">
+      <Icon name="simple-icons:first" class="w-4 h-4" />
+      FRC Team 3256 Awards (7)
+      <Icon name="lucide:chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180" />
+    </summary>
+    <div class="flex flex-wrap justify-center gap-2 mt-4">
+      {frcAwards.map((award) => (
+        <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300/80 border border-amber-500/15">
+          <Icon name="simple-icons:first" class="w-3 h-3" />
+          {award.label}
+          <span class="text-amber-300/40">{award.year}</span>
+        </span>
+      ))}
+    </div>
+  </details>
+
   <h1
     class="text-6xl font-bold text-center mb-2 pointer-events-none"
   >
