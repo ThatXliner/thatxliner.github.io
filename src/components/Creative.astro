@@ -1,19 +1,18 @@
 ---
 import CreativeSection from "./ui/CreativeSection";
-import LightSection from "./ui/LightSection";
 import { Image } from "astro:assets";
 import c200 from "../assets/c200-no-bg.png";
 ---
 
-<LightSection client:only className="w-full py-16 px-6 md:px-12" id="creative">
+<div class="w-full py-16 px-6 md:px-12" id="creative">
   <h1
     class="pointer-events-none text-center text-6xl font-bold mb-2"
   >
     Creative Work
   </h1>
-  <p class="text-center text-sm uppercase tracking-[0.25em] mb-16" style="color: var(--section-muted, rgb(107, 114, 128))">
+  <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-16">
     Photography &middot; Production &middot; Music
   </p>
 
   <CreativeSection client:only c200Src={c200.src} />
-</LightSection>
+</div>

@@ -6,11 +6,11 @@ import {
 } from "./ScrollReveal";
 
 const gear = [
-  { name: "Canon EOS 40D", type: "Body", icon: "lucide:camera" },
-  { name: "EF 70-200mm f/4L IS USM", type: "Telephoto", icon: "lucide:circle-dot" },
-  { name: "Tamron 35mm f/1.4 SP Di USD", type: "Prime", icon: "lucide:circle-dot" },
-  { name: "EF STM 28-105mm", type: "Kit Lens", icon: "lucide:circle-dot" },
-  { name: "EF 50mm f/1.8 II", type: "Nifty Fifty", icon: "lucide:circle-dot" },
+  { name: "Canon EOS 40D", type: "Body" },
+  { name: "EF 70-200mm f/4L IS USM", type: "Telephoto" },
+  { name: "Tamron 35mm f/1.4 SP Di USD", type: "Prime" },
+  { name: "EF STM 28-105mm", type: "Kit Lens" },
+  { name: "EF 50mm f/1.8 II", type: "Nifty Fifty" },
 ];
 
 const productionExperience = [
@@ -33,100 +33,69 @@ const musicBackground = [
     instrument: "Piano",
     years: 9,
     highlight: "CM Level 10",
+    award: "CM Level 10 — Piano",
     icon: "lucide:piano",
   },
   {
     instrument: "Trombone",
     years: 8,
     highlight: "HS Band & Jazz Band",
+    award: "2nd Place — Folsom Jazz Festival",
     icon: "lucide:music",
   },
 ];
 
-const awards = [
-  {
-    title: "CM Level 10 — Piano",
-    org: "Certificate of Merit",
-    icon: "lucide:award",
-  },
-  {
-    title: "2nd Place — Folsom Jazz Festival",
-    org: "Jazz Band",
-    icon: "lucide:trophy",
-  },
-];
-
-// Card styles — warm earthy tones on parchment background
-const amberCard =
-  "rounded-xl border border-amber-700/15 bg-amber-800/[0.06] hover:border-amber-700/25 transition-colors";
-const purpleCard =
-  "rounded-xl border border-purple-800/15 bg-purple-900/[0.06] hover:border-purple-800/25 transition-colors";
+const card =
+  "rounded-2xl border border-white/10 bg-white/[0.04] hover:border-white/15 transition-colors";
 
 export default function CreativeSection({ c200Src }: { c200Src?: string }) {
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-28">
+    <div className="w-full max-w-5xl mx-auto space-y-28">
       {/* ── Photography & Production ── */}
       <div>
         <ScrollReveal>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-500/30" />
-            <span className="text-xs uppercase tracking-[0.3em] text-amber-600 font-medium">
-              Photography & Production
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/30" />
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.1}>
-          <p
-            className="text-center text-sm mb-12 max-w-lg mx-auto"
-            style={{ color: "var(--section-muted)" }}
-          >
-            Freelance photographer and production crew member with experience
-            behind both the camera and the switcher.
+          <h2 className="text-3xl font-bold mb-3">
+            Photography & Production
+          </h2>
+          <p className="text-base text-gray-400 mb-12 max-w-xl">
+            Freelance photographer and production crew member — behind both
+            the camera and the switcher.
           </p>
         </ScrollReveal>
 
         {/* Production Experience — featured with C200 image */}
         <ScrollReveal animation="fadeUp" delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mb-14">
             {c200Src && (
               <div
-                className={`relative overflow-hidden ${amberCard} p-8 flex items-center justify-center`}
+                className={`${card} p-10 flex items-center justify-center`}
               >
                 <img
                   src={c200Src}
                   alt="Canon C200 cinema camera"
-                  className="max-h-56 object-contain opacity-90 select-none"
+                  className="max-h-64 object-contain select-none"
                   draggable={false}
                 />
               </div>
             )}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {productionExperience.map((exp) => (
                 <div
                   key={exp.title}
-                  className={`relative overflow-hidden ${amberCard} p-5 flex-1`}
+                  className={`${card} p-6 flex-1 flex items-start gap-4`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/15 border border-amber-500/20 shrink-0">
-                      <Icon
-                        icon={exp.icon}
-                        className="w-5 h-5 text-amber-600"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold">{exp.title}</h4>
-                      <p className="text-xs text-amber-600 font-medium">
-                        {exp.detail}
-                      </p>
-                      <p
-                        className="text-xs mt-1"
-                        style={{ color: "var(--section-muted)" }}
-                      >
-                        {exp.context}
-                      </p>
-                    </div>
+                  <Icon
+                    icon={exp.icon}
+                    className="w-6 h-6 mt-0.5 shrink-0 text-gray-500"
+                  />
+                  <div>
+                    <h3 className="text-lg font-semibold">{exp.title}</h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                      {exp.detail}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {exp.context}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -134,144 +103,85 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           </div>
         </ScrollReveal>
 
-        {/* Gear Grid */}
+        {/* Gear */}
         <ScrollReveal animation="fadeUp" delay={0.15}>
           <h3 className="text-lg font-semibold mb-4">My Gear</h3>
-        </ScrollReveal>
-
-        <StaggerContainer
-          stagger={0.08}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-        >
-          {gear.map((item) => (
-            <StaggerItem key={item.name}>
-              <div
-                className={`flex items-center gap-3 rounded-lg border border-amber-600/20 bg-amber-500/10 p-4 hover:border-amber-600/30 transition-colors`}
+          <div className="flex flex-wrap gap-3">
+            {gear.map((item) => (
+              <span
+                key={item.name}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm"
               >
-                <Icon
-                  icon={item.icon}
-                  className="w-5 h-5 text-amber-600 shrink-0"
-                />
-                <div>
-                  <p className="text-sm font-medium">{item.name}</p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "var(--section-muted)" }}
-                  >
-                    {item.type}
-                  </p>
-                </div>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
+                {item.name}
+                <span className="text-xs text-gray-500">{item.type}</span>
+              </span>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
 
       {/* ── Music ── */}
       <div>
         <ScrollReveal>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-purple-500/30" />
-            <span className="text-xs uppercase tracking-[0.3em] text-purple-600 font-medium">
-              Music
-            </span>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-purple-500/30" />
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.1}>
-          <p
-            className="text-center text-sm mb-12 max-w-lg mx-auto"
-            style={{ color: "var(--section-muted)" }}
-          >
-            Pianist, trombonist, and composer. Find my original music on
-            streaming platforms.
+          <h2 className="text-3xl font-bold mb-3">
+            Music
+          </h2>
+          <p className="text-base text-gray-400 mb-12 max-w-xl">
+            Pianist, trombonist, and composer.
           </p>
         </ScrollReveal>
 
         {/* Instruments */}
         <StaggerContainer
           stagger={0.15}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mb-14"
         >
           {musicBackground.map((m) => (
             <StaggerItem key={m.instrument}>
-              <div className={`relative overflow-hidden ${purpleCard} p-6`}>
-                <div className="flex items-center justify-between">
+              <div className={`${card} p-7`}>
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-500/15 border border-purple-500/20">
-                      <Icon
-                        icon={m.icon}
-                        className="w-5 h-5 text-purple-600"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-semibold">{m.instrument}</h4>
-                      <p className="text-xs text-purple-600 font-medium">
-                        {m.highlight}
-                      </p>
-                    </div>
+                    <Icon
+                      icon={m.icon}
+                      className="w-6 h-6 text-gray-500"
+                    />
+                    <h3 className="text-xl font-bold">{m.instrument}</h3>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-bold opacity-90">
+                    <span className="text-3xl font-bold text-white/70">
                       {m.years}
                     </span>
-                    <p
-                      className="text-[10px] uppercase tracking-wider"
-                      style={{ color: "var(--section-muted)" }}
-                    >
+                    <p className="text-xs uppercase tracking-wider text-gray-500">
                       years
                     </p>
                   </div>
                 </div>
+                <p className="text-sm text-gray-400">
+                  {m.highlight}
+                </p>
+                {m.award && (
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
+                    <Icon icon="lucide:award" className="w-4 h-4 shrink-0 text-gray-500" />
+                    <p className="text-sm">{m.award}</p>
+                  </div>
+                )}
               </div>
             </StaggerItem>
           ))}
         </StaggerContainer>
 
-        {/* Awards */}
-        <ScrollReveal animation="fadeUp">
-          <h3 className="text-lg font-semibold mb-4">Awards</h3>
-        </ScrollReveal>
-
-        <StaggerContainer stagger={0.1} className="space-y-2 mb-10">
-          {awards.map((award) => (
-            <StaggerItem key={award.title}>
-              <div
-                className={`flex items-center gap-3 rounded-lg border border-purple-600/20 bg-purple-500/10 p-4 hover:border-purple-600/30 transition-colors`}
-              >
-                <Icon
-                  icon={award.icon}
-                  className="w-5 h-5 text-amber-600 shrink-0"
-                />
-                <div>
-                  <p className="text-sm font-medium">{award.title}</p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "var(--section-muted)" }}
-                  >
-                    {award.org}
-                  </p>
-                </div>
-              </div>
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
-
-        {/* Streaming Links */}
-        <ScrollReveal animation="scaleUp" delay={0.1}>
-          <div
-            className={`flex flex-col items-center gap-6 ${purpleCard} p-10`}
-          >
-            <p className="text-base font-medium">
-              Listen to my original music
+        {/* Streaming Links — standalone CTA */}
+        <ScrollReveal animation="fadeUp" delay={0.1}>
+          <div className="text-center space-y-6 pt-6">
+            <p className="text-2xl font-bold">
+              Listen to my music
             </p>
-            <div className="flex gap-4">
+            <div className="flex justify-center gap-4 flex-wrap">
               <a
                 href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/30 px-6 py-3 text-base font-medium text-[#1DB954] hover:bg-[#1DB954]/20 transition-colors"
+                className="flex items-center gap-2.5 rounded-full bg-[#1DB954] px-7 py-3.5 text-base font-medium text-white hover:bg-[#1ed760] transition-colors"
               >
                 <Icon icon="simple-icons:spotify" className="w-5 h-5" />
                 Spotify
@@ -280,7 +190,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
                 href="https://music.apple.com/us/artist/bryan-hu/1751789628"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 rounded-full bg-[#FC3C44]/10 border border-[#FC3C44]/30 px-6 py-3 text-base font-medium text-[#FC3C44] hover:bg-[#FC3C44]/20 transition-colors"
+                className="flex items-center gap-2.5 rounded-full bg-[#FC3C44] px-7 py-3.5 text-base font-medium text-white hover:bg-[#fd5158] transition-colors"
               >
                 <Icon icon="simple-icons:applemusic" className="w-5 h-5" />
                 Apple Music
