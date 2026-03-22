@@ -28,7 +28,7 @@ export default function Repo({
     <a href={`https://github.com/ThatXliner/${name}`}>
       <div
         className={cn(
-          "relative w-80 cursor-pointer overflow-hidden rounded-lg border p-4 transition-colors",
+          "relative w-64 sm:w-80 cursor-pointer overflow-hidden rounded-lg border p-4 transition-colors",
           // light styles
           " border-gray-300 bg-white hover:bg-gray-50",
           // dark styles

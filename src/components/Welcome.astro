@@ -32,8 +32,7 @@ const icons = [
         class="relative z-10 flex flex-col h-full w-full items-center justify-center gap-4 px-6 text-center"
     >
         <!-- TODO: animate this in -->
-        <div class="flex space-x-3 space-y-3 items-center justify-center">
-            <!-- <div class="flex flex-col items-center justify-center space-y-4"> -->
+        <div class="flex flex-col md:flex-row space-y-3 md:space-x-3 md:space-y-0 items-center justify-center">
             <div class="flex-col space-y-0">
                 <h1 class="text-foreground text-4xl font-bold md:text-7xl">
                     Hi, I'm Bryan
@@ -55,8 +54,8 @@ const icons = [
                                 <Icon
                                     class="skill"
                                     name={icon}
-                                    size={50}
-                                    class="hover-glow"
+                                    size={40}
+                                    class="hover-glow md:w-[50px] md:h-[50px]"
                                 />
                             </PerspectiveHoverCard>
                         ))
@@ -65,12 +64,11 @@ const icons = [
                 <p class="text-slate-200/80">and much more...</p>
             </div>
 
-            <!-- </div> -->
             <Image
                 src={me}
                 draggable="false"
                 alt="Bryan Hu standing"
-                class="ml-5 select-none"
+                class="ml-0 md:ml-5 select-none w-32 sm:w-48 md:w-[300px]"
                 width="300"
             />
         </div>
