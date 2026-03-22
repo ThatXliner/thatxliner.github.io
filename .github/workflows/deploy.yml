@@ -24,7 +24,6 @@ jobs:
         uses: withastro/action@v2
         with:
           package-manager: bun@latest
-          node-version: 21 # The specific version of Node that should be used to build your site. Defaults to 16. (optional)
         env: # Or as an environment variable
           ASTRO_GITHUB_TOKEN: ${{ secrets.ASTRO_GITHUB_TOKEN }}
 
