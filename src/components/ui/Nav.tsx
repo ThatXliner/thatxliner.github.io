@@ -8,12 +8,18 @@ export default function Nav() {
       >
         Code
       </a>
-      {/*<a
-        href="#craft"
+      <a
+        href="#projects"
         className="transition-all duration-300 px-10 hover:underline hover:text-white hover:drop-shadow-[0_0_120px_rgba(255,255,255,0.6)]"
       >
-        Craft
-      </a>*/}
+        Projects
+      </a>
+      <a
+        href="#creative"
+        className="transition-all duration-300 px-10 hover:underline hover:text-white hover:drop-shadow-[0_0_120px_rgba(255,255,255,0.6)]"
+      >
+        Creative
+      </a>
       <a
         href="#contact"
         className="transition-all duration-300 px-10 hover:underline hover:text-white hover:drop-shadow-[0_0_120px_rgba(255,255,255,0.6)]"

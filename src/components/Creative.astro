@@ -1,0 +1,26 @@
+---
+import { TextAnimate } from "./ui/text-animate";
+import { LightRays } from "./ui/light-rays";
+import CreativeSection from "./ui/CreativeSection";
+---
+
+<div class="w-full py-16 px-6" id="creative">
+  <h1
+    class="text-6xl font-bold text-center mb-4 hover-glow pointer-events-none"
+  >
+    Creative Work
+  </h1>
+  <p
+    class="text-center text-lg text-slate-200/60 mb-16 max-w-2xl mx-auto italic"
+  >
+    <TextAnimate
+      animation="blurIn"
+      as="p"
+      client:only
+      text="Photography, production, and music"
+    />
+  </p>
+
+  <CreativeSection client:only />
+  <LightRays />
+</div>

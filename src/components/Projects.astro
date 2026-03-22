@@ -1,0 +1,229 @@
+---
+import ProjectCard from "./ui/ProjectCard";
+import type { Project } from "./ui/ProjectCard";
+import ContributionCard from "./ui/ContributionCard";
+import type { Contribution } from "./ui/ContributionCard";
+import { TextAnimate } from "./ui/text-animate";
+import { LightRays } from "./ui/light-rays";
+
+async function getRepoHomepage(repoName: string): Promise<string | null> {
+  const token = import.meta.env.ASTRO_GITHUB_TOKEN;
+  if (!token) return null;
+  const res = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      query: `query { viewer { repository(name: "${repoName}") { homepageUrl } } }`,
+    }),
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.data?.viewer?.repository?.homepageUrl || null;
+}
+
+const quilliumUrl = await getRepoHomepage("Quillium") ?? "https://github.com/ThatXliner/Quillium";
+
+const projects: Project[] = [
+  {
+    name: "aioudp",
+    tagline: "Async UDP for Python",
+    description:
+      "A **websockets|https://websockets.readthedocs.io/**-inspired **async/await** API for **UDP** in Python. Provides a clean, high-level interface for UDP communication with full **asyncio|https://docs.python.org/3/library/asyncio.html** support. Published on **PyPI|https://pypi.org/project/aioudp/** with complete documentation on **ReadTheDocs|https://aioudp.readthedocs.io/**.",
+    url: "https://github.com/ThatXliner/aioudp",
+    language: "Python",
+    languageColor: "#3572A5",
+    stars: 18,
+    tags: ["asyncio", "networking", "PyPI"],
+    icon: "logos:python",
+  },
+  {
+    name: "unmarkd",
+    tagline: "HTML to Markdown, reversed",
+    description:
+      "An extremely configurable **HTML-to-Markdown** converter built on **BeautifulSoup4|https://www.crummy.com/software/BeautifulSoup/**. Highly extensible via subclassing — customize tag conversion, code block language detection, list formatting, and more. Published on **PyPI|https://pypi.org/project/unmarkd/**.",
+    url: "https://github.com/ThatXliner/unmarkd",
+    language: "Python",
+    languageColor: "#3572A5",
+    stars: 16,
+    tags: ["markdown", "HTML", "PyPI"],
+    icon: "lucide:file-text",
+  },
+  {
+    name: "pyt2",
+    tagline: "Opinionated Python project template",
+    description:
+      "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with **Poetry|https://python-poetry.org/**, **pre-commit|https://pre-commit.com/**, **Ruff|https://docs.astral.sh/ruff/**, **MyPy|https://mypy-lang.org/**, **Hypothesis|https://hypothesis.readthedocs.io/** testing, multi-platform **GitHub Actions CI|https://github.com/features/actions**, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and **Sphinx|https://www.sphinx-doc.org/** docs.",
+    url: "https://github.com/ThatXliner/pyt2",
+    language: "Jinja",
+    languageColor: "#a52a22",
+    stars: 14,
+    tags: ["devtools", "template", "CI/CD"],
+    icon: "lucide:layout-template",
+  },
+  {
+    name: "idae",
+    tagline: "PEP 723 script runner",
+    description:
+      "Run standalone Python scripts that declare their dependencies inline via **PEP 723|https://peps.python.org/pep-0723/** metadata comments. Automatically creates **cached virtual environments**, installs dependencies, and executes the script. Published on **PyPI|https://pypi.org/project/idae/**.",
+    url: "https://github.com/ThatXliner/idae",
+    language: "Python",
+    languageColor: "#3572A5",
+    stars: 11,
+    tags: ["PEP 723", "devtools", "PyPI"],
+    icon: "lucide:play",
+  },
+  {
+    name: "billion",
+    tagline: "Congressional App Challenge winner",
+    description:
+      "A collaborative app with **AI-generated video** feed integration and **web scraping**. Won **3rd place** in the 2025 **Congressional App Challenge|https://www.congressionalappchallenge.us/** for California's 19th District.",
+    url: "https://github.com/billion-app/billion",
+    language: "TypeScript",
+    languageColor: "#3178c6",
+    stars: 3,
+    tags: ["AI", "Next.js", "award"],
+    icon: "lucide:award",
+    award: "3rd Place CAC 2025",
+  },
+  {
+    name: "FADAIG",
+    tagline: "For Absolutely Destroying An iMessage Game",
+    description:
+      "A hardware/software bot that physically plays the GamePigeon Word Hunt game. An **Arduino Leonardo|https://docs.arduino.cc/hardware/leonardo/** connected to an iPhone solves the word grid algorithmically and inputs swipe gestures via **USB HID|https://en.wikipedia.org/wiki/USB_human_interface_device_class** — bridging software and hardware for maximum overkill.",
+    url: "https://github.com/ThatXliner/FADAIG",
+    language: "Python",
+    languageColor: "#3572A5",
+    stars: 7,
+    tags: ["Arduino", "hardware", "automation"],
+    icon: "simple-icons:arduino",
+  },
+  {
+    name: "Quillium",
+    tagline: "Prose for Pros. The Element of Thought.",
+    description:
+      "A next-generation writing application with deep **AI integration** — **OpenAI Codex|https://openai.com/index/openai-codex/** suggestions, an AutoAI collaborator, revision/version system, document management, and annotation features. Very actively developed.",
+    url: quilliumUrl,
+    language: "TypeScript",
+    languageColor: "#3178c6",
+    tags: ["AI", "writing", "editor"],
+    icon: "lucide:pen-tool",
+  },
+  {
+    name: "LJV",
+    tagline: "Lissajous music visualizer",
+    description:
+      "A real-time music visualizer that creates **Lissajous curves|https://en.wikipedia.org/wiki/Lissajous_curve** from audio files. Uses **WebGL2|https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext** for hardware-accelerated 60fps rendering with additive blending trail effects. Packaged as a native desktop app via **Tauri|https://tauri.app/**.",
+    url: "https://github.com/ThatXliner/ljv",
+    language: "Svelte",
+    languageColor: "#ff3e00",
+    stars: 2,
+    tags: ["WebGL", "Tauri", "audio"],
+    icon: "lucide:audio-waveform",
+  },
+  {
+    name: "obsidian-supergraph",
+    tagline: "Card-based graph view for Obsidian",
+    description:
+      "An **Obsidian|https://obsidian.md/** plugin providing a zoomable graph view that shows note titles and snippet previews as cards. Features smart zoom levels, drag-and-drop, click-to-open, auto-updating, and link visualization.",
+    url: "https://github.com/ThatXliner/obsidian-supergraph",
+    language: "TypeScript",
+    languageColor: "#3178c6",
+    stars: 2,
+    tags: ["Obsidian", "plugin", "graph"],
+    icon: "lucide:network",
+  },
+  {
+    name: "ipdt",
+    tagline: "Iterated Prisoner's Dilemma tournament",
+    description:
+      "A tournament engine for the **Iterated Prisoner's Dilemma|https://en.wikipedia.org/wiki/Prisoner%27s_dilemma#The_iterated_prisoner's_dilemma** in Rust. Supports **Lua|https://www.lua.org/** and **Python** strategies with planned **WASM|https://webassembly.org/** support. A computational exploration of game theory and emergent cooperation.",
+    url: "https://github.com/ThatXliner/ipdt",
+    language: "Rust",
+    languageColor: "#dea584",
+    stars: 1,
+    tags: ["game theory", "Lua", "simulation"],
+    icon: "simple-icons:rust",
+  },
+];
+
+const contributions = [
+  {
+    name: "VC Assist",
+    role: "Co-founder",
+    description:
+      "A student-run, not-for-profit organization enhancing digital educational infrastructure at Valley Christian Schools. Built frontend, backend, and web scrapers; later rewrote the entire frontend.",
+    url: "https://vcassist.org",
+    icon: "lucide:graduation-cap",
+  },
+  {
+    name: "VCSD Club",
+    role: "Founder",
+    description:
+      "Founded the Valley Christian High School Software Development Club. Built the club website and educational projects like restlock-holmes, a game teaching REST APIs.",
+    url: "https://vcsdclub.org",
+    icon: "lucide:users",
+  },
+  {
+    name: "FRC Team 3256",
+    role: "Programmer",
+    description:
+      "Contributed significantly to robot programming for the 2024 and 2025 seasons: elevator subsystem, 3D simulation, controller mapping, anti-tip logic, logging infrastructure, and scouting tools built with Tauri 2.0.",
+    url: "https://github.com/Team3256",
+    icon: "simple-icons:first",
+  },
+];
+---
+
+<div class="w-full py-16 px-6" id="projects">
+  <h1
+    class="text-6xl font-bold text-center mb-4 hover-glow pointer-events-none"
+  >
+    Featured Projects
+  </h1>
+  <p
+    class="text-center text-lg text-slate-200/60 mb-12 max-w-2xl mx-auto italic"
+  >
+    <TextAnimate
+      animation="blurIn"
+      as="p"
+      client:only
+      text="A closer look at my most notable work"
+    />
+  </p>
+
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+    {
+      projects.map((project) => (
+        <ProjectCard client:only project={project} />
+      ))
+    }
+  </div>
+
+  <h2
+    class="text-4xl font-bold text-center mt-24 mb-4 hover-glow pointer-events-none"
+  >
+    Community & Contributions
+  </h2>
+  <p
+    class="text-center text-lg text-slate-200/60 mb-12 max-w-2xl mx-auto italic"
+  >
+    <TextAnimate
+      animation="blurIn"
+      as="p"
+      client:only
+      text="Organizations I've built and contributed to"
+    />
+  </p>
+
+  <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+    {
+      contributions.map((c) => (
+        <ContributionCard client:only contribution={c} />
+      ))
+    }
+  </div>
+  <LightRays />
+</div>
