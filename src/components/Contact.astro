@@ -1,7 +1,9 @@
 ---
 import ContactBar from "./ui/contact-bar";
+import DarkTransition from "./ui/DarkTransition";
 ---
 
+<DarkTransition client:only />
 <div class="h-screen flex flex-col items-center justify-center gap-6" id="contact">
     <span
         class="pointer-events-none bg-linear-to-b from-purple-400 to-amber-500/80 bg-clip-text text-center text-8xl leading-none font-semibold text-transparent"
@@ -18,7 +20,4 @@ import ContactBar from "./ui/contact-bar";
         thatxliner@gmail.com
     </a>
     <ContactBar client:only />
-    <p class="absolute bottom-6 text-gray-600 text-xs">
-        Built with <a href="https://astro.build" class="hover:text-gray-400 transition-colors">Astro</a>
-    </p>
 </div>
