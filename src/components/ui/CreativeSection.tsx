@@ -4,6 +4,7 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "./ScrollReveal";
+import AudioVisualizer from "./AudioVisualizer";
 
 const gear = [
   { name: "Canon EOS 40D", type: "Body" },
@@ -50,11 +51,11 @@ const card =
 
 export default function CreativeSection({ c200Src }: { c200Src?: string }) {
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-28">
-      {/* ── Photography & Production ── */}
+    <div className="w-full max-w-5xl mx-auto space-y-20">
+      {/* ── Photography & Production — Bento Grid ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-3xl font-bold mb-3 text-center">
+          <h2 className="text-5xl font-bold mb-3 text-center">
             Photography & Production
           </h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
@@ -63,83 +64,85 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           </p>
         </ScrollReveal>
 
-        {/* Production Experience — featured with C200 image */}
-        <ScrollReveal animation="fadeUp" delay={0.1}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto mb-14">
-            {c200Src && (
+        <StaggerContainer
+          stagger={0.1}
+          className="grid grid-cols-2 md:grid-cols-4 auto-rows-[160px] gap-4 max-w-4xl mx-auto"
+        >
+          {/* C200 image — tall, spans 2 rows */}
+          {c200Src && (
+            <StaggerItem className="col-span-2 row-span-2">
               <div
-                className={`${card} p-10 flex items-center justify-center`}
+                className={`${card} p-8 h-full flex items-center justify-center`}
               >
                 <img
                   src={c200Src}
                   alt="Canon C200 cinema camera"
-                  className="max-h-64 object-contain select-none"
+                  className="max-h-full object-contain select-none"
                   draggable={false}
                 />
               </div>
-            )}
-            <div className="flex flex-col gap-4">
-              {productionExperience.map((exp) => (
-                <div
-                  key={exp.title}
-                  className={`${card} p-6 flex-1 flex items-start gap-4`}
-                >
-                  <Icon
-                    icon={exp.icon}
-                    className="w-6 h-6 mt-0.5 shrink-0 text-gray-500"
-                  />
-                  <div>
-                    <h3 className="text-lg font-semibold">{exp.title}</h3>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {exp.detail}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {exp.context}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </ScrollReveal>
+            </StaggerItem>
+          )}
 
-        {/* Gear */}
-        <ScrollReveal animation="fadeUp" delay={0.15}>
-          <h3 className="text-lg font-semibold mb-4 text-center">My Gear</h3>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {gear.map((item) => (
-              <span
-                key={item.name}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm"
+          {/* Production experience cards */}
+          {productionExperience.map((exp) => (
+            <StaggerItem key={exp.title} className="col-span-2 md:col-span-2">
+              <div
+                className={`${card} p-6 h-full flex items-start gap-4`}
               >
-                {item.name}
-                <span className="text-xs text-gray-500">{item.type}</span>
-              </span>
-            ))}
-          </div>
-        </ScrollReveal>
+                <Icon
+                  icon={exp.icon}
+                  className="w-6 h-6 mt-0.5 shrink-0 text-gray-500"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{exp.title}</h3>
+                  <p className="text-sm text-gray-400 mt-1">{exp.detail}</p>
+                  <p className="text-sm text-gray-500 mt-1">{exp.context}</p>
+                </div>
+              </div>
+            </StaggerItem>
+          ))}
+
+          {/* Gear — wide card spanning full width */}
+          <StaggerItem className="col-span-2 md:col-span-4">
+            <div className={`${card} p-6 h-full flex flex-col justify-center`}>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                My Gear
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {gear.map((item) => (
+                  <span
+                    key={item.name}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-sm"
+                  >
+                    {item.name}
+                    <span className="text-xs text-gray-500">{item.type}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </StaggerItem>
+        </StaggerContainer>
       </div>
 
-      {/* ── Music ── */}
+      {/* ── Music — Bento Grid ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-3xl font-bold mb-3 text-center">
-            Music
-          </h2>
+          <h2 className="text-5xl font-bold mb-3 text-center">Music</h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
             Pianist, trombonist, and composer.
           </p>
         </ScrollReveal>
 
-        {/* Instruments */}
         <StaggerContainer
-          stagger={0.15}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto mb-14"
+          stagger={0.12}
+          className="grid grid-cols-2 md:grid-cols-4 auto-rows-[180px] gap-4 max-w-4xl mx-auto"
         >
+          {/* Instrument cards */}
           {musicBackground.map((m) => (
-            <StaggerItem key={m.instrument}>
-              <div className={`${card} p-7`}>
-                <div className="flex items-start justify-between mb-4">
+            <StaggerItem key={m.instrument} className="col-span-2">
+              <div className={`${card} p-7 h-full flex flex-col justify-between`}>
+                <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Icon
                       icon={m.icon}
@@ -156,48 +159,52 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-400">
-                  {m.highlight}
-                </p>
-                {m.award && (
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]">
-                    <Icon icon="lucide:award" className="w-4 h-4 shrink-0 text-gray-500" />
-                    <p className="text-sm">{m.award}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-gray-400">{m.highlight}</p>
+                  {m.award && (
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/[0.06]">
+                      <Icon
+                        icon="lucide:award"
+                        className="w-4 h-4 shrink-0 text-gray-500"
+                      />
+                      <p className="text-sm">{m.award}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </StaggerItem>
           ))}
-        </StaggerContainer>
 
-        {/* Streaming Links — standalone CTA */}
-        <ScrollReveal animation="fadeUp" delay={0.1}>
-          <div className="text-center space-y-6 pt-6">
-            <p className="text-2xl font-bold">
-              Listen to my music
-            </p>
-            <div className="flex justify-center gap-4 flex-wrap">
-              <a
-                href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 rounded-full bg-[#1DB954] px-7 py-3.5 text-base font-medium text-white hover:bg-[#1ed760] transition-colors"
-              >
-                <Icon icon="simple-icons:spotify" className="w-5 h-5" />
-                Spotify
-              </a>
-              <a
-                href="https://music.apple.com/us/artist/bryan-hu/1751789628"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 rounded-full bg-[#FC3C44] px-7 py-3.5 text-base font-medium text-white hover:bg-[#fd5158] transition-colors"
-              >
-                <Icon icon="simple-icons:applemusic" className="w-5 h-5" />
-                Apple Music
-              </a>
+          {/* Audio visualizer + streaming links — wide card */}
+          <StaggerItem className="col-span-2 md:col-span-4 row-span-2">
+            <div
+              className={`${card} p-8 h-full flex flex-col items-center justify-center gap-6`}
+            >
+              <AudioVisualizer className="w-full max-w-xs" />
+              <p className="text-2xl font-bold">Listen to my music</p>
+              <div className="flex justify-center gap-4 flex-wrap">
+                <a
+                  href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-full bg-[#1DB954] px-7 py-3.5 text-base font-medium text-white hover:bg-[#1ed760] transition-colors"
+                >
+                  <Icon icon="simple-icons:spotify" className="w-5 h-5" />
+                  Spotify
+                </a>
+                <a
+                  href="https://music.apple.com/us/artist/bryan-hu/1751789628"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-full bg-[#FC3C44] px-7 py-3.5 text-base font-medium text-white hover:bg-[#fd5158] transition-colors"
+                >
+                  <Icon icon="simple-icons:applemusic" className="w-5 h-5" />
+                  Apple Music
+                </a>
+              </div>
             </div>
-          </div>
-        </ScrollReveal>
+          </StaggerItem>
+        </StaggerContainer>
       </div>
     </div>
   );
