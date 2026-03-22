@@ -9,8 +9,7 @@ import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://thatxliner.github.io",
-  base: "/resume",
+  site: "https://bryanhu.com",
   vite: {
     plugins: [tailwindcss()],
   },
