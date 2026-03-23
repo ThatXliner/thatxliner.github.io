@@ -1,9 +1,5 @@
 import { Icon } from "@iconify/react";
-import {
-  ScrollReveal,
-  StaggerContainer,
-  StaggerItem,
-} from "./ScrollReveal";
+import { ScrollReveal, StaggerContainer, StaggerItem } from "./ScrollReveal";
 import AudioVisualizer from "./AudioVisualizer";
 
 const gear = [
@@ -33,7 +29,7 @@ const musicBackground = [
   {
     instrument: "Piano",
     years: 9,
-    highlight: "CM Level 10",
+    highlight: "Solo Pianist",
     award: "CM Level 10 — Piano",
     icon: "lucide:piano",
   },
@@ -59,8 +55,8 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
             Photography & Production
           </h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
-            Freelance photographer and production crew member — behind both
-            the camera and the switcher.
+            Freelance photographer and production crew member — behind both the
+            camera and the switcher.
           </p>
         </ScrollReveal>
 
@@ -87,9 +83,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           {/* Production experience cards */}
           {productionExperience.map((exp) => (
             <StaggerItem key={exp.title} className="col-span-2 md:col-span-2">
-              <div
-                className={`${card} p-6 h-full flex items-start gap-4`}
-              >
+              <div className={`${card} p-6 h-full flex items-start gap-4`}>
                 <Icon
                   icon={exp.icon}
                   className="w-6 h-6 mt-0.5 shrink-0 text-gray-500"
@@ -128,7 +122,9 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
       {/* ── Music — Bento Grid ── */}
       <div>
         <ScrollReveal>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 text-center">Music</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 text-center">
+            Music
+          </h2>
           <p className="text-base text-gray-400 mb-12 max-w-xl mx-auto text-center">
             Pianist, trombonist, and composer.
           </p>
@@ -141,13 +137,12 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           {/* Instrument cards */}
           {musicBackground.map((m) => (
             <StaggerItem key={m.instrument} className="col-span-2">
-              <div className={`${card} p-7 h-full flex flex-col justify-between`}>
+              <div
+                className={`${card} p-7 h-full flex flex-col justify-between`}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <Icon
-                      icon={m.icon}
-                      className="w-6 h-6 text-gray-500"
-                    />
+                    <Icon icon={m.icon} className="w-6 h-6 text-gray-500" />
                     <h3 className="text-xl font-bold">{m.instrument}</h3>
                   </div>
                   <div className="text-right">
