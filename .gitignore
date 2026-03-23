@@ -20,6 +20,9 @@ pnpm-debug.log*
 # cache
 .cache/
 
+# generated files
+public/resume.pdf
+
 # macOS-specific files
 .DS_Store
 

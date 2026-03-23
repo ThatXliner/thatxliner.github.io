@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "generate:resume": "bun run scripts/generate-resume-pdf.ts",
     "preview": "astro preview",
     "astro": "astro",
     "maintain": "bun run scripts/maintain.ts"
