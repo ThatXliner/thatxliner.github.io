@@ -8,261 +8,302 @@ import type { Contribution } from "./ui/ContributionCard";
 import { Icon } from "astro-icon/components";
 
 const awards = [
-  { label: "USACO Silver", icon: "lucide:code", url: "https://usaco.org/" },
-  { label: "picoCTF 2026 — 174th / 8,747", icon: "lucide:shield", url: "https://picoctf.org/" },
+    // { label: "USACO Silver", icon: "lucide:code", url: "https://usaco.org/" },
+    {
+        label: "picoCTF 2026 — 174th / 8,747",
+        icon: "lucide:shield",
+        url: "https://picoctf.org/",
+    },
 ];
 
 const frcAwards = [
-  // 2025
-  { label: "Creativity Award — Daly Division (Champs)", year: 2025, url: "https://www.thebluealliance.com/event/2025dal#awards" },
-  { label: "Excellence in Engineering — Contra Costa Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025capt#awards" },
-  { label: "Innovation in Control — Ventura County Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025cave#awards" },
-  { label: "Engineering Inspiration — San Francisco Regional", year: 2025, url: "https://www.thebluealliance.com/event/2025casf#awards" },
-  { label: "Judges' Award — Capital City Classic", year: 2025, url: "https://www.thebluealliance.com/event/2025cacc#awards" },
-  // 2024
-  { label: "Regional Finalists — Silicon Valley Regional", year: 2024, url: "https://www.thebluealliance.com/event/2024casj#awards" },
-  { label: "Engineering Inspiration — Arizona Valley Regional", year: 2024, url: "https://www.thebluealliance.com/event/2024azva#awards" },
+    // 2025
+    {
+        label: "Creativity Award — Daly Division (Champs)",
+        year: 2025,
+        url: "https://www.thebluealliance.com/event/2025dal#awards",
+    },
+    {
+        label: "Excellence in Engineering — Contra Costa Regional",
+        year: 2025,
+        url: "https://www.thebluealliance.com/event/2025capt#awards",
+    },
+    {
+        label: "Innovation in Control — Ventura County Regional",
+        year: 2025,
+        url: "https://www.thebluealliance.com/event/2025cave#awards",
+    },
+    {
+        label: "Engineering Inspiration — San Francisco Regional",
+        year: 2025,
+        url: "https://www.thebluealliance.com/event/2025casf#awards",
+    },
+    {
+        label: "Judges' Award — Capital City Classic",
+        year: 2025,
+        url: "https://www.thebluealliance.com/event/2025cacc#awards",
+    },
+    // 2024
+    {
+        label: "Regional Finalists — Silicon Valley Regional",
+        year: 2024,
+        url: "https://www.thebluealliance.com/event/2024casj#awards",
+    },
+    {
+        label: "Engineering Inspiration — Arizona Valley Regional",
+        year: 2024,
+        url: "https://www.thebluealliance.com/event/2024azva#awards",
+    },
 ];
 
-
-
 async function getRepoHomepage(repoName: string): Promise<string | null> {
-  const token = import.meta.env.ASTRO_GITHUB_TOKEN;
-  if (!token) return null;
-  const res = await fetch("https://api.github.com/graphql", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      query: `query { viewer { repository(name: "${repoName}") { homepageUrl } } }`,
-    }),
-  });
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data?.viewer?.repository?.homepageUrl || null;
+    const token = import.meta.env.ASTRO_GITHUB_TOKEN;
+    if (!token) return null;
+    const res = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            query: `query { viewer { repository(name: "${repoName}") { homepageUrl } } }`,
+        }),
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data?.viewer?.repository?.homepageUrl || null;
 }
 
-const quilliumUrl = await getRepoHomepage("Quillium") ?? "https://github.com/ThatXliner/Quillium";
+const quilliumUrl =
+    (await getRepoHomepage("Quillium")) ??
+    "https://github.com/ThatXliner/Quillium";
 
 const projects: Project[] = [
-  {
-    name: "aioudp",
-    tagline: "Async UDP for Python",
-    description:
-      "A **websockets|https://websockets.readthedocs.io/**-inspired **async/await** API for **UDP** in Python. Provides a clean, high-level interface for UDP communication with full **asyncio|https://docs.python.org/3/library/asyncio.html** support. Published on **PyPI|https://pypi.org/project/aioudp/** with complete documentation on **ReadTheDocs|https://aioudp.readthedocs.io/**.",
-    url: "https://github.com/ThatXliner/aioudp",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 18,
-    tags: ["asyncio", "networking", "PyPI"],
-    icon: "logos:python",
-  },
-  {
-    name: "unmarkd",
-    tagline: "HTML to Markdown, reversed",
-    description:
-      "An extremely configurable **HTML-to-Markdown** converter built on **BeautifulSoup4|https://www.crummy.com/software/BeautifulSoup/**. Highly extensible via subclassing — customize tag conversion, code block language detection, list formatting, and more. Published on **PyPI|https://pypi.org/project/unmarkd/**.",
-    url: "https://github.com/ThatXliner/unmarkd",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 16,
-    tags: ["markdown", "HTML", "PyPI"],
-    icon: "lucide:file-text",
-  },
-  {
-    name: "pyt2",
-    tagline: "Opinionated Python project template",
-    description:
-      "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with Poetry, pre-commit, **Ruff|https://docs.astral.sh/ruff/**, MyPy, Hypothesis testing, multi-platform GitHub Actions CI, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and Sphinx docs.",
-    url: "https://github.com/ThatXliner/pyt2",
-    language: "Jinja",
-    languageColor: "#a52a22",
-    stars: 14,
-    tags: ["devtools", "template", "CI/CD"],
-    icon: "lucide:layout-template",
-  },
-  {
-    name: "idae",
-    tagline: "PEP 723 script runner",
-    description:
-      "Run standalone Python scripts that declare their dependencies inline via **PEP 723|https://peps.python.org/pep-0723/** metadata comments. Automatically creates **cached virtual environments**, installs dependencies, and executes the script. Published on **PyPI|https://pypi.org/project/idae/**.",
-    url: "https://github.com/ThatXliner/idae",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 11,
-    tags: ["PEP 723", "devtools", "PyPI"],
-    icon: "lucide:play",
-  },
-  {
-    name: "billion",
-    tagline: "Congressional App Challenge winner",
-    description:
-      "A collaborative app with **AI-generated video** feed integration and **web scraping**. Won **3rd place** in the 2025 **Congressional App Challenge|https://www.congressionalappchallenge.us/** for California's 19th District.",
-    url: "https://github.com/billion-app/billion",
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    stars: 3,
-    tags: ["AI", "Next.js", "award"],
-    icon: "lucide:award",
-    award: "3rd Place CAC 2025",
-  },
-  {
-    name: "FADAIG",
-    tagline: "For Absolutely Destroying An iMessage Game",
-    description:
-      "A hardware/software bot that physically plays the GamePigeon Word Hunt game. An **Arduino Leonardo|https://docs.arduino.cc/hardware/leonardo/** connected to an iPhone solves the word grid algorithmically and inputs swipe gestures via **USB HID|https://en.wikipedia.org/wiki/USB_human_interface_device_class** — bridging software and hardware for maximum overkill.",
-    url: "https://github.com/ThatXliner/FADAIG",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 7,
-    tags: ["Arduino", "hardware", "automation"],
-    icon: "simple-icons:arduino",
-  },
-  {
-    name: "Quillium",
-    tagline: "Prose for Pros. The Element of Thought.",
-    description:
-      "A next-generation writing application with deep **AI integration** — **OpenAI Codex|https://openai.com/index/openai-codex/** suggestions, an AutoAI collaborator, revision/version system, document management, and annotation features. Very actively developed.",
-    url: quilliumUrl,
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    tags: ["AI", "writing", "editor"],
-    icon: "lucide:pen-tool",
-  },
-  {
-    name: "LJV",
-    tagline: "Lissajous music visualizer",
-    description:
-      "A real-time music visualizer that creates **Lissajous curves|https://en.wikipedia.org/wiki/Lissajous_curve** from audio files. Uses **WebGL2|https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext** for hardware-accelerated 60fps rendering with additive blending trail effects. Packaged as a native desktop app via **Tauri|https://tauri.app/**.",
-    url: "https://github.com/ThatXliner/ljv",
-    language: "Svelte",
-    languageColor: "#ff3e00",
-    stars: 2,
-    tags: ["WebGL", "Tauri", "audio"],
-    icon: "lucide:audio-waveform",
-  },
-  {
-    name: "obsidian-supergraph",
-    tagline: "Card-based graph view for Obsidian",
-    description:
-      "An **Obsidian|https://obsidian.md/** plugin providing a zoomable graph view that shows note titles and snippet previews as cards. Features smart zoom levels, drag-and-drop, click-to-open, auto-updating, and link visualization.",
-    url: "https://github.com/ThatXliner/obsidian-supergraph",
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    stars: 2,
-    tags: ["Obsidian", "plugin", "graph"],
-    icon: "lucide:network",
-  },
-  {
-    name: "Slashtilities",
-    tagline: "Discord utility bot (retired)",
-    description:
-      "A slash command-based **Discord|https://discord.com/** utility bot. Built with **discord.py|https://discordpy.readthedocs.io/** providing various utility commands. Now retired.",
-    url: "https://github.com/ThatXliner/slashtilities",
-    language: "Python",
-    languageColor: "#3572A5",
-    tags: ["Discord", "bot", "retired"],
-    icon: "simple-icons:discord",
-  },
+    {
+        name: "aioudp",
+        tagline: "Async UDP for Python",
+        description:
+            "A **websockets|https://websockets.readthedocs.io/**-inspired **async/await** API for **UDP** in Python. Provides a clean, high-level interface for UDP communication with full **asyncio|https://docs.python.org/3/library/asyncio.html** support. Published on **PyPI|https://pypi.org/project/aioudp/** with complete documentation on **ReadTheDocs|https://aioudp.readthedocs.io/**.",
+        url: "https://github.com/ThatXliner/aioudp",
+        language: "Python",
+        languageColor: "#3572A5",
+        stars: 18,
+        tags: ["asyncio", "networking", "PyPI"],
+        icon: "logos:python",
+    },
+    {
+        name: "unmarkd",
+        tagline: "HTML to Markdown, reversed",
+        description:
+            "An extremely configurable **HTML-to-Markdown** converter built on **BeautifulSoup4|https://www.crummy.com/software/BeautifulSoup/**. Highly extensible via subclassing — customize tag conversion, code block language detection, list formatting, and more. Published on **PyPI|https://pypi.org/project/unmarkd/**.",
+        url: "https://github.com/ThatXliner/unmarkd",
+        language: "Python",
+        languageColor: "#3572A5",
+        stars: 16,
+        tags: ["markdown", "HTML", "PyPI"],
+        icon: "lucide:file-text",
+    },
+    {
+        name: "pyt2",
+        tagline: "Opinionated Python project template",
+        description:
+            "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with Poetry, pre-commit, **Ruff|https://docs.astral.sh/ruff/**, MyPy, Hypothesis testing, multi-platform GitHub Actions CI, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and Sphinx docs.",
+        url: "https://github.com/ThatXliner/pyt2",
+        language: "Jinja",
+        languageColor: "#a52a22",
+        stars: 14,
+        tags: ["devtools", "template", "CI/CD"],
+        icon: "lucide:layout-template",
+    },
+    {
+        name: "idae",
+        tagline: "PEP 723 script runner",
+        description:
+            "Run standalone Python scripts that declare their dependencies inline via **PEP 723|https://peps.python.org/pep-0723/** metadata comments. Automatically creates **cached virtual environments**, installs dependencies, and executes the script. Published on **PyPI|https://pypi.org/project/idae/**.",
+        url: "https://github.com/ThatXliner/idae",
+        language: "Python",
+        languageColor: "#3572A5",
+        stars: 11,
+        tags: ["PEP 723", "devtools", "PyPI"],
+        icon: "lucide:play",
+    },
+    {
+        name: "billion",
+        tagline: "Congressional App Challenge winner",
+        description:
+            "A collaborative app with **AI-generated video** feed integration and **web scraping**. Won **3rd place** in the 2025 **Congressional App Challenge|https://www.congressionalappchallenge.us/** for California's 19th District.",
+        url: "https://github.com/billion-app/billion",
+        language: "TypeScript",
+        languageColor: "#3178c6",
+        stars: 3,
+        tags: ["AI", "Next.js", "award"],
+        icon: "lucide:award",
+        award: "3rd Place CAC 2025",
+    },
+    {
+        name: "FADAIG",
+        tagline: "For Absolutely Destroying An iMessage Game",
+        description:
+            "A hardware/software bot that physically plays the GamePigeon Word Hunt game. An **Arduino Leonardo|https://docs.arduino.cc/hardware/leonardo/** connected to an iPhone solves the word grid algorithmically and inputs swipe gestures via **USB HID|https://en.wikipedia.org/wiki/USB_human_interface_device_class** — bridging software and hardware for maximum overkill.",
+        url: "https://github.com/ThatXliner/FADAIG",
+        language: "Python",
+        languageColor: "#3572A5",
+        stars: 7,
+        tags: ["Arduino", "hardware", "automation"],
+        icon: "simple-icons:arduino",
+    },
+    {
+        name: "Quillium",
+        tagline: "Prose for Pros. The Element of Thought.",
+        description:
+            "A next-generation writing application with deep **AI integration** — **OpenAI Codex|https://openai.com/index/openai-codex/** suggestions, an AutoAI collaborator, revision/version system, document management, and annotation features. Very actively developed.",
+        url: quilliumUrl,
+        language: "TypeScript",
+        languageColor: "#3178c6",
+        tags: ["AI", "writing", "editor"],
+        icon: "lucide:pen-tool",
+    },
+    {
+        name: "LJV",
+        tagline: "Lissajous music visualizer",
+        description:
+            "A real-time music visualizer that creates **Lissajous curves|https://en.wikipedia.org/wiki/Lissajous_curve** from audio files. Uses **WebGL2|https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext** for hardware-accelerated 60fps rendering with additive blending trail effects. Packaged as a native desktop app via **Tauri|https://tauri.app/**.",
+        url: "https://github.com/ThatXliner/ljv",
+        language: "Svelte",
+        languageColor: "#ff3e00",
+        stars: 2,
+        tags: ["WebGL", "Tauri", "audio"],
+        icon: "lucide:audio-waveform",
+    },
+    {
+        name: "obsidian-supergraph",
+        tagline: "Card-based graph view for Obsidian",
+        description:
+            "An **Obsidian|https://obsidian.md/** plugin providing a zoomable graph view that shows note titles and snippet previews as cards. Features smart zoom levels, drag-and-drop, click-to-open, auto-updating, and link visualization.",
+        url: "https://github.com/ThatXliner/obsidian-supergraph",
+        language: "TypeScript",
+        languageColor: "#3178c6",
+        stars: 2,
+        tags: ["Obsidian", "plugin", "graph"],
+        icon: "lucide:network",
+    },
+    {
+        name: "Slashtilities",
+        tagline: "Discord utility bot (retired)",
+        description:
+            "A slash command-based **Discord|https://discord.com/** utility bot. Built with **discord.py|https://discordpy.readthedocs.io/** providing various utility commands. Now retired.",
+        url: "https://github.com/ThatXliner/slashtilities",
+        language: "Python",
+        languageColor: "#3572A5",
+        tags: ["Discord", "bot", "retired"],
+        icon: "simple-icons:discord",
+    },
 ];
 
 const contributions = [
-  {
-    name: "VC Assist",
-    role: "Co-founder",
-    description:
-      "A student-run, not-for-profit organization enhancing digital educational infrastructure at Valley Christian Schools. Built frontend, backend, and web scrapers; later rewrote the entire frontend.",
-    url: "https://vcassist.org",
-    icon: "lucide:graduation-cap",
-  },
-  {
-    name: "VCSD Club",
-    role: "Founder",
-    description:
-      "Founded the Valley Christian High School Software Development Club. Built the club website and educational projects like restlock-holmes, a game teaching REST APIs.",
-    url: "https://vcsdclub.org",
-    icon: "lucide:users",
-  },
-  {
-    name: "FRC Team 3256",
-    role: "Programmer",
-    description:
-      "Contributed significantly to robot programming for the 2024 and 2025 seasons: elevator subsystem, 3D simulation, controller mapping, anti-tip logic, logging infrastructure, and scouting tools built with Tauri 2.0.",
-    url: "https://github.com/Team3256",
-    icon: "simple-icons:first",
-  },
+    {
+        name: "VC Assist",
+        role: "Co-founder",
+        description:
+            "A student-run, not-for-profit organization enhancing digital educational infrastructure at Valley Christian Schools. Built frontend, backend, and web scrapers; later rewrote the entire frontend.",
+        url: "https://vcassist.org",
+        icon: "lucide:graduation-cap",
+    },
+    {
+        name: "VCSD Club",
+        role: "Founder",
+        description:
+            "Founded the Valley Christian High School Software Development Club. Built the club website and educational projects like restlock-holmes, a game teaching REST APIs.",
+        url: "https://vcsdclub.org",
+        icon: "lucide:users",
+    },
+    {
+        name: "FRC Team 3256",
+        role: "Programmer",
+        description:
+            "Contributed significantly to robot programming for the 2024 and 2025 seasons: elevator subsystem, 3D simulation, controller mapping, anti-tip logic, logging infrastructure, and scouting tools built with Tauri 2.0.",
+        url: "https://github.com/Team3256",
+        icon: "simple-icons:first",
+    },
 ];
 ---
 
 <div class="w-full py-16 px-6" id="projects">
-  <div class="flex flex-wrap justify-center gap-3 mb-6">
-    {awards.map((award) =>
-      award.url ? (
-        <a
-          href={award.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
-        >
-          <Icon name={award.icon} class="w-4 h-4" />
-          {award.label}
-        </a>
-      ) : (
-        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
-          <Icon name={award.icon} class="w-4 h-4" />
-          {award.label}
-        </span>
-      )
-    )}
-  </div>
-
-  <details class="max-w-2xl mx-auto mb-16 group">
-    <summary class="flex items-center justify-center gap-2 cursor-pointer text-sm font-medium text-gray-400 hover:text-amber-300 transition-colors select-none">
-      <Icon name="simple-icons:first" class="w-4 h-4" />
-      FRC Team 3256 Awards (7)
-      <Icon name="lucide:chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180" />
-    </summary>
-    <div class="flex flex-wrap justify-center gap-2 mt-4">
-      {frcAwards.map((award) => (
-        <a
-          href={award.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300/80 border border-amber-500/15 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
-        >
-          <Icon name="simple-icons:first" class="w-3 h-3" />
-          {award.label}
-          <span class="text-amber-300/40">{award.year}</span>
-        </a>
-      ))}
+    <div class="flex flex-wrap justify-center gap-3 mb-6">
+        {
+            awards.map((award) =>
+                award.url ? (
+                    <a
+                        href={award.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
+                    >
+                        <Icon name={award.icon} class="w-4 h-4" />
+                        {award.label}
+                    </a>
+                ) : (
+                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                        <Icon name={award.icon} class="w-4 h-4" />
+                        {award.label}
+                    </span>
+                ),
+            )
+        }
     </div>
-  </details>
 
-  <h1
-    class="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-2 pointer-events-none"
-  >
-    Featured Projects
-  </h1>
-  <p
-    class="text-center text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.25em] text-gray-500 mb-12"
-  >
-    A closer look at my most notable work
-  </p>
+    <details class="max-w-2xl mx-auto mb-16 group">
+        <summary
+            class="flex items-center justify-center gap-2 cursor-pointer text-sm font-medium text-gray-400 hover:text-amber-300 transition-colors select-none"
+        >
+            <Icon name="simple-icons:first" class="w-4 h-4" />
+            FRC Team 3256 Awards (7)
+            <Icon
+                name="lucide:chevron-down"
+                class="w-4 h-4 transition-transform group-open:rotate-180"
+            />
+        </summary>
+        <div class="flex flex-wrap justify-center gap-2 mt-4">
+            {
+                frcAwards.map((award) => (
+                    <a
+                        href={award.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-300/80 border border-amber-500/15 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200"
+                    >
+                        <Icon name="simple-icons:first" class="w-3 h-3" />
+                        {award.label}
+                        <span class="text-amber-300/40">{award.year}</span>
+                    </a>
+                ))
+            }
+        </div>
+    </details>
 
-  <ProjectGrid client:only projects={projects} />
+    <h1
+        class="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-2 pointer-events-none"
+    >
+        Featured Projects
+    </h1>
+    <p
+        class="text-center text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.25em] text-gray-500 mb-12"
+    >
+        A closer look at my most notable work
+    </p>
 
-  <h2
-    class="text-3xl sm:text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
-  >
-    Community & Contributions
-  </h2>
-  <p
-    class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12"
-  >
-    Organizations I've built and contributed to
-  </p>
+    <ProjectGrid client:only projects={projects} />
 
-  <ContributionGrid client:only contributions={contributions} />
+    <h2
+        class="text-3xl sm:text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
+    >
+        Community & Contributions
+    </h2>
+    <p
+        class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12"
+    >
+        Organizations I've built and contributed to
+    </p>
+
+    <ContributionGrid client:only contributions={contributions} />
 </div>
