@@ -23,6 +23,12 @@ const productionExperience = [
     context: "School assemblies & church services",
     icon: "lucide:monitor",
   },
+  {
+    title: "Post Production",
+    detail: "Final Cut Pro, Logic Pro, Darktable",
+    context: "Editing, Music Production, Color Grading",
+    icon: "lucide:film",
+  },
 ];
 
 const musicBackground = [
@@ -30,14 +36,17 @@ const musicBackground = [
     instrument: "Piano",
     years: 9,
     highlight: "Solo Pianist",
-    award: "CM Level 10 — Piano",
+    awards: [
+      "CM Level 10, State Honors",
+      "USOMC Intermediate Baroque — 3rd Place, 2023",
+    ],
     icon: "lucide:piano",
   },
   {
     instrument: "Trombone",
     years: 8,
     highlight: "HS Band & Jazz Band",
-    award: "2nd Place — Folsom Jazz Festival",
+    awards: ["2nd Place — Folsom Jazz Festival, 2025"],
     icon: "lucide:music",
   },
 ];
@@ -66,7 +75,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
         >
           {/* C200 image — tall, spans 2 rows */}
           {c200Src && (
-            <StaggerItem className="col-span-2 row-span-2">
+            <StaggerItem className="col-span-2 row-span-3">
               <div
                 className={`${card} p-8 h-full flex items-center justify-center`}
               >
@@ -83,7 +92,7 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           {/* Production experience cards */}
           {productionExperience.map((exp) => (
             <StaggerItem key={exp.title} className="col-span-2 md:col-span-2">
-              <div className={`${card} p-6 h-full flex items-start gap-4`}>
+              <div className={`${card} p-6 h-full flex items-center gap-4`}>
                 <Icon
                   icon={exp.icon}
                   className="w-6 h-6 mt-0.5 shrink-0 text-gray-500"
@@ -156,13 +165,17 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">{m.highlight}</p>
-                  {m.award && (
-                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/[0.06]">
-                      <Icon
-                        icon="lucide:award"
-                        className="w-4 h-4 shrink-0 text-gray-500"
-                      />
-                      <p className="text-sm">{m.award}</p>
+                  {m.awards.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-white/[0.06] space-y-1">
+                      {m.awards.map((award) => (
+                        <div key={award} className="flex items-center gap-2">
+                          <Icon
+                            icon="lucide:award"
+                            className="w-4 h-4 shrink-0 text-gray-500"
+                          />
+                          <p className="text-sm">{award}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
