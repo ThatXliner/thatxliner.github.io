@@ -109,9 +109,20 @@ export default function CreativeSection({ c200Src }: { c200Src?: string }) {
           {/* Gear — wide card spanning full width */}
           <StaggerItem className="col-span-2 md:col-span-4">
             <div className={`${card} p-6 h-full flex flex-col justify-center`}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                My Gear
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                  My Gear
+                </h3>
+                <a
+                  href="https://forms.gle/XUSbKXj6n1RW3kcC9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2 text-sm font-semibold hover:bg-gray-200 transition-colors"
+                >
+                  <Icon icon="lucide:camera" className="w-4 h-4" />
+                  Hire Me
+                </a>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {gear.map((item) => (
                   <span
