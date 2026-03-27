@@ -26,25 +26,42 @@ function generateLatex(): string {
   ].join(" \\\\\n");
 
   const awardsItems = [
-    ...r.awards.map((a) => `\\item ${escapeLatex(a.label)}`),
+    ...r.awards.map((a) =>
+      `\\item \\textbf{${escapeLatex(a.label)}}${a.description ? ` --- ${escapeLatex(a.description)}` : ""}`
+    ),
     ...r.frcAwards.map(
       (a) =>
-        `\\item FRC Team 3256: ${escapeLatex(a.label)} (${a.year})`
+        `\\item \\textbf{FRC Team 3256 --- ${escapeLatex(a.label)}} (${a.year})`
     ),
   ].join("\n");
 
   const projectItems = r.projects
     .map((p) => {
-      const stars = p.stars ? ` --- ${p.stars} stars` : "";
-      return `\\item \\textbf{${escapeLatex(p.name)}} --- ${escapeLatex(p.tagline)}${stars}${p.award ? ` --- \\textit{${escapeLatex(p.award)}}` : ""}`;
+      const meta = [
+        p.language,
+        p.stars ? `${p.stars} \\(\\ \\bigstar\\)` : null,
+        p.award ? `\\textit{${escapeLatex(p.award)}}` : null,
+      ].filter(Boolean).join(" \\enspace|\\enspace ");
+      const lines = [
+        `\\item \\textbf{${escapeLatex(p.name)}} \\hfill \\textit{${meta}}`,
+        escapeLatex(p.tagline),
+      ];
+      if (p.whatIDid) lines.push(`% What I did: ${p.whatIDid}`);
+      if (p.learned) lines.push(`% Learned: ${p.learned}`);
+      return lines.join("\n");
     })
     .join("\n");
 
   const contributionItems = r.contributions
-    .map(
-      (c) =>
-        `\\item \\textbf{${escapeLatex(c.name)}} --- \\textit{${escapeLatex(c.role)}} \\\\\n${escapeLatex(c.description)}`
-    )
+    .map((c) => {
+      const lines = [
+        `\\item \\textbf{${escapeLatex(c.name)}} --- \\textit{${escapeLatex(c.role)}} \\\\`,
+        escapeLatex(c.description),
+      ];
+      if (c.whatIDid) lines.push(`% What I did: ${c.whatIDid}`);
+      if (c.learned) lines.push(`% Learned: ${c.learned}`);
+      return lines.join("\n");
+    })
     .join("\n");
 
   const musicItems = r.music
@@ -68,6 +85,7 @@ function generateLatex(): string {
 \\usepackage[hidelinks]{hyperref}
 \\usepackage{titlesec}
 \\usepackage{parskip}
+\\usepackage{amssymb}
 
 \\pagestyle{empty}
 
@@ -101,8 +119,8 @@ ${awardsItems}
 ${projectItems}
 \\end{itemize}
 
-%% ── Community \\& Contributions ──
-\\section{Community \\& Contributions}
+%% ── Open Source Contributions ──
+\\section{Open Source Contributions}
 \\begin{itemize}[leftmargin=1.5em, nosep]
 ${contributionItems}
 \\end{itemize}
