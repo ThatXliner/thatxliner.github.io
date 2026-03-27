@@ -5,6 +5,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{titlesec}
 \usepackage{parskip}
+\usepackage{amssymb}
 
 \pagestyle{empty}
 
@@ -25,44 +26,75 @@
 %% ── Skills ──
 \section{Skills}
 \textbf{Languages:} Python, TypeScript, JavaScript, Rust, Java, C++ \\
-\textbf{Frameworks:} React, Next.js, Svelte, Astro, Tauri, Discord.py \\
-\textbf{Tools:} Git, Supabase, SQLite, Arduino, Raspberry Pi, Final Cut Pro, Logic Pro, Darktable
+\textbf{Frameworks:} React / Next.js, Svelte / SvelteKit \\
+\textbf{Tools:} Git, Docker
 
 %% ── Awards ──
 \section{Awards}
 \begin{itemize}[leftmargin=1.5em, nosep]
-\item picoCTF 2026 --- 174th / 8,747
-\item FRC Team 3256: Creativity Award --- Daly Division (Champs) (2025)
-\item FRC Team 3256: Excellence in Engineering --- Contra Costa Regional (2025)
-\item FRC Team 3256: Innovation in Control --- Ventura County Regional (2025)
-\item FRC Team 3256: Engineering Inspiration --- San Francisco Regional (2025)
-\item FRC Team 3256: Judges' Award --- Capital City Classic (2025)
-\item FRC Team 3256: Regional Finalists --- Silicon Valley Regional (2024)
-\item FRC Team 3256: Engineering Inspiration --- Arizona Valley Regional (2024)
+\item \textbf{USACO Silver} --- USA Computing Olympiad, competitive algorithmic programming
+\item \textbf{picoCTF 2026 --- 174th / 8,747} --- Carnegie Mellon's national cybersecurity CTF covering binary exploitation, reverse engineering, cryptography, and web security
+\item \textbf{FRC Team 3256 --- Creativity Award --- Daly Division (Champs)} (2025)
+\item \textbf{FRC Team 3256 --- Excellence in Engineering --- Contra Costa Regional} (2025)
+\item \textbf{FRC Team 3256 --- Innovation in Control --- Ventura County Regional} (2025)
+\item \textbf{FRC Team 3256 --- Engineering Inspiration --- San Francisco Regional} (2025)
+\item \textbf{FRC Team 3256 --- Judges' Award --- Capital City Classic} (2025)
+\item \textbf{FRC Team 3256 --- Regional Finalists --- Silicon Valley Regional} (2024)
+\item \textbf{FRC Team 3256 --- Engineering Inspiration --- Arizona Valley Regional} (2024)
 \end{itemize}
 
 %% ── Projects ──
 \section{Projects}
 \begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{aioudp} --- Async UDP for Python --- 18 stars
-\item \textbf{unmarkd} --- HTML to Markdown converter --- 16 stars
-\item \textbf{pyt2} --- Opinionated Python project template --- 14 stars
-\item \textbf{idae} --- PEP 723 script runner --- 11 stars
-\item \textbf{billion} --- Congressional App Challenge 3rd place winner --- 3 stars --- \textit{3rd Place CAC 2025}
-\item \textbf{FADAIG} --- Hardware bot for GamePigeon via Arduino + USB HID --- 7 stars
-\item \textbf{Quillium} --- AI-powered writing app
-\item \textbf{LJV} --- Lissajous music visualizer with WebGL2 + Tauri --- 2 stars
+\item \textbf{aioudp} \hfill \textit{Python \enspace|\enspace 18 \(\ \bigstar\)}
+Websockets-inspired async/await API for UDP in Python
+% What I did: Designed the async/await socket API, wrote ReadTheDocs documentation, published to PyPI
+% Learned: asyncio internals, socket programming, API design, Python packaging & documentation
+\item \textbf{unmarkd} \hfill \textit{Python \enspace|\enspace 16 \(\ \bigstar\)}
+Configurable HTML-to-Markdown converter on PyPI
+% What I did: Built the HTML-to-Markdown conversion engine with BeautifulSoup4, designed subclass-based extension API, published to PyPI
+% Learned: HTML parsing, extensible OOP design, tree traversal, open source maintenance
+\item \textbf{pyt2} \hfill \textit{Jinja \enspace|\enspace 14 \(\ \bigstar\)}
+Python project template with CI/CD, linting, and auto-publish
+% What I did: Designed the Copier template structure, configured multi-platform GitHub Actions CI, set up automated PyPI publishing via Trusted Publishers
+% Learned: CI/CD pipelines, GitHub Actions, Python toolchain, release automation, Trusted Publishers
+\item \textbf{idae} \hfill \textit{Python \enspace|\enspace 11 \(\ \bigstar\)}
+PEP 723 script runner with auto virtual-env management
+% What I did: Implemented PEP 723 metadata parsing, built the cached venv creation and management system, published to PyPI
+% Learned: PEP standards process, virtual environment internals, subprocess management, caching strategies
+\item \textbf{billion} \hfill \textit{TypeScript \enspace|\enspace 3 \(\ \bigstar\) \enspace|\enspace \textit{3rd Place CAC 2025}}
+AI video feed app --- 3rd Place, Congressional App Challenge 2025
+% What I did: Built the AI-generated video feed integration and web scraping pipeline, contributed to frontend and app architecture
+% Learned: Next.js app architecture, AI API integration, full-stack TypeScript, collaborating under a deadline
+\item \textbf{FADAIG} \hfill \textit{Python \enspace|\enspace 7 \(\ \bigstar\)}
+Arduino + USB HID bot that physically plays GamePigeon Word Hunt
+% What I did: Wrote the word-grid solver algorithm, programmed the Arduino Leonardo firmware, bridged Python control software to USB HID input
+% Learned: USB HID protocol, Arduino firmware, hardware-software bridging, graph/trie algorithms
+\item \textbf{Quillium} \hfill \textit{TypeScript}
+AI writing app with Codex suggestions, versioning, and annotations
+% What I did: Designed and built the editor core, integrated OpenAI Codex suggestions, implemented the revision/versioning system and annotation features
+% Learned: Real-time collaborative editing, LLM API integration, complex state management, product design
+\item \textbf{LJV} \hfill \textit{Svelte \enspace|\enspace 2 \(\ \bigstar\)}
+60fps Lissajous curve visualizer via WebGL2, packaged with Tauri
+% What I did: Wrote the WebGL2 shader pipeline with additive blending trail effects, wired audio input to curve parameters, packaged as a native desktop app with Tauri
+% Learned: WebGL2 shaders, audio processing APIs, Tauri desktop packaging, real-time graphics
 \end{itemize}
 
-%% ── Community \& Contributions ──
-\section{Community \& Contributions}
+%% ── Open Source Contributions ──
+\section{Open Source Contributions}
 \begin{itemize}[leftmargin=1.5em, nosep]
 \item \textbf{VC Assist} --- \textit{CEO} \\
-Student-run non-profit enhancing digital educational infrastructure. Built frontend, backend, and web scrapers.
+Student-run non-profit enhancing digital educational infrastructure at Valley Christian Schools. Built and maintained the full-stack platform (frontend, backend, web scrapers); later led a full frontend rewrite to improve performance and UX.
+% What I did: Built the original full-stack platform including frontend, backend, and web scrapers; later led a complete frontend rewrite
+% Learned: Non-profit leadership, full-stack architecture, web scraping at scale, frontend performance
 \item \textbf{VCSD Club} --- \textit{Founder} \\
-Founded the Valley Christian HS Software Development Club. Built the club website and educational projects.
+Founded the Valley Christian HS Software Development Club from scratch. Designed the club website, authored curriculum, and shipped restlock-holmes --- an interactive game teaching REST APIs to beginners.
+% What I did: Founded the club, built the club website, authored beginner curriculum, shipped restlock-holmes — an interactive REST API teaching game
+% Learned: Curriculum design, teaching REST concepts, Svelte, founding and running a student organization
 \item \textbf{FRC Team 3256} --- \textit{Programmer} \\
-Robot programming for 2024-2025: elevator subsystem, 3D simulation, controller mapping, anti-tip logic, logging, scouting tools (Tauri 2.0).
+Robot programming for 2024–2025 seasons: elevator subsystem, 3D simulation for driver practice, anti-tip logic, controller mapping, structured logging, and a competition scouting app built with Tauri 2.0.
+% What I did: Implemented elevator subsystem, built 3D robot simulation for driver practice, added anti-tip logic and controller mapping, set up structured logging infrastructure, shipped competition scouting app in Tauri 2.0
+% Learned: Java robotics frameworks (WPILib), real-time control systems, 3D simulation, cross-platform desktop apps with Tauri
 \end{itemize}
 
 %% ── Music ──
