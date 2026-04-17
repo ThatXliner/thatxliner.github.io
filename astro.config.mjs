@@ -7,6 +7,8 @@ import react from "@astrojs/react";
 
 import icon from "astro-icon";
 
+import sitemap from "@astrojs/sitemap";
+
 // https://astro.build/config
 export default defineConfig({
   site: "https://bryanhu.com",
@@ -14,7 +16,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  integrations: [react(), icon()],
+  integrations: [react(), icon(), sitemap()],
   // experimental: {
   //   fonts: [
   //     {
