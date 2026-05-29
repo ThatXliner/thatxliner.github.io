@@ -6,8 +6,12 @@
 \usepackage{titlesec}
 \usepackage{parskip}
 \usepackage{amssymb}
+\usepackage{multicol}
+\usepackage{xcolor}
 
 \pagestyle{empty}
+
+\definecolor{accent}{HTML}{2563eb}
 
 \titleformat{\section}{\large\bfseries\uppercase}{}{0em}{}[\titlerule]
 \titlespacing{\section}{0pt}{6pt}{3pt}
@@ -23,6 +27,17 @@
   \href{https://github.com/ThatXliner}{github.com/ThatXliner} \enspace$|$\enspace
   \href{https://linkedin.com/in/thatxliner}{linkedin.com/in/thatxliner}
 \end{center}
+
+%% ── Highlights bar — first horizontal scan ──
+\vspace{2pt}
+\noindent\colorbox{accent!8}{\makebox[\dimexpr\textwidth-2\fboxsep][c]{\strut\footnotesize
+\textbf{144$\bigstar$ rust-but-lisp} ~ Featured on Hacker News
+~{\color{black!30}|}~
+\textbf{19$\bigstar$ aioudp} ~ Top async UDP lib on PyPI
+~{\color{black!30}|}~
+\textbf{3rd Place} ~ Congressional App Challenge '25
+}}
+\vspace{4pt}
 
 %% ── Open Source Contributions (leadership first — strongest signal) ──
 \section{Open Source Contributions}
@@ -41,7 +56,7 @@ Robot programming for 2024–2025 seasons: elevator subsystem, 3D simulation for
 % Learned: Java robotics frameworks (WPILib), real-time control systems, 3D simulation, cross-platform desktop apps with Tauri
 \end{itemize}
 
-%% ── Award-Winning & Featured ──
+%% ── Award-Winning & Featured — full-width, multi-line (high visual weight) ──
 \section{Award-Winning \& Featured Projects}
 \begin{itemize}[leftmargin=1.5em, nosep]
 \item \textbf{\href{https://github.com/billion-app/billion}{Billion}} \hfill \textit{TypeScript \enspace|\enspace React Native \enspace|\enspace Supabase \enspace|\enspace 3 \(\ \bigstar\)} \\
@@ -57,39 +72,60 @@ AST-native sed --- find/replace/delete code by syntactic structure, not regex. B
 Client attendance tracker; first version shipped in 12 hours with Supabase auth and modern design system.
 \end{itemize}
 
-%% ── Developer Tools & Libraries ──
+%% ── Developer Tools & Libraries — two-column, compact (lower visual weight) ──
 \section{Developer Tools \& Libraries}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{\href{https://github.com/ThatXliner/aioudp}{aioudp}} --- \textit{Python \enspace|\enspace 19 \(\ \bigstar\)} --- Most-starred async UDP library on PyPI.
-\item \textbf{\href{https://github.com/ThatXliner/unmarkd}{unmarkd}} --- \textit{Python \enspace|\enspace 17 \(\ \bigstar\)} --- Configurable HTML$\to$Markdown converter. On PyPI.
-\item \textbf{\href{https://github.com/ThatXliner/pyt2}{pyt2 / pyt3}} --- \textit{Python \enspace|\enspace Copier \enspace|\enspace 14 \(\ \bigstar\)} --- Opinionated Python scaffolding with CI, linting, typing.
-\item \textbf{\href{https://github.com/ThatXliner/idae}{idae}} --- \textit{Python \enspace|\enspace 11 \(\ \bigstar\)} --- PEP 723 implementation. Inline script metadata runner.
-\item \textbf{\href{https://github.com/ThatXliner/gah}{gah}} --- \textit{Rust \enspace|\enspace 1 \(\ \bigstar\)} --- Git Add Hunks --- hunk staging CLI for AI agents.
-\item \textbf{\href{https://github.com/ThatXliner/rt}{rt}} --- \textit{Rust} --- Regex text extraction. Like grep for capture groups.
-\item \textbf{\href{https://github.com/ThatXliner/xclif}{xclif}} --- \textit{Python \enspace|\enspace 3 \(\ \bigstar\)} --- CLI framework behind codeberg-cli, git-worm, send-cli.
-\item \textbf{\href{https://github.com/ThatXliner/qbot}{qbot}} --- \textit{Rust \enspace|\enspace 2 \(\ \bigstar\)} --- Quiz Bowl Discord bot with query language for filtering.
+\begin{multicols}{2}
+\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
+\item \textbf{\href{https://github.com/ThatXliner/aioudp}{aioudp}} \enspace \textit{\small Python \enspace|\enspace 19\,$\bigstar$} \\
+  {\small Most-starred async UDP library on PyPI.}
+\item \textbf{\href{https://github.com/ThatXliner/unmarkd}{unmarkd}} \enspace \textit{\small Python \enspace|\enspace 17\,$\bigstar$} \\
+  {\small Configurable HTML$\to$Markdown converter. On PyPI.}
+\item \textbf{\href{https://github.com/ThatXliner/pyt2}{pyt2 / pyt3}} \enspace \textit{\small Python \enspace|\enspace Copier \enspace|\enspace 14\,$\bigstar$} \\
+  {\small Opinionated Python scaffolding with CI, linting, typing.}
+\item \textbf{\href{https://github.com/ThatXliner/idae}{idae}} \enspace \textit{\small Python \enspace|\enspace 11\,$\bigstar$} \\
+  {\small PEP 723 implementation. Inline script metadata runner.}
+\item \textbf{\href{https://github.com/ThatXliner/gah}{gah}} \enspace \textit{\small Rust \enspace|\enspace 1\,$\bigstar$} \\
+  {\small Git Add Hunks --- hunk staging CLI for AI agents.}
+\item \textbf{\href{https://github.com/ThatXliner/rt}{rt}} \enspace \textit{\small Rust} \\
+  {\small Regex text extraction. Like grep for capture groups.}
+\item \textbf{\href{https://github.com/ThatXliner/xclif}{xclif}} \enspace \textit{\small Python \enspace|\enspace 3\,$\bigstar$} \\
+  {\small CLI framework behind codeberg-cli, git-worm, send-cli.}
+\item \textbf{\href{https://github.com/ThatXliner/qbot}{qbot}} \enspace \textit{\small Rust \enspace|\enspace 2\,$\bigstar$} \\
+  {\small Quiz Bowl Discord bot with query language for filtering.}
 \end{itemize}
+\end{multicols}
 
-%% ── Applications ──
+%% ── Applications — two-column, compact ──
 \section{Applications}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{\href{https://github.com/ThatXliner/Quillium}{Quillium}} --- \textit{TypeScript \enspace|\enspace SvelteKit} --- Non-linear prose editor for professional workflows.
-\item \textbf{\href{https://github.com/ThatXliner/superscribe}{SuperScribe}} --- \textit{Svelte} --- AI live diagramming --- diagrams what you say in real time.
-\item \textbf{\href{https://github.com/ThatXliner/sweepr}{sweepr}} --- \textit{Svelte \enspace|\enspace SvelteKit} --- Minesweeper: Classic, Tactical (battle royale), Blitz (1v1).
-\item \textbf{\href{https://github.com/ThatXliner/wavelength}{wavelength}} --- \textit{SvelteKit \enspace|\enspace WebRTC} --- P2P multiplayer guessing game. No server needed.
-\item \textbf{45} --- \textit{Next.js \enspace|\enspace TensorFlow \enspace|\enspace Supabase \enspace|\enspace PWA} --- Gamified workout app; led 4 engineers. TensorFlow pose-detection for exercise tracking.
+\begin{multicols}{2}
+\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
+\item \textbf{\href{https://github.com/ThatXliner/Quillium}{Quillium}} \enspace \textit{\small TypeScript \enspace|\enspace SvelteKit} \\
+  {\small Non-linear prose editor for professional workflows.}
+\item \textbf{\href{https://github.com/ThatXliner/superscribe}{SuperScribe}} \enspace \textit{\small Svelte} \\
+  {\small AI live diagramming --- diagrams what you say in real time.}
+\item \textbf{\href{https://github.com/ThatXliner/sweepr}{sweepr}} \enspace \textit{\small Svelte \enspace|\enspace SvelteKit} \\
+  {\small Minesweeper: Classic, Tactical (battle royale), Blitz (1v1).}
+\item \textbf{\href{https://github.com/ThatXliner/wavelength}{wavelength}} \enspace \textit{\small SvelteKit \enspace|\enspace WebRTC} \\
+  {\small P2P multiplayer guessing game. No server needed.}
+\item \textbf{45} \enspace \textit{\small Next.js \enspace|\enspace TensorFlow \enspace|\enspace Supabase} \\
+  {\small Gamified workout app; led 4 engineers. TensorFlow pose-detection.}
 \end{itemize}
+\end{multicols}
 
-%% ── Creative & Research ──
+%% ── Creative & Research — two-column, compact (least attention, most scannable) ──
 \section{Creative \& Research}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{\href{https://github.com/ThatXliner/FADAIG}{FADAIG}} --- \textit{Python \enspace|\enspace CV \enspace|\enspace 8 \(\ \bigstar\)} --- Automated Word Hunt solver via screen capture.
-\item \textbf{\href{https://github.com/ThatXliner/chinese-font}{chinese-font}} --- \textit{Python \enspace|\enspace OpenType \enspace|\enspace 4 \(\ \bigstar\)} --- Font replacing Chinese chars with English via ligatures.
-\item \textbf{\href{https://github.com/ThatXliner/ljv}{ljv}} --- \textit{Svelte \enspace|\enspace Web Audio \enspace|\enspace 4 \(\ \bigstar\)} --- Lissajous curve music visualizer. Desktop app.
-\item \textbf{\href{https://github.com/ThatXliner/troparevsky}{troparevsky}} --- \textit{Python} --- Enthalpy of formation matrix via AFLOW API.
-\item \textbf{\href{https://github.com/ThatXliner/fall-syntax}{fall-syntax}} --- \textit{Atom \enspace|\enspace VSCode \enspace|\enspace 6 \(\ \bigstar\)} --- Syntax theme for Atom/Pulsar + VSCode port.
-\item \textbf{\href{https://github.com/ThatXliner/difftastic}{difftastic}} --- \textit{Rust} --- Contributor --- structural diff that understands syntax.
+\begin{multicols}{2}
+\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
+\item \textbf{\href{https://github.com/ThatXliner/FADAIG}{FADAIG}} \enspace \textit{\small Python \enspace|\enspace CV \enspace|\enspace 8\,$\bigstar$} \\
+  {\small Automated Word Hunt solver via screen capture.}
+\item \textbf{\href{https://github.com/ThatXliner/chinese-font}{chinese-font}} \enspace \textit{\small Python \enspace|\enspace OpenType \enspace|\enspace 4\,$\bigstar$} \\
+  {\small Font replacing Chinese chars with English via ligatures.}
+\item \textbf{\href{https://github.com/ThatXliner/ljv}{ljv}} \enspace \textit{\small Svelte \enspace|\enspace Web Audio \enspace|\enspace 4\,$\bigstar$} \\
+  {\small Lissajous curve music visualizer. Desktop app.}
+\item \textbf{\href{https://github.com/ThatXliner/fall-syntax}{fall-syntax}} \enspace \textit{\small Atom \enspace|\enspace VSCode \enspace|\enspace 6\,$\bigstar$} \\
+  {\small Syntax theme for Atom/Pulsar + VSCode port.}
 \end{itemize}
+\end{multicols}
 
 %% ── Skills ──
 \section{Skills}
