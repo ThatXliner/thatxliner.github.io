@@ -41,63 +41,54 @@ Robot programming for 2024–2025 seasons: elevator subsystem, 3D simulation for
 % Learned: Java robotics frameworks (WPILib), real-time control systems, 3D simulation, cross-platform desktop apps with Tauri
 \end{itemize}
 
-%% ── Projects (ordered by impressiveness) ──
-\section{Projects}
+%% ── Award-Winning & Featured ──
+\section{Award-Winning \& Featured Projects}
 \begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{Quillium} \hfill \textit{SvelteKit \enspace|\enspace CodeMirror 6 \enspace|\enspace Tauri \enspace|\enspace SQLite} \\
-Non-linear prose editor with infinitely nestable branching revisions; inline AI annotations (OpenAI/Anthropic/Google); offline-first, SQLite-backed
-% What I did: Designed and built the editor core, integrated OpenAI Codex suggestions, implemented the revision/versioning system and annotation features
-% Learned: Real-time collaborative editing, LLM API integration, complex state management, product design
+\item \textbf{\href{https://github.com/billion-app/billion}{Billion}} \hfill \textit{TypeScript \enspace|\enspace React Native \enspace|\enspace Supabase \enspace|\enspace 3 \(\ \bigstar\)} \\
+AI-powered app making political info accessible via short-form content. \textbf{3rd place, 2025 Congressional App Challenge (CA-19).}
 
-\item \textbf{45} \hfill \textit{Next.js \enspace|\enspace TensorFlow \enspace|\enspace Supabase \enspace|\enspace PWA} \\
-Gamified workout app; led 4 engineers. TensorFlow pose-detection for exercise tracking, PWA for cross-platform access
-% What I did: Led development across a team of four, built AI pose-detection with TensorFlow, implemented PWA support, designed automated test mocks for workout algorithms
-% Learned: TensorFlow pose estimation, PWA technology, team leadership, complex state management, test automation
+\item \textbf{\href{https://github.com/ThatXliner/rust-but-lisp}{rust-but-lisp}} \hfill \textit{Rust \enspace|\enspace 144 \(\ \bigstar\)} \\
+Transpiler: Rust semantics in Lisp syntax. S-expressions $\to$ \texttt{.rs} $\to$ native binary. \textbf{Featured on Hacker News.}
 
-\item \textbf{billion} \hfill \textit{TypeScript \enspace|\enspace 3 \(\ \bigstar\) \enspace|\enspace 3rd Place CAC 2025} \\
-AI-curated video feed app (3rd Place, Congressional App Challenge 2025); built video pipeline and web scraping layer
-% What I did: Built the AI-generated video feed integration and web scraping pipeline, contributed to frontend and app architecture
-% Learned: Next.js app architecture, AI API integration, full-stack TypeScript, collaborating under a deadline
+\item \textbf{\href{https://github.com/ThatXliner/patchwork}{patchwork}} \hfill \textit{Rust \enspace|\enspace Tree-sitter \enspace|\enspace 6 \(\ \bigstar\)} \\
+AST-native sed --- find/replace/delete code by syntactic structure, not regex. Built for LLM refactoring pipelines.
 
-\item \textbf{FADAIG} \hfill \textit{Python \enspace|\enspace Arduino \enspace|\enspace 7 \(\ \bigstar\)} \\
-USB HID bot that physically plays GamePigeon Word Hunt via Arduino Leonardo; trie-based solver + serial bridge
-% What I did: Wrote the word-grid solver algorithm, programmed the Arduino Leonardo firmware, bridged Python control software to USB HID input
-% Learned: USB HID protocol, Arduino firmware, hardware-software bridging, graph/trie algorithms
+\item \textbf{Zyma} \hfill \textit{Next.js \enspace|\enspace Supabase \enspace|\enspace TailwindCSS \enspace|\enspace \$1000 CodeForCause Hackathon Winner} \\
+Client attendance tracker; first version shipped in 12 hours with Supabase auth and modern design system.
+\end{itemize}
 
-\item \textbf{LJV} \hfill \textit{Svelte \enspace|\enspace WebGL2 \enspace|\enspace Tauri \enspace|\enspace 2 \(\ \bigstar\)} \\
-Real-time Lissajous music visualizer at 60fps; WebGL2 shaders with additive-blending trails, audio-reactive parameters
-% What I did: Wrote the WebGL2 shader pipeline with additive blending trail effects, wired audio input to curve parameters, packaged as a native desktop app with Tauri
-% Learned: WebGL2 shaders, audio processing APIs, Tauri desktop packaging, real-time graphics
+%% ── Developer Tools & Libraries ──
+\section{Developer Tools \& Libraries}
+\begin{itemize}[leftmargin=1.5em, nosep]
+\item \textbf{\href{https://github.com/ThatXliner/aioudp}{aioudp}} --- \textit{Python \enspace|\enspace 19 \(\ \bigstar\)} --- Most-starred async UDP library on PyPI.
+\item \textbf{\href{https://github.com/ThatXliner/unmarkd}{unmarkd}} --- \textit{Python \enspace|\enspace 17 \(\ \bigstar\)} --- Configurable HTML$\to$Markdown converter. On PyPI.
+\item \textbf{\href{https://github.com/ThatXliner/pyt2}{pyt2 / pyt3}} --- \textit{Python \enspace|\enspace Copier \enspace|\enspace 14 \(\ \bigstar\)} --- Opinionated Python scaffolding with CI, linting, typing.
+\item \textbf{\href{https://github.com/ThatXliner/idae}{idae}} --- \textit{Python \enspace|\enspace 11 \(\ \bigstar\)} --- PEP 723 implementation. Inline script metadata runner.
+\item \textbf{\href{https://github.com/ThatXliner/gah}{gah}} --- \textit{Rust \enspace|\enspace 1 \(\ \bigstar\)} --- Git Add Hunks --- hunk staging CLI for AI agents.
+\item \textbf{\href{https://github.com/ThatXliner/rt}{rt}} --- \textit{Rust} --- Regex text extraction. Like grep for capture groups.
+\item \textbf{\href{https://github.com/ThatXliner/xclif}{xclif}} --- \textit{Python \enspace|\enspace 3 \(\ \bigstar\)} --- CLI framework behind codeberg-cli, git-worm, send-cli.
+\item \textbf{\href{https://github.com/ThatXliner/qbot}{qbot}} --- \textit{Rust \enspace|\enspace 2 \(\ \bigstar\)} --- Quiz Bowl Discord bot with query language for filtering.
+\end{itemize}
 
-\item \textbf{Wuzursched} \hfill \textit{SvelteKit \enspace|\enspace Supabase \enspace|\enspace TailwindCSS} \\
-Full-stack schedule sharing/comparison app; solo-built frontend, backend, and Supabase integration in one month
-% What I did: Designed and implemented the full-stack application solo — frontend, backend, and Supabase integration — within a month. Refactored multiple times for optimal structure.
-% Learned: Full-stack SvelteKit, Supabase integration, solo project ownership, iterative development
+%% ── Applications ──
+\section{Applications}
+\begin{itemize}[leftmargin=1.5em, nosep]
+\item \textbf{\href{https://github.com/ThatXliner/Quillium}{Quillium}} --- \textit{TypeScript \enspace|\enspace SvelteKit} --- Non-linear prose editor for professional workflows.
+\item \textbf{\href{https://github.com/ThatXliner/superscribe}{SuperScribe}} --- \textit{Svelte} --- AI live diagramming --- diagrams what you say in real time.
+\item \textbf{\href{https://github.com/ThatXliner/sweepr}{sweepr}} --- \textit{Svelte \enspace|\enspace SvelteKit} --- Minesweeper: Classic, Tactical (battle royale), Blitz (1v1).
+\item \textbf{\href{https://github.com/ThatXliner/wavelength}{wavelength}} --- \textit{SvelteKit \enspace|\enspace WebRTC} --- P2P multiplayer guessing game. No server needed.
+\item \textbf{45} --- \textit{Next.js \enspace|\enspace TensorFlow \enspace|\enspace Supabase \enspace|\enspace PWA} --- Gamified workout app; led 4 engineers. TensorFlow pose-detection for exercise tracking.
+\end{itemize}
 
-\item \textbf{Zyma} \hfill \textit{Next.js \enspace|\enspace Supabase \enspace|\enspace TailwindCSS} \\
-Client attendance tracker; first version shipped in 12 hours with Supabase auth and a modern design system
-% What I did: Built the first version in 12 hours with a friend, implemented full auth and modern UI, adapted to client requirement changes
-% Learned: Rapid prototyping, client-driven development, Supabase auth, working under extreme time constraints
-
-\item \textbf{aioudp} \hfill \textit{Python \enspace|\enspace PyPI \enspace|\enspace 18 \(\ \bigstar\)} \\
-Websockets-inspired async/await UDP library on PyPI with ReadTheDocs docs and full test coverage
-% What I did: Designed the async/await socket API, wrote ReadTheDocs documentation, published to PyPI
-% Learned: asyncio internals, socket programming, API design, Python packaging & documentation
-
-\item \textbf{unmarkd} \hfill \textit{Python \enspace|\enspace PyPI \enspace|\enspace 16 \(\ \bigstar\)} \\
-Extensible HTML-to-Markdown converter; subclass-based plugin API for custom tag handling, BeautifulSoup4 engine
-% What I did: Built the HTML-to-Markdown conversion engine with BeautifulSoup4, designed subclass-based extension API, published to PyPI
-% Learned: HTML parsing, extensible OOP design, tree traversal, open source maintenance
-
-\item \textbf{pyt2} \hfill \textit{Copier \enspace|\enspace GitHub Actions \enspace|\enspace 14 \(\ \bigstar\)} \\
-Python project template with multi-platform CI, auto-publish to PyPI via Trusted Publishers, and template syncing
-% What I did: Designed the Copier template structure, configured multi-platform GitHub Actions CI, set up automated PyPI publishing via Trusted Publishers
-% Learned: CI/CD pipelines, GitHub Actions, Python toolchain, release automation, Trusted Publishers
-
-\item \textbf{idae} \hfill \textit{Python \enspace|\enspace PyPI \enspace|\enspace 11 \(\ \bigstar\)} \\
-PEP 723 script runner; auto-creates cached virtual environments per dependency set, published on PyPI
-% What I did: Implemented PEP 723 metadata parsing, built the cached venv creation and management system, published to PyPI
-% Learned: PEP standards process, virtual environment internals, subprocess management, caching strategies
+%% ── Creative & Research ──
+\section{Creative \& Research}
+\begin{itemize}[leftmargin=1.5em, nosep]
+\item \textbf{\href{https://github.com/ThatXliner/FADAIG}{FADAIG}} --- \textit{Python \enspace|\enspace CV \enspace|\enspace 8 \(\ \bigstar\)} --- Automated Word Hunt solver via screen capture.
+\item \textbf{\href{https://github.com/ThatXliner/chinese-font}{chinese-font}} --- \textit{Python \enspace|\enspace OpenType \enspace|\enspace 4 \(\ \bigstar\)} --- Font replacing Chinese chars with English via ligatures.
+\item \textbf{\href{https://github.com/ThatXliner/ljv}{ljv}} --- \textit{Svelte \enspace|\enspace Web Audio \enspace|\enspace 4 \(\ \bigstar\)} --- Lissajous curve music visualizer. Desktop app.
+\item \textbf{\href{https://github.com/ThatXliner/troparevsky}{troparevsky}} --- \textit{Python} --- Enthalpy of formation matrix via AFLOW API.
+\item \textbf{\href{https://github.com/ThatXliner/fall-syntax}{fall-syntax}} --- \textit{Atom \enspace|\enspace VSCode \enspace|\enspace 6 \(\ \bigstar\)} --- Syntax theme for Atom/Pulsar + VSCode port.
+\item \textbf{\href{https://github.com/ThatXliner/difftastic}{difftastic}} --- \textit{Rust} --- Contributor --- structural diff that understands syntax.
 \end{itemize}
 
 %% ── Skills ──
