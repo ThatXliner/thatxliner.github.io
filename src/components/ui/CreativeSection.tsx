@@ -4,6 +4,7 @@ import AudioVisualizer from "./AudioVisualizer";
 
 const gear = [
   { name: "Canon EOS 40D", type: "Body" },
+  { name: "Canon EOS R7", type: "Body" },
   { name: "EF 70-200mm f/4L IS USM", type: "Telephoto" },
   { name: "Tamron 35mm f/1.4 SP Di USD", type: "Prime" },
   { name: "EF STM 28-105mm", type: "Kit Lens" },
