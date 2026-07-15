@@ -3,6 +3,7 @@ import { Marquee } from "./ui/marquee";
 import { Icon } from "astro-icon/components";
 import Repo from "./ui/Repo";
 import ProjectGrid from "./ui/ProjectGrid";
+import ScrubTitle from "./ui/ScrubTitle";
 import { projects } from "@/data/projects";
 import { getAllRepositories, getForkedRepositories } from "@/lib/github";
 
@@ -34,7 +35,7 @@ const forksSecondRow = forks.slice(forks.length / 2);
     </p>
 
     <div
-        class="relative flex w-full flex-col items-center justify-center overflow-hidden mt-8"
+        class="marquee-skew relative flex w-full flex-col items-center justify-center overflow-hidden mt-8 [transform:skewX(var(--scroll-skew,0deg))] will-change-transform"
     >
         <Marquee client:only pauseOnHover className="[--duration:90s]">
             {firstRow.map((review) => <Repo client:only {...review} />)}
@@ -59,7 +60,7 @@ const forksSecondRow = forks.slice(forks.length / 2);
     </p>
 
     <div
-        class="relative flex w-full flex-col items-center justify-center overflow-hidden mt-8"
+        class="marquee-skew relative flex w-full flex-col items-center justify-center overflow-hidden mt-8 [transform:skewX(var(--scroll-skew,0deg))] will-change-transform"
     >
         <Marquee client:only pauseOnHover className="[--duration:120s]">
             {forksFirstRow.map((review) => <Repo client:only {...review} />)}
@@ -81,7 +82,7 @@ const forksSecondRow = forks.slice(forks.length / 2);
         <h2
             class="text-3xl sm:text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
         >
-            Featured Work
+            <ScrubTitle client:visible text="Featured Work" />
         </h2>
         <p
             class="text-center text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.25em] text-gray-500 mb-12"
@@ -92,3 +93,44 @@ const forksSecondRow = forks.slice(forks.length / 2);
         <ProjectGrid client:only projects={projects} />
     </div>
 </div>
+
+<script>
+    // Scroll velocity shears the marquee rows; they spring back at rest.
+    // Runs only while the section is on screen.
+    const section = document.getElementById("code");
+    const rows = document.querySelectorAll<HTMLElement>(".marquee-skew");
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (section && rows.length > 0 && !reducedMotion) {
+        let lastY = window.scrollY;
+        let velocity = 0;
+        let raf = 0;
+        let running = false;
+
+        const tick = () => {
+            const y = window.scrollY;
+            const raw = Math.max(-1, Math.min(1, (y - lastY) / 28));
+            lastY = y;
+            velocity += (raw - velocity) * 0.08;
+            const skew = velocity * 3.5;
+            rows.forEach((row) =>
+                row.style.setProperty("--scroll-skew", `${skew.toFixed(3)}deg`),
+            );
+            if (running) raf = requestAnimationFrame(tick);
+        };
+
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !running) {
+                running = true;
+                lastY = window.scrollY;
+                raf = requestAnimationFrame(tick);
+            } else if (!entry.isIntersecting && running) {
+                running = false;
+                cancelAnimationFrame(raf);
+            }
+        });
+        observer.observe(section);
+    }
+</script>

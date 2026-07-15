@@ -1,5 +1,13 @@
+import { useRef } from "react";
 import { Icon } from "@iconify/react";
-import { motion, useMotionValue, useSpring } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { ScrollReveal } from "./ScrollReveal";
 import GlobeScene from "./three/GlobeScene";
 import BranchGraph from "./BranchGraph";
@@ -109,6 +117,16 @@ function VentureVisual({ venture }: { venture: Venture }) {
 
 function VentureCard({ venture, index }: { venture: Venture; index: number }) {
   const reversed = index % 2 === 1;
+  const reducedMotion = useReducedMotion();
+
+  // The visual layer travels at a different rate than the text while the
+  // card crosses the viewport, so the card reads as having depth.
+  const cardRef = useRef<HTMLAnchorElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "end start"],
+  });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [34, -34]);
 
   // Subtle 3D tilt toward the cursor + a spotlight that follows it.
   const rotateX = useMotionValue(0);
@@ -133,6 +151,7 @@ function VentureCard({ venture, index }: { venture: Venture; index: number }) {
   return (
     <ScrollReveal animation="fadeUp" delay={0.1}>
       <motion.a
+        ref={cardRef}
         href={venture.url}
         target="_blank"
         rel="noopener noreferrer"
@@ -219,7 +238,12 @@ function VentureCard({ venture, index }: { venture: Venture; index: number }) {
             </div>
           </div>
 
-          <VentureVisual venture={venture} />
+          <motion.div
+            style={{ y: reducedMotion ? 0 : parallaxY }}
+            className="[direction:ltr] h-full will-change-transform"
+          >
+            <VentureVisual venture={venture} />
+          </motion.div>
         </div>
       </motion.a>
     </ScrollReveal>

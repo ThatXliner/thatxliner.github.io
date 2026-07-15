@@ -160,6 +160,36 @@
 .inter-thin {
     font-family: "Inter-Thin", sans-serif;
 }
+/* Scroll-driven hero exit: layers leave at different speeds, so scrolling
+   away from the hero reads as depth rather than a page sliding up. */
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) {
+        .scroll-exit-fast {
+            animation: scroll-exit-fast linear both;
+            animation-timeline: scroll();
+            animation-range: 0vh 90vh;
+        }
+        .scroll-exit-slow {
+            animation: scroll-exit-slow linear both;
+            animation-timeline: scroll();
+            animation-range: 0vh 90vh;
+        }
+    }
+}
+@keyframes scroll-exit-fast {
+    to {
+        transform: translateY(-90px);
+        opacity: 0;
+        filter: blur(6px);
+    }
+}
+@keyframes scroll-exit-slow {
+    to {
+        transform: translateY(-30px);
+        opacity: 0.15;
+    }
+}
+
 .hover-glow:hover {
     @media (hover: hover) {
         --tw-drop-shadow-size: drop-shadow(

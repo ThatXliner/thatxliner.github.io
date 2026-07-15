@@ -15,6 +15,7 @@ const VERTEX = /* glsl */ `
   uniform float uPixelRatio;
   uniform vec2 uMouse;          // pointer projected into the wave plane (xz)
   uniform float uMouseStrength; // eases in on entry, decays when idle
+  uniform float uChurn;         // scroll velocity agitates the water
   varying float vHeight;
   varying float vFade;
   varying float vGlow;
@@ -32,7 +33,7 @@ const VERTEX = /* glsl */ `
 
   void main() {
     vec3 pos = position;
-    float h = swell(pos.xz, uTime);
+    float h = swell(pos.xz, uTime) * (1.0 + uChurn * 0.55);
 
     // Pointer ripple: rings radiating out from the cursor, exponentially damped.
     float d = distance(pos.xz, uMouse);
@@ -106,6 +107,7 @@ export default function HeroScene() {
           uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
           uMouse: { value: new THREE.Vector2(0, -100) }, // start far away
           uMouseStrength: { value: 0 },
+          uChurn: { value: 0 },
         },
         transparent: true,
         depthWrite: false,
@@ -139,9 +141,25 @@ export default function HeroScene() {
         onPointerLeave,
       );
 
+      // Scroll state: leaving the hero dives the camera toward the surface,
+      // and scroll speed churns the water.
+      let smoothScroll = 0;
+      let churn = 0;
+      let lastScrollY = window.scrollY;
+
       return {
         update(elapsed) {
           material.uniforms.uTime.value = elapsed;
+
+          const scroll = Math.min(window.scrollY / window.innerHeight, 1);
+          smoothScroll += (scroll - smoothScroll) * 0.06;
+          const velocity = Math.min(
+            Math.abs(window.scrollY - lastScrollY) / 60,
+            1,
+          );
+          lastScrollY = window.scrollY;
+          churn += (velocity - churn) * 0.04;
+          material.uniforms.uChurn.value = churn;
 
           // Project the cursor onto the wave surface and trail toward it.
           if (pointer.current.moved) {
@@ -158,12 +176,16 @@ export default function HeroScene() {
           const target = pointer.current.active ? 1 : 0;
           strength.value += (target - strength.value) * 0.05;
 
-          // Barely-there parallax; the wave is the show, not the camera.
+          // Barely-there pointer parallax, plus the scroll dive: the camera
+          // sinks toward the surface and pushes forward as you leave the hero.
+          const baseY = 1.4 - smoothScroll * 2.1;
+          const baseZ = 9 - smoothScroll * 3.5;
           camera.position.x +=
             (pointer.current.ndc.x * 0.22 - camera.position.x) * 0.02;
           camera.position.y +=
-            (1.4 + pointer.current.ndc.y * 0.1 - camera.position.y) * 0.02;
-          camera.lookAt(0, -1.6, -6);
+            (baseY + pointer.current.ndc.y * 0.1 - camera.position.y) * 0.04;
+          camera.position.z += (baseZ - camera.position.z) * 0.04;
+          camera.lookAt(0, -1.6 - smoothScroll * 0.8, -6);
         },
         dispose() {
           window.removeEventListener("pointermove", onPointerMove);
