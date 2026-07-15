@@ -2,252 +2,9 @@
 import { Marquee } from "./ui/marquee";
 import { Icon } from "astro-icon/components";
 import Repo from "./ui/Repo";
-
-
-async function getAllRepositories() {
-    const isDev = import.meta.env.DEV;
-    const cacheFile = ".cache/repositories.json";
-    if (!import.meta.env.ASTRO_GITHUB_TOKEN) {
-        throw new Error("ASTRO_GITHUB_TOKEN is not set");
-    }
-
-    // Try to read from cache in development
-    if (isDev) {
-        try {
-            const fs = await import("fs/promises");
-            const path = await import("path");
-            const cachePath = path.resolve(cacheFile);
-            const cacheData = await fs.readFile(cachePath, "utf-8");
-            const cached = JSON.parse(cacheData);
-
-            // Cache for 1 hour
-            const cacheAge = Date.now() - cached.timestamp;
-            if (cacheAge < 60 * 60 * 1000) {
-                console.log("Using cached repository data");
-                return cached.data;
-            }
-        } catch (error) {
-            // Cache doesn't exist or is invalid, continue to fetch
-            console.log("No valid cache found, fetching from GitHub...");
-        }
-    }
-
-    const QUERY = `query {
-    viewer {
-      repositories(first: 100, ownerAffiliations: OWNER, isFork: false, isArchived: false, orderBy: {field: UPDATED_AT, direction: DESC}) {
-        nodes {
-          name
-          description
-          url
-          homepageUrl
-          openGraphImageUrl
-          isPrivate
-          stargazerCount
-          forkCount
-          updatedAt
-          primaryLanguage {
-            name
-            color
-          }
-          languages(first: 5) {
-            nodes {
-              name
-            }
-          }
-        }
-      }
-    }
-  }`;
-
-    const res = await fetch("https://api.github.com/graphql", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${import.meta.env.ASTRO_GITHUB_TOKEN}`,
-        },
-        body: JSON.stringify({ query: QUERY }),
-    });
-
-    const json = await res.json();
-
-    if (!res.ok || !json.data?.viewer) {
-        const msg = json.message || JSON.stringify(json.errors ?? json);
-        throw new Error(`GitHub API error: ${msg}`);
-    }
-
-    const repos = json.data.viewer.repositories.nodes;
-
-    const data = repos
-        .filter((repo: any) => repo.stargazerCount >= 1)
-        .map((repo: any) => ({
-            name: repo.name,
-            body: repo.description || "",
-            language: repo.primaryLanguage?.name,
-            languageColor: repo.primaryLanguage?.color,
-            starCount: repo.stargazerCount,
-            forkCount: repo.forkCount,
-            isPublic: !repo.isPrivate,
-            updatedAt: repo.updatedAt,
-        }));
-
-    // Save to cache in development
-    if (isDev) {
-        try {
-            const fs = await import("fs/promises");
-            const path = await import("path");
-            const cachePath = path.resolve(cacheFile);
-            const cacheDir = path.dirname(cachePath);
-
-            await fs.mkdir(cacheDir, { recursive: true });
-            await fs.writeFile(
-                cachePath,
-                JSON.stringify({ timestamp: Date.now(), data }, null, 2),
-                "utf-8",
-            );
-            console.log("Repository data cached");
-        } catch (error) {
-            console.error("Failed to write cache:", error);
-        }
-    }
-
-    return data;
-}
-
-async function getForkedRepositories() {
-    const isDev = import.meta.env.DEV;
-    const cacheFile = ".cache/forks.json";
-    if (!import.meta.env.ASTRO_GITHUB_TOKEN) {
-        throw new Error("ASTRO_GITHUB_TOKEN is not set");
-    }
-    // Try to read from cache in development
-    if (isDev) {
-        try {
-            const fs = await import("fs/promises");
-            const path = await import("path");
-            const cachePath = path.resolve(cacheFile);
-            const cacheData = await fs.readFile(cachePath, "utf-8");
-            const cached = JSON.parse(cacheData);
-
-            // Cache for 1 hour
-            const cacheAge = Date.now() - cached.timestamp;
-            if (cacheAge < 60 * 60 * 1000) {
-                console.log("Using cached fork data");
-                return cached.data;
-            }
-        } catch (error) {
-            console.log("No valid fork cache found, fetching from GitHub...");
-        }
-    }
-
-    const QUERY = `query {
-    viewer {
-      login
-      repositories(first: 100, ownerAffiliations: OWNER, isFork: true, isArchived: false, orderBy: {field: UPDATED_AT, direction: DESC}) {
-        nodes {
-          name
-          description
-          url
-          homepageUrl
-          openGraphImageUrl
-          isPrivate
-          stargazerCount
-          forkCount
-          updatedAt
-          parent {
-            nameWithOwner
-          }
-          primaryLanguage {
-            name
-            color
-          }
-          languages(first: 5) {
-            nodes {
-              name
-            }
-          }
-        }
-      }
-    }
-  }`;
-
-    const res = await fetch("https://api.github.com/graphql", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${import.meta.env.ASTRO_GITHUB_TOKEN}`,
-        },
-        body: JSON.stringify({ query: QUERY }),
-    });
-
-    const json = await res.json();
-
-    if (!res.ok || !json.data?.viewer) {
-        const msg = json.message || JSON.stringify(json.errors ?? json);
-        throw new Error(`GitHub API error (forks): ${msg}`);
-    }
-
-    const login = json.data.viewer.login;
-    const repos = json.data.viewer.repositories.nodes;
-
-    // Filter to only forks where we have merged PRs upstream (using GraphQL search)
-    const reposWithContributions = await Promise.all(
-        repos.map(async (repo: any) => {
-            const parent = repo.parent?.nameWithOwner;
-            if (!parent) return null;
-
-            const searchQuery = `query { search(query: "is:pr author:${login} repo:${parent} is:merged", type: ISSUE, first: 1) { issueCount } }`;
-            const searchRes = await fetch("https://api.github.com/graphql", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    Authorization: `Bearer ${import.meta.env.ASTRO_GITHUB_TOKEN}`,
-                },
-                body: JSON.stringify({ query: searchQuery }),
-            });
-            if (!searchRes.ok) return null;
-            const searchJson = await searchRes.json();
-            return (searchJson.data?.search?.issueCount ?? 0) > 0 ? repo : null;
-        }),
-    );
-
-    const contributedRepos = reposWithContributions.filter(Boolean);
-
-    const data = contributedRepos.map((repo: any) => ({
-        name: repo.name,
-        body: repo.description || "",
-        language: repo.primaryLanguage?.name,
-        languageColor: repo.primaryLanguage?.color,
-        starCount: repo.stargazerCount,
-        forkCount: repo.forkCount,
-        isPublic: !repo.isPrivate,
-        updatedAt: repo.updatedAt,
-    }));
-
-    // Save to cache in development
-    if (isDev) {
-        try {
-            const fs = await import("fs/promises");
-            const path = await import("path");
-            const cachePath = path.resolve(cacheFile);
-            const cacheDir = path.dirname(cachePath);
-
-            await fs.mkdir(cacheDir, { recursive: true });
-            await fs.writeFile(
-                cachePath,
-                JSON.stringify({ timestamp: Date.now(), data }, null, 2),
-                "utf-8",
-            );
-            console.log("Fork data cached");
-        } catch (error) {
-            console.error("Failed to write fork cache:", error);
-        }
-    }
-
-    return data;
-}
+import ProjectGrid from "./ui/ProjectGrid";
+import { projects } from "@/data/projects";
+import { getAllRepositories, getForkedRepositories } from "@/lib/github";
 
 const repositories = await getAllRepositories();
 const forks = await getForkedRepositories();
@@ -259,15 +16,21 @@ const forksFirstRow = forks.slice(0, forks.length / 2);
 const forksSecondRow = forks.slice(forks.length / 2);
 ---
 
-<!-- <Font cssVariable="--font-inter" preload /> -->
-<div class="min-h-screen w-full py-4" id="code">
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-4">
-        <a href="https://github.com/ThatXliner?tab=repositories" class="hover:text-gray-300 transition-colors"
-            >My Code <Icon name="lucide:external-link" class="inline w-8 h-8 opacity-40" /></a
+<div class="w-full py-16 md:py-24" id="code">
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-center mb-2">
+        <a
+            href="https://github.com/ThatXliner?tab=repositories"
+            class="hover:text-gray-300 transition-colors"
+            >Open Source <Icon
+                name="lucide:external-link"
+                class="inline w-8 h-8 opacity-40"
+            /></a
         >
     </h1>
-    <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12">
-        Source repositories &mdash; projects I've started myself
+    <p
+        class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12"
+    >
+        Repositories I've started myself
     </p>
 
     <div
@@ -289,8 +52,10 @@ const forksSecondRow = forks.slice(forks.length / 2);
         </div>
     </div>
 
-    <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mt-8">
-        Forks &mdash; my contributions to open source
+    <p
+        class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mt-16"
+    >
+        Forks &mdash; my contributions upstream
     </p>
 
     <div
@@ -312,4 +77,18 @@ const forksSecondRow = forks.slice(forks.length / 2);
         </div>
     </div>
 
+    <div class="px-6" id="projects">
+        <h2
+            class="text-3xl sm:text-4xl font-bold text-center mt-24 mb-2 pointer-events-none"
+        >
+            Featured Work
+        </h2>
+        <p
+            class="text-center text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.25em] text-gray-500 mb-12"
+        >
+            A closer look at my most notable repos
+        </p>
+
+        <ProjectGrid client:only projects={projects} />
+    </div>
 </div>
