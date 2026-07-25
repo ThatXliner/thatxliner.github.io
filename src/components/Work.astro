@@ -24,8 +24,14 @@ const stats = [
 // `totalStars` above still counts everything, so raising this doesn't quietly
 // shrink the headline figure.
 const TICKER_MIN_STARS = 2;
+
+// Starred, but not projects: the profile README and a dotfiles dump. They pass
+// the star bar on their own and would otherwise ride along forever.
+const TICKER_DENYLIST = new Set(["ThatXliner", "dotfiles"]);
+
 const ticker = repositories.filter(
-    (repo) => repo.starCount >= TICKER_MIN_STARS,
+    (repo) =>
+        repo.starCount >= TICKER_MIN_STARS && !TICKER_DENYLIST.has(repo.name),
 );
 
 // Two rows travelling in opposite directions. Split by index rather than by

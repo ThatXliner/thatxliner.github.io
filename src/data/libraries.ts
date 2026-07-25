@@ -151,6 +151,17 @@ export const libraries: Library[] = [
         install: "claude plugin install xtras",
     },
     {
+        name: "gitmoji-atom",
+        tagline:
+            "Searchable gitmoji autocomplete inside Atom, so you could find the right emoji without leaving the commit box.",
+        ecosystem: "Atom",
+        language: "JavaScript",
+        repo: "https://github.com/ThatXliner/gitmoji-atom",
+        // Atom itself was sunset in 2022. The plugin didn't rot — its host
+        // did — so the flag names the platform rather than blaming the code.
+        status: "Atom is discontinued",
+    },
+    {
         name: "stacksearch",
         tagline:
             "The first thing I ever built: an unofficial API and CLI for searching StackOverflow and the rest of StackExchange. It shipped to PyPI with docs and CI, which taught me more than the code did.",
