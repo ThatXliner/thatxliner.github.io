@@ -20,10 +20,18 @@ const stats = [
     { value: forks.length, label: "upstream projects fixed" },
 ];
 
+// The ticker is ambient, so it only carries repos with a bit of traction.
+// `totalStars` above still counts everything, so raising this doesn't quietly
+// shrink the headline figure.
+const TICKER_MIN_STARS = 2;
+const ticker = repositories.filter(
+    (repo) => repo.starCount >= TICKER_MIN_STARS,
+);
+
 // Two rows travelling in opposite directions. Split by index rather than by
 // slicing halves so both rows stay populated if the repo count is odd.
-const rowA = repositories.filter((_, i) => i % 2 === 0);
-const rowB = repositories.filter((_, i) => i % 2 === 1);
+const rowA = ticker.filter((_, i) => i % 2 === 0);
+const rowB = ticker.filter((_, i) => i % 2 === 1);
 
 // Inline markers in project descriptions: **label** or **label|url**
 function segments(text: string) {

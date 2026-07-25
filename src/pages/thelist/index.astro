@@ -55,7 +55,7 @@ import { libraries } from "@/data/libraries";
                             href={app.url ?? app.repo}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="block"
+                            class="relative block"
                             aria-label={
                                 app.url
                                     ? `Open ${app.name}`
@@ -73,16 +73,30 @@ import { libraries } from "@/data/libraries";
                                     class:list={[
                                         "aspect-16/10 w-full border-b border-hairline object-cover select-none",
                                         app.focus ?? "object-top",
+                                        app.status && "opacity-55",
                                     ]}
                                 />
                             ) : (
                                 /* No screenshot worth taking — set the name
                                    instead, so the grid keeps its rhythm. */
                                 <div class="flex aspect-16/10 w-full items-center justify-center border-b border-hairline bg-surface-2">
-                                    <span class="text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.04em] text-fg-dim">
+                                    <span
+                                        class:list={[
+                                            "text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.04em]",
+                                            app.status
+                                                ? "text-fg-dim/50"
+                                                : "text-fg-dim",
+                                        ]}
+                                    >
                                         {app.name}
                                     </span>
                                 </div>
+                            )}
+
+                            {app.status && (
+                                <span class="absolute top-3 right-3 rounded-full border border-hairline bg-void/75 px-2.5 py-1 text-[0.6875rem] font-medium text-fg-muted backdrop-blur-sm">
+                                    {app.status}
+                                </span>
                             )}
                         </a>
 

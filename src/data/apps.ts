@@ -10,7 +10,6 @@ import ljv from "@/assets/apps/ljv.png";
 import nerdlens from "@/assets/apps/nerdlens.png";
 import sweepr from "@/assets/apps/sweepr.png";
 import temppromax from "@/assets/apps/temppromax.png";
-import wavelength from "@/assets/apps/wavelength.png";
 import wuzursched from "@/assets/apps/wuzursched.png";
 
 export interface App {
@@ -29,6 +28,8 @@ export interface App {
     image?: ImageMetadata;
     /** How to frame the screenshot when the card crops it. */
     focus?: string;
+    /** Set when a thing is no longer running, e.g. "Retired". Flags the card. */
+    status?: string;
 }
 
 // Only shipped, publicly usable things live here — libraries and tooling stay
@@ -88,7 +89,7 @@ export const apps: App[] = [
     {
         name: "FADAIG",
         tagline:
-            "An Arduino Leonardo pretending to be a keyboard so it can win iMessage Word Hunt for you. Ethically dubious, technically sound.",
+            "An Arduino Leonardo pretending to be a mouse so it can win iMessage Word Hunt for you. Ethically dubious, technically sound.",
         platform: "Arduino",
         language: "Python",
         // Hardware project — there's nothing to open, so no url.
@@ -104,16 +105,6 @@ export const apps: App[] = [
         url: "https://lyners-sweepr.vercel.app",
         repo: "https://github.com/ThatXliner/sweepr",
         image: sweepr,
-    },
-    {
-        name: "Wavelength",
-        tagline:
-            "The party guessing game, playable over WebRTC with no server in the middle — or pass-and-play on one device.",
-        platform: "Web",
-        language: "Svelte",
-        url: "https://thatxliner.github.io/wavelength/",
-        repo: "https://github.com/ThatXliner/wavelength",
-        image: wavelength,
     },
     {
         name: "coredumped",
@@ -167,5 +158,16 @@ export const apps: App[] = [
         repo: "https://github.com/ThatXliner/qbot",
         // No screenshot: the install flow is a Discord OAuth page, which says
         // nothing about the bot. The card falls back to a typographic tile.
+    },
+    {
+        name: "Slashtilities",
+        tagline:
+            "A slash-command Discord utility bot, back when slash commands were new. It died with Heroku's free tier, and it was fun while it lasted.",
+        platform: "Discord",
+        language: "Python",
+        // Deliberately no url: the bot no longer runs, so an "Open" link that
+        // looks like you can add it would be a lie.
+        repo: "https://github.com/ThatXliner/slashtilities",
+        status: "Retired",
     },
 ];
