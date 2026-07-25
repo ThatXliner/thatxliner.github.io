@@ -1,10 +1,21 @@
 ---
+// Section links are page-absolute (`/#work`) so the same nav works from
+// /apps as well as the home page. On the home page these still resolve as
+// same-document fragment navigation, so nothing reloads.
 const links = [
-    { label: "Building", href: "#building" },
-    { label: "Work", href: "#work" },
-    { label: "Story", href: "#story" },
-    { label: "Off the clock", href: "#creative" },
+    { label: "Building", href: "/#building", section: "building" },
+    { label: "Apps", href: "/apps", path: "/apps" },
+    { label: "Work", href: "/#work", section: "work" },
+    { label: "Story", href: "/#story", section: "story", minWidth: "md" },
+    {
+        label: "Off the clock",
+        href: "/#creative",
+        section: "creative",
+        minWidth: "md",
+    },
 ];
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 ---
 
 <header
@@ -15,20 +26,21 @@ const links = [
         class="mx-auto flex h-12 max-w-[1180px] items-center justify-between px-gutter"
     >
         <a
-            href="#top"
+            href="/"
             class="text-[0.9375rem] font-semibold tracking-[-0.015em] transition-opacity hover:opacity-70"
             >Bryan Hu</a
         >
 
         <nav class="flex items-center gap-5 sm:gap-7">
             {
-                links.map((link, i) => (
+                links.map((link) => (
                     <a
                         href={link.href}
-                        data-navlink={link.href}
+                        data-section={link.section}
+                        data-active={link.path === path ? "" : undefined}
                         class:list={[
                             "text-[0.8125rem] text-fg-muted transition-colors hover:text-fg data-[active]:text-fg",
-                            i > 1 && "hidden sm:inline",
+                            link.minWidth === "md" && "hidden md:inline",
                         ]}
                     >
                         {link.label}
@@ -36,7 +48,7 @@ const links = [
                 ))
             }
             <a
-                href="#contact"
+                href="/#contact"
                 class="text-[0.8125rem] text-accent transition-opacity hover:opacity-70"
                 >Contact</a
             >
@@ -48,9 +60,6 @@ const links = [
     // Two tiny behaviours, no framework: the bar materializes once you leave
     // the hero, and the current section's link brightens.
     const nav = document.getElementById("nav");
-    const navLinks = Array.from(
-        document.querySelectorAll<HTMLElement>("[data-navlink]"),
-    );
 
     const onScroll = () => {
         if (window.scrollY > 24) nav?.setAttribute("data-scrolled", "");
@@ -59,26 +68,36 @@ const links = [
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    const sections = navLinks
-        .map((link) => document.querySelector(link.dataset.navlink!))
-        .filter((el): el is Element => el !== null);
+    // Section highlighting only applies on pages that actually contain the
+    // sections; elsewhere (e.g. /apps) the server-rendered active state stands.
+    const sectionLinks = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-section]"),
+    );
+    const observed = sectionLinks
+        .map((link) => ({
+            link,
+            el: document.getElementById(link.dataset.section!),
+        }))
+        .filter((pair): pair is { link: HTMLElement; el: HTMLElement } =>
+            Boolean(pair.el),
+        );
 
-    if (sections.length > 0) {
+    if (observed.length > 0) {
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
                     if (!entry.isIntersecting) continue;
-                    for (const link of navLinks) {
-                        if (link.dataset.navlink === `#${entry.target.id}`) {
-                            link.setAttribute("data-active", "");
+                    for (const pair of observed) {
+                        if (pair.el === entry.target) {
+                            pair.link.setAttribute("data-active", "");
                         } else {
-                            link.removeAttribute("data-active");
+                            pair.link.removeAttribute("data-active");
                         }
                     }
                 }
             },
             { rootMargin: "-40% 0px -55% 0px" },
         );
-        sections.forEach((section) => observer.observe(section));
+        observed.forEach((pair) => observer.observe(pair.el));
     }
 </script>

@@ -1,0 +1,58 @@
+---
+import { Icon } from "astro-icon/components";
+
+const elsewhere = [
+    {
+        label: "GitHub",
+        href: "https://github.com/ThatXliner",
+        icon: "simple-icons:github",
+    },
+    {
+        label: "LinkedIn",
+        href: "https://www.linkedin.com/in/thatxliner/",
+        icon: "simple-icons:linkedin",
+    },
+    {
+        label: "Blog",
+        href: "https://bryanhu.com/blog/",
+        icon: "lucide:pen-line",
+    },
+    {
+        label: "Instagram",
+        href: "https://www.instagram.com/icliptheworld",
+        icon: "simple-icons:instagram",
+    },
+    {
+        label: "Discord",
+        href: "https://discord.gg/7YHfbBUh4n",
+        icon: "simple-icons:discord",
+    },
+];
+
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-hairline">
+    <div
+        class="mx-auto flex max-w-[1180px] flex-col-reverse items-center justify-between gap-6 px-gutter py-8 md:flex-row"
+    >
+        <p class="t-caption">&copy; {year} Bryan Hu</p>
+
+        <nav class="flex items-center gap-6">
+            {
+                elsewhere.map((item) => (
+                    <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={item.label}
+                        title={item.label}
+                        class="text-fg-dim transition-colors hover:text-fg"
+                    >
+                        <Icon name={item.icon} class="size-[1.125rem]" />
+                    </a>
+                ))
+            }
+        </nav>
+    </div>
+</footer>

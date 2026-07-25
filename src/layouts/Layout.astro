@@ -2,12 +2,20 @@
 import { Font } from "astro:assets";
 import "../styles/global.css";
 
-// `noanim` is only ever set by the /preview QA route, so scroll-driven
-// animations render settled in static screenshots.
 interface Props {
+    title?: string;
+    description?: string;
+    /** Pins scroll-driven animations to their settled state, for QA captures. */
     noanim?: boolean;
 }
-const { noanim } = Astro.props;
+
+const {
+    title = "Bryan Hu — Founder & Developer",
+    description = "Bryan Hu is a founder and full-stack developer building Billion (civic intelligence) and Quillium (version control for prose) — plus open-source Python tooling, award-winning robotics software, and creative work.",
+    noanim,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -19,11 +27,13 @@ const { noanim } = Astro.props;
         <meta name="generator" content={Astro.generator} />
         <meta name="theme-color" content="#000000" />
         <meta name="color-scheme" content="dark" />
-        <title>Bryan Hu — Founder & Developer</title>
-        <meta
-            name="description"
-            content="Bryan Hu is a founder and full-stack developer building Billion (civic intelligence) and Quillium (version control for prose) — plus open-source Python tooling, award-winning robotics software, and creative work."
-        />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <link rel="canonical" href={canonical} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonical} />
         <Font cssVariable="--font-sans" preload />
         <script
             defer

@@ -1,0 +1,144 @@
+---
+import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import Layout from "../layouts/Layout.astro";
+import Nav from "@/components/Nav.astro";
+import Footer from "@/components/Footer.astro";
+import { apps } from "@/data/apps";
+---
+
+<Layout
+    title="Apps — Bryan Hu"
+    description="A gallery of the apps Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch."
+>
+    <Nav />
+
+    <main>
+        <!-- ── Header ──────────────────────────────────────────────────── -->
+        <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
+            <p class="t-eyebrow rise">Apps</p>
+            <h1 class="t-display mt-3 max-w-[20ch] text-balance">
+                <span class="mask mask-load"><span>Things I've</span></span>
+                <span class="mask mask-load text-fg-muted"
+                    ><span style="animation-delay:110ms">shipped.</span></span
+                >
+            </h1>
+            <p
+                class="t-lede rise mt-7 max-w-[54ch] text-balance"
+                style="animation-delay:220ms"
+            >
+                I build a lot of small things. These are the ones that got
+                finished enough for other people to use — {apps.length} of them,
+                all free, all open source. The libraries and developer tooling
+                live <a class="a-underline" href="/#work">back on the home page</a>.
+            </p>
+        </section>
+
+        <!-- ── Gallery ─────────────────────────────────────────────────── -->
+        <section
+            class="mx-auto grid max-w-[1180px] gap-5 px-gutter pt-14 pb-24 md:grid-cols-2 md:pt-20 md:pb-36"
+        >
+            {
+                apps.map((app) => (
+                    <article class="plane plane-hover reveal group flex flex-col overflow-hidden">
+                        <a
+                            href={app.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="block"
+                            aria-label={`Open ${app.name}`}
+                        >
+                            {app.image ? (
+                                <Image
+                                    src={app.image}
+                                    alt={`${app.name} screenshot`}
+                                    width={1200}
+                                    densities={[1, 2]}
+                                    loading="lazy"
+                                    draggable="false"
+                                    class:list={[
+                                        "aspect-16/10 w-full border-b border-hairline object-cover select-none",
+                                        app.focus ?? "object-top",
+                                    ]}
+                                />
+                            ) : (
+                                /* No screenshot worth taking — set the name
+                                   instead, so the grid keeps its rhythm. */
+                                <div class="flex aspect-16/10 w-full items-center justify-center border-b border-hairline bg-surface-2">
+                                    <span class="text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.04em] text-fg-dim">
+                                        {app.name}
+                                    </span>
+                                </div>
+                            )}
+                        </a>
+
+                        <div class="flex flex-1 flex-col p-6 md:p-7">
+                            <div class="flex items-baseline justify-between gap-4">
+                                <h2 class="t-headline text-[1.125rem] md:text-[1.25rem]">
+                                    {app.name}
+                                </h2>
+                                <span class="t-caption shrink-0">
+                                    {app.platform}
+                                </span>
+                            </div>
+
+                            <p class="t-body mt-2.5 text-[0.9375rem]">
+                                {app.tagline}
+                            </p>
+
+                            <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 pt-0">
+                                <a
+                                    href={app.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="a-link text-[0.875rem]"
+                                >
+                                    Open
+                                    <span class="chev" aria-hidden="true">
+                                        &rsaquo;
+                                    </span>
+                                </a>
+                                <a
+                                    href={app.repo}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-1.5 text-[0.875rem] text-fg-muted transition-colors hover:text-fg"
+                                >
+                                    <Icon
+                                        name="simple-icons:github"
+                                        class="size-3.5"
+                                    />
+                                    Source
+                                </a>
+                                <span class="t-caption ml-auto">
+                                    {app.language}
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                ))
+            }
+        </section>
+
+        <section
+            class="mx-auto max-w-[1180px] px-gutter pb-24 text-center md:pb-36"
+        >
+            <p class="t-lede reveal mx-auto max-w-[42ch] text-balance">
+                There are another hundred repos where these came from.
+            </p>
+            <div class="reveal mt-7">
+                <a
+                    href="https://github.com/ThatXliner?tab=repositories"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-ghost"
+                >
+                    <Icon name="simple-icons:github" class="size-4" />
+                    Browse all of them
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <Footer />
+</Layout>
