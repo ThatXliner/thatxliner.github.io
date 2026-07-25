@@ -1,0 +1,100 @@
+---
+import type { CollectionEntry } from "astro:content";
+import ArtFrame from "./ArtFrame.astro";
+
+interface Props {
+    pieces: CollectionEntry<"art">[];
+}
+
+const { pieces } = Astro.props;
+
+// Grouped rather than filtered: three sections need no JavaScript and no tab
+// state, and the whole body of work is visible in one scroll.
+//
+// `intro` is where a section argues for itself. Only Code needs one — a
+// photography section doesn't have to explain why photographs are art, but
+// putting programs next to them does need a case made.
+const groups = [
+    {
+        kind: "code" as const,
+        label: "Code",
+        note: "Programming is an art.",
+        intro: "PLACEHOLDER — this is where you argue that code is a medium and not just a tool: why a program can be a piece the same way a photograph is. It belongs to this section rather than the top of the page, so it reads as the case for the work sitting underneath it. Yours to write; replace this string in src/components/ArtIndex.astro.",
+    },
+    { kind: "photo" as const, label: "Photography", note: "To reveal God's beauty." },
+    { kind: "music" as const, label: "Music", note: "For the ear." },
+];
+
+const byKind = (kind: string) =>
+    pieces
+        .filter((piece) => piece.data.kind === kind)
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const formatYear = (date: Date) => date.getFullYear();
+---
+
+{
+    groups.map((group) => {
+        const items = byKind(group.kind);
+        if (items.length === 0) return null;
+        return (
+            <section class="mx-auto max-w-[1180px] px-gutter pt-16 md:pt-24">
+                <div class="reveal flex items-baseline justify-between gap-4 border-b border-hairline pb-4">
+                    <h2 class="t-headline">{group.label}</h2>
+                    <p class="t-caption">{group.note}</p>
+                </div>
+
+                {group.intro && (
+                    <div class="essay reveal mt-7">
+                        <blockquote>{group.intro}</blockquote>
+                    </div>
+                )}
+
+                <div class="mt-8 grid gap-5 md:grid-cols-2">
+                    {items.map((piece) => (
+                        <a
+                            href={`/art/${piece.id}`}
+                            class="plane plane-hover reveal group flex flex-col overflow-hidden"
+                        >
+                            <ArtFrame
+                                image={piece.data.image}
+                                alt={piece.data.title}
+                                kind={piece.data.kind}
+                                class="border-b border-hairline"
+                            />
+
+                            <div class="flex flex-1 flex-col p-6 md:p-7">
+                                <div class="flex items-baseline justify-between gap-4">
+                                    <h3 class="t-headline text-[1.125rem] md:text-[1.25rem]">
+                                        {piece.data.title}
+                                    </h3>
+                                    <span class="t-caption tnum shrink-0">
+                                        {formatYear(piece.data.date)}
+                                    </span>
+                                </div>
+
+                                <p class="t-body mt-2.5 text-[0.9375rem]">
+                                    {piece.data.blurb}
+                                </p>
+
+                                <div class="mt-6 flex items-center gap-4">
+                                    <span class="a-link text-[0.875rem]">
+                                        Read
+                                        <span class="chev" aria-hidden="true">
+                                            &rsaquo;
+                                        </span>
+                                    </span>
+                                    {piece.data.medium && (
+                                        <span class="t-caption ml-auto">
+                                            {piece.data.medium}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        );
+    })
+}

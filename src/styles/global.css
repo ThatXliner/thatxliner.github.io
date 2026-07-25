@@ -411,6 +411,26 @@
             animation-range: 0vh 100vh;
         }
 
+        /* ── The story, as one continuous journey ─────────────────────────
+           Each chapter declares its own view timeline, which its children
+           then read. That is what turns five independent `reveal`s into one
+           flowing traversal: a chapter arrives, holds at full contrast for
+           the whole time it is the thing you are reading, then recedes as
+           you pass it — so at any scroll position exactly one chapter is
+           lit and the rest have depth. The name resolves to the nearest
+           ancestor that declares it, so every article drives only itself. */
+        .station {
+            view-timeline-name: --station;
+        }
+
+        .station-body {
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: --station;
+            animation-range: cover;
+            animation-name: station;
+        }
+
         /* The hero recedes as you leave it: it scales back and dims, the way
            a physical layer would as it moves away from you. */
         .recede {
@@ -442,6 +462,32 @@
     }
 }
 
+/* Percentages here are fractions of the chapter's whole traversal of the
+   viewport, not of a duration — 0% is "about to enter from the bottom" and
+   100% is "fully gone off the top". The long flat middle is the point: it is
+   the window where the chapter is simply readable and nothing is moving. */
+@keyframes station {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    26% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    /* Holds full until the chapter's top edge has actually reached the top of
+       the viewport — dimming text a reader might still be on is the way this
+       pattern usually goes wrong. */
+    70% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0.3;
+        transform: translateY(-10px);
+    }
+}
+
 @keyframes lag {
     to {
         transform: translateY(38px);
@@ -468,11 +514,130 @@
 
 /* Screenshot/QA harness: `/preview` sets this so scroll-driven work renders
    in its settled state in a static capture. Not used by the real page. */
-html[data-noanim]
-    :is(.rise, .reveal, .approach, .recede, .drift-slow, .drift-fast, .lag),
+html[data-noanim] :is(
+        .rise,
+        .reveal,
+        .approach,
+        .recede,
+        .drift-slow,
+        .drift-fast,
+        .lag,
+        .station-body
+    ),
 html[data-noanim] :is(.mask-load, .mask-scroll) > * {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+}
+
+/* ── Long-form essays (/art pieces) ────────────────────────────────────────
+   Rendered markdown, so these have to be global. Measure is capped near 68
+   characters because that is where reading comfort sits — the rest of the
+   site is short copy, this is the one place with real prose. */
+.essay {
+    max-width: 34rem;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-fg-muted);
+}
+.essay > * + * {
+    margin-top: 1.35em;
+}
+.essay h2,
+.essay h3 {
+    color: var(--color-fg);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    margin-top: 2.2em;
+}
+.essay h2 {
+    font-size: 1.5rem;
+}
+.essay h3 {
+    font-size: 1.1875rem;
+}
+.essay strong {
+    color: var(--color-fg);
+    font-weight: 600;
+}
+.essay a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+.essay a:hover {
+    opacity: 0.75;
+}
+.essay blockquote {
+    border-left: 2px solid var(--color-hairline-strong);
+    padding-left: 1.15em;
+    color: var(--color-fg-dim);
+}
+.essay code {
+    font-size: 0.9em;
+    color: var(--color-fg);
+}
+.essay ul,
+.essay ol {
+    padding-left: 1.3em;
+}
+.essay li + li {
+    margin-top: 0.5em;
+}
+.essay ul {
+    list-style: disc;
+}
+.essay ol {
+    list-style: decimal;
+}
+
+/* ── Status ribbons ────────────────────────────────────────────────────────
+   A corner ribbon in the "fork me on GitHub" idiom, for work that is retired,
+   unmaintained or still in progress.
+
+   This introduces the palette's only second colour. It is deliberately not
+   the accent: --color-accent means "this is interactive, click it", and a
+   status flag means the opposite. Keeping them distinct is what stops the
+   ribbon from reading as a button. */
+@theme {
+    --color-flag: #ffd60a;
+}
+
+.ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8.5rem;
+    height: 8.5rem;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.ribbon > span {
+    position: absolute;
+    top: 1.6rem;
+    right: -2.6rem;
+    width: 12rem;
+    transform: rotate(45deg);
+    background-color: var(--color-flag);
+    color: var(--color-void);
+    padding: 0.3rem 0;
+    text-align: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.55);
+}
+
+/* Row-level equivalent for the libraries index, which is a list rather than a
+   set of bounded cards — a diagonal ribbon has no corner to sit in there. */
+.flag {
+    border: 1px solid color-mix(in oklab, var(--color-flag) 45%, transparent);
+    color: var(--color-flag);
+    border-radius: 980px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
 }

@@ -1,0 +1,141 @@
+---
+import { getCollection, render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import Nav from "@/components/Nav.astro";
+import Footer from "@/components/Footer.astro";
+import ArtIndex from "@/components/ArtIndex.astro";
+import ArtFrame from "@/components/ArtFrame.astro";
+
+// Index and piece pages share one dynamic route so a single `return []` keeps
+// the whole section out of production builds while it's still a prototype.
+// `astro dev` sets DEV; `astro build` does not, so nothing is emitted to dist.
+export async function getStaticPaths() {
+    if (!import.meta.env.DEV) return [];
+
+    const pieces = (await getCollection("art")).filter(
+        (piece) => !piece.data.draft,
+    );
+
+    return [
+        { params: { slug: undefined }, props: { pieces } },
+        ...pieces.map((piece) => ({
+            params: { slug: piece.id },
+            props: { piece, pieces },
+        })),
+    ];
+}
+
+interface Props {
+    pieces: CollectionEntry<"art">[];
+    piece?: CollectionEntry<"art">;
+}
+
+const { pieces, piece } = Astro.props;
+const Content = piece ? (await render(piece)).Content : null;
+
+const dateFormat = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+});
+---
+
+{
+    !piece ? (
+        <Layout
+            title="Art — Bryan Hu"
+            description="Code, photography and music by Bryan Hu, with an essay for each piece."
+        >
+            <Nav />
+            <main>
+                <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
+                    <p class="t-eyebrow rise">Art</p>
+                    <h1 class="t-display mt-3 max-w-[18ch] text-balance">
+                        <span class="mask mask-load">
+                            <span>Here's my</span>
+                        </span>
+                        <span class="mask mask-load text-fg-muted">
+                            <span style="animation-delay:110ms">art.</span>
+                        </span>
+                    </h1>
+
+                    <p
+                        class="t-lede rise mt-7 max-w-[52ch] text-balance"
+                        style="animation-delay:220ms"
+                    >
+                        Photographs, music, and programs — with an essay behind
+                        each one.
+                    </p>
+                </section>
+
+                <ArtIndex pieces={pieces} />
+
+                <div class="pb-24 md:pb-36" />
+            </main>
+            <Footer />
+        </Layout>
+    ) : (
+        <Layout
+            title={`${piece.data.title} — Bryan Hu`}
+            description={piece.data.blurb}
+        >
+            <Nav />
+            <main>
+                <article class="mx-auto max-w-[1180px] px-gutter pt-32 pb-24 md:pt-40 md:pb-36">
+                    <a href="/art" class="t-caption transition-colors hover:text-fg">
+                        &lsaquo;&nbsp;Art
+                    </a>
+
+                    {/* `ch` has to sit on the heading itself: on a parent it
+                        resolves against 16px body text, not the title size. */}
+                    <header class="mt-6">
+                        <h1 class="t-title max-w-[20ch] text-balance">
+                            {piece.data.title}
+                        </h1>
+                    </header>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <span class="t-caption">
+                            {dateFormat.format(piece.data.date)}
+                        </span>
+                        {piece.data.medium && (
+                            <span class="t-caption">{piece.data.medium}</span>
+                        )}
+                    </div>
+
+                    <figure class="approach mt-10 overflow-hidden rounded-xl border border-hairline md:mt-14">
+                        <ArtFrame
+                            image={piece.data.image}
+                            alt={piece.data.title}
+                            kind={piece.data.kind}
+                            sizes={1600}
+                        />
+                    </figure>
+
+                    <div class="essay mt-12 md:mt-16">
+                        <Content />
+                    </div>
+
+                    {piece.data.links.length > 0 && (
+                        <div class="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3">
+                            {piece.data.links.map((link) => (
+                                <a
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="a-link text-[0.9375rem]"
+                                >
+                                    {link.label}
+                                    <span class="chev" aria-hidden="true">
+                                        &rsaquo;
+                                    </span>
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </article>
+            </main>
+            <Footer />
+        </Layout>
+    )
+}

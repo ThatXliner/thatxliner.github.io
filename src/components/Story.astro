@@ -112,14 +112,14 @@ const awards = [
             chapters.map((chapter, i) => (
                 <article
                     class:list={[
-                        "grid gap-x-10 gap-y-3 py-10 md:grid-cols-[7rem_1fr] md:py-14",
+                        "station grid gap-x-10 gap-y-3 py-10 md:grid-cols-[7rem_1fr] md:py-14",
                         i > 0 && "border-t border-hairline",
                     ]}
                 >
                     <p class="t-eyebrow reveal md:sticky md:top-24 md:self-start">
                         {chapter.era}
                     </p>
-                    <div class="reveal">
+                    <div class="station-body">
                         <h3 class="text-[1.25rem] leading-snug font-semibold tracking-[-0.022em] text-balance md:text-[1.5rem]">
                             {chapter.title}
                         </h3>
