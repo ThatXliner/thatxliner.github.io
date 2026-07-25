@@ -130,7 +130,7 @@ export const apps: App[] = [
     {
         name: "Chess 2",
         tagline:
-            "Chess on a 16×16 board with pieces the original never had — wizards, giants, and a much longer walk to the other side.",
+            "A twist on a thousand-year-old game",
         platform: "Web",
         language: "Svelte",
         url: "https://thatxliner.github.io/chess2/",
