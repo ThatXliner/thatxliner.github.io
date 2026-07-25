@@ -3,8 +3,6 @@ import { defineConfig, fontProviders } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 
-import react from "@astrojs/react";
-
 import icon from "astro-icon";
 
 import sitemap from "@astrojs/sitemap";
@@ -16,7 +14,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  integrations: [react(), icon(), sitemap()],
+  integrations: [icon(), sitemap()],
 
   // One typeface, doing every job. Restraint is the point: hierarchy comes
   // from size, weight and tracking, not from a second family. Inter is the
