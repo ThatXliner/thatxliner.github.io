@@ -54,16 +54,6 @@ const music = [
 ];
 
 const [piano, trombone] = music;
-
-// Spelled-out numerals read better than digits in a headline.
-const NUMBER_WORDS = [
-    "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-    "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-    "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
-];
-const spell = (n: number) => NUMBER_WORDS[n] ?? String(n);
-const plural = (n: number) => (n === 1 ? "year" : "years");
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 ---
 
 <section id="creative" class="relative border-t border-hairline">
@@ -159,8 +149,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
         <div class="text-center">
             <p class="t-eyebrow reveal">Music</p>
             <h3 class="t-headline reveal mt-2.5">
-                {capitalize(spell(piano.years))} {plural(piano.years)} of piano,
-                {spell(trombone.years)} of trombone.
+                Because without music, life would B&#9837;
             </h3>
         </div>
 
