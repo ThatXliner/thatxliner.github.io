@@ -5,6 +5,7 @@ import chineseFont from "@/assets/apps/chinese-font.png";
 import coredumped from "@/assets/apps/coredumped.png";
 import easyvpn from "@/assets/apps/easyvpn.png";
 import fadaig from "@/assets/apps/fadaig.png";
+import grindion from "@/assets/apps/grindion.png";
 import hologram from "@/assets/apps/hologram.png";
 import ljv from "@/assets/apps/ljv.png";
 import nerdlens from "@/assets/apps/nerdlens.png";
@@ -95,6 +96,25 @@ export const apps: App[] = [
         // Hardware project — there's nothing to open, so no url.
         repo: "https://github.com/ThatXliner/FADAIG",
         image: fadaig,
+    },
+    {
+        name: "Grindion",
+        tagline:
+            "A pixel-art chain brawler on a shared board, where greed is a route: chain monsters, choose your payoff, and spend everything getting out.",
+        platform: "Web",
+        language: "Svelte",
+        // In progress — no public build to link yet.
+        repo: "https://github.com/ThatXliner/Grindion",
+        image: grindion,
+        status: "In progress",
+    },
+    {
+        name: "VideoGrapher",
+        tagline:
+            "Object tracking for physics video analysis, with lens-distortion calibration and exportable position data. Built for one lab, finished, and left alone.",
+        platform: "Desktop",
+        language: "Python",
+        repo: "https://github.com/ThatXliner/videographer",
     },
     {
         name: "sweepr",

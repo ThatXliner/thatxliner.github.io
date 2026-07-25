@@ -151,6 +151,19 @@ export const libraries: Library[] = [
         install: "claude plugin install xtras",
     },
     {
+        name: "Open Itinerary",
+        repoName: "open-itin",
+        tagline:
+            "A token-efficient JSON format for travel itineraries, meant for AI agents to emit and apps to consume. Schema.org's Trip is too abstract, iCalendar wasn't built for planning, GTFS is transit-only — this aims to be the boring, open standard in between.",
+        ecosystem: "Spec",
+        language: "TypeScript",
+        repo: "https://github.com/ThatXliner/open-itin",
+        registry: {
+            label: "Read the spec",
+            url: "https://bryanhu.com/open-itin/",
+        },
+    },
+    {
         name: "stacksearch",
         tagline:
             "The first thing I ever built: an unofficial API and CLI for searching StackOverflow and the rest of StackExchange. It shipped to PyPI with docs and CI, which taught me more than the code did.",
