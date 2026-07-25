@@ -1,11 +1,18 @@
 ---
+import { FEATURES } from "@/flags";
+
 // Section links are page-absolute (`/#work`) so the same nav works from
-// /apps as well as the home page. On the home page these still resolve as
+// /thelist as well as the home page. On the home page these still resolve as
 // same-document fragment navigation, so nothing reloads.
 const links = [
     { label: "Building", href: "/#building", section: "building" },
     // Matches /thelist and /thelist/libraries, so both tabs light the nav.
     { label: "The List", href: "/thelist", pathPrefix: "/thelist" },
+    // Appears only when the section is built — a link to a page that doesn't
+    // exist in dist would be a 404 in production.
+    ...(FEATURES.art
+        ? [{ label: "Art", href: "/art", pathPrefix: "/art" }]
+        : []),
     { label: "Work", href: "/#work", section: "work" },
     { label: "Story", href: "/#story", section: "story", minWidth: "md" },
     {

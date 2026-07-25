@@ -6,12 +6,12 @@ import Nav from "@/components/Nav.astro";
 import Footer from "@/components/Footer.astro";
 import ArtIndex from "@/components/ArtIndex.astro";
 import ArtFrame from "@/components/ArtFrame.astro";
+import { FEATURES } from "@/flags";
 
-// Index and piece pages share one dynamic route so a single `return []` keeps
-// the whole section out of production builds while it's still a prototype.
-// `astro dev` sets DEV; `astro build` does not, so nothing is emitted to dist.
+// Index and piece pages share one dynamic route, so a single `return []`
+// keeps the entire section — index and every piece — out of the build.
 export async function getStaticPaths() {
-    if (!import.meta.env.DEV) return [];
+    if (!FEATURES.art) return [];
 
     const pieces = (await getCollection("art")).filter(
         (piece) => !piece.data.draft,
