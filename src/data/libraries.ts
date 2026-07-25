@@ -11,6 +11,8 @@ export interface Library {
     install?: string;
     /** The registry listing (PyPI, crates.io, npm). */
     registry?: { label: string; url: string };
+    /** Set when it still works but isn't being looked after, e.g. "Unmaintained". */
+    status?: string;
 }
 
 // Developer-facing work: things you install, import, or scaffold from. Anything
@@ -147,5 +149,22 @@ export const libraries: Library[] = [
         language: "Shell",
         repo: "https://github.com/ThatXliner/xtras",
         install: "claude plugin install xtras",
+    },
+    {
+        name: "stacksearch",
+        tagline:
+            "The first thing I ever built: an unofficial API and CLI for searching StackOverflow and the rest of StackExchange. It shipped to PyPI with docs and CI, which taught me more than the code did.",
+        ecosystem: "Python",
+        language: "Python",
+        repo: "https://github.com/ThatXliner/stacksearch",
+        install: "pip install stacksearch",
+        registry: {
+            label: "PyPI",
+            url: "https://pypi.org/project/stacksearch/",
+        },
+        // Its README's own words: no longer actively maintained, occasional
+        // fixes only. It still installs and works, so "unmaintained" is the
+        // honest signal rather than "retired".
+        status: "Unmaintained",
     },
 ];
