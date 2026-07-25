@@ -215,16 +215,20 @@ function segments(text: string) {
             }
         </div>
 
-        <div class="mt-10 text-center">
+        <!-- The home page shows the highlights; The List is the canonical
+             index of everything shipped. -->
+        <div
+            class="reveal mt-12 flex flex-wrap items-center justify-center gap-x-7 gap-y-4"
+        >
+            <a href="/thelist" class="btn btn-primary">Read more at The List</a>
             <a
                 href="https://github.com/ThatXliner?tab=repositories"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="a-link"
+                class="flex items-center gap-1.5 text-[0.9375rem] text-fg-muted transition-colors hover:text-fg"
             >
-                All repositories on GitHub<span class="chev" aria-hidden="true"
-                    >&rsaquo;</span
-                >
+                <Icon name="simple-icons:github" class="size-4" />
+                All repositories
             </a>
         </div>
     </div>

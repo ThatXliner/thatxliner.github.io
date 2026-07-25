@@ -4,7 +4,8 @@
 // same-document fragment navigation, so nothing reloads.
 const links = [
     { label: "Building", href: "/#building", section: "building" },
-    { label: "Apps", href: "/apps", path: "/apps" },
+    // Matches /thelist and /thelist/libraries, so both tabs light the nav.
+    { label: "The List", href: "/thelist", pathPrefix: "/thelist" },
     { label: "Work", href: "/#work", section: "work" },
     { label: "Story", href: "/#story", section: "story", minWidth: "md" },
     {
@@ -37,7 +38,11 @@ const path = Astro.url.pathname.replace(/\/$/, "") || "/";
                     <a
                         href={link.href}
                         data-section={link.section}
-                        data-active={link.path === path ? "" : undefined}
+                        data-active={
+                            link.pathPrefix && path.startsWith(link.pathPrefix)
+                                ? ""
+                                : undefined
+                        }
                         class:list={[
                             "text-[0.8125rem] text-fg-muted transition-colors hover:text-fg data-[active]:text-fg",
                             link.minWidth === "md" && "hidden md:inline",

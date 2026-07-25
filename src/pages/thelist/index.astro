@@ -1,37 +1,46 @@
 ---
 import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
 import Nav from "@/components/Nav.astro";
 import Footer from "@/components/Footer.astro";
+import ListTabs from "@/components/ListTabs.astro";
 import { apps } from "@/data/apps";
+import { libraries } from "@/data/libraries";
 ---
 
 <Layout
-    title="Apps — Bryan Hu"
-    description="A gallery of the apps Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch."
+    title="The List — Apps by Bryan Hu"
+    description="Every app Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch. All free, all open source."
 >
     <Nav />
 
     <main>
         <!-- ── Header ──────────────────────────────────────────────────── -->
         <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
-            <p class="t-eyebrow rise">Apps</p>
+            <p class="t-eyebrow rise">The List</p>
             <h1 class="t-display mt-3 max-w-[20ch] text-balance">
-                <span class="mask mask-load"><span>Things I've</span></span>
+                <span class="mask mask-load"><span>Everything</span></span>
                 <span class="mask mask-load text-fg-muted"
-                    ><span style="animation-delay:110ms">shipped.</span></span
+                    ><span style="animation-delay:110ms">I've made.</span></span
                 >
             </h1>
             <p
-                class="t-lede rise mt-7 max-w-[54ch] text-balance"
+                class="t-lede rise mt-7 max-w-[56ch] text-balance"
                 style="animation-delay:220ms"
             >
                 I build a lot of small things. These are the ones that got
-                finished enough for other people to use — {apps.length} of them,
-                all free, all open source. The libraries and developer tooling
-                live <a class="a-underline" href="/#work">back on the home page</a>.
+                finished enough for other people to use — apps you can open, and
+                libraries you can install. All free, all open source.
             </p>
+
+            <div class="rise mt-9" style="animation-delay:300ms">
+                <ListTabs
+                    active="apps"
+                    appCount={apps.length}
+                    libraryCount={libraries.length}
+                />
+            </div>
         </section>
 
         <!-- ── Gallery ─────────────────────────────────────────────────── -->
@@ -126,12 +135,17 @@ import { apps } from "@/data/apps";
             <p class="t-lede reveal mx-auto max-w-[42ch] text-balance">
                 There are another hundred repos where these came from.
             </p>
-            <div class="reveal mt-7">
+            <div
+                class="reveal mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-4"
+            >
+                <a href="/thelist/libraries" class="btn btn-primary">
+                    See the libraries
+                </a>
                 <a
                     href="https://github.com/ThatXliner?tab=repositories"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="btn btn-ghost"
+                    class="flex items-center gap-1.5 text-[0.9375rem] text-fg-muted transition-colors hover:text-fg"
                 >
                     <Icon name="simple-icons:github" class="size-4" />
                     Browse all of them

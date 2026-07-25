@@ -161,6 +161,36 @@ export function getForkedRepositories(): Promise<RepoSummary[]> {
   });
 }
 
+/**
+ * Live star counts for specific repos, keyed by name.
+ *
+ * Curated lists used to carry hardcoded star counts, which silently drifted out
+ * of date. Repo names can contain `-` and `.`, which aren't legal in GraphQL
+ * aliases, so each is queried under a positional alias and mapped back.
+ */
+export function getRepoStars(
+  names: string[],
+): Promise<Record<string, number>> {
+  return withDevCache(".cache/repo-stars.json", async () => {
+    const fields = names
+      .map(
+        (name, i) =>
+          `r${i}: repository(owner: "ThatXliner", name: "${name}") { name stargazerCount }`,
+      )
+      .join("\n");
+
+    const data = await graphql(`query { ${fields} }`);
+
+    const stars: Record<string, number> = {};
+    names.forEach((name, i) => {
+      const node = data[`r${i}`];
+      // A renamed or deleted repo resolves to null rather than erroring.
+      if (node) stars[name] = node.stargazerCount;
+    });
+    return stars;
+  });
+}
+
 export interface GitHubStats {
   totalContributions: number;
   followers: number;

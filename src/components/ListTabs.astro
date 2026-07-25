@@ -1,0 +1,52 @@
+---
+// The two halves of The List are separate routes rather than a JS tab widget,
+// so each is linkable, shareable, and works with no JavaScript at all.
+interface Props {
+    active: "apps" | "libraries";
+    appCount: number;
+    libraryCount: number;
+}
+
+const { active, appCount, libraryCount } = Astro.props;
+
+const tabs = [
+    { id: "apps", label: "Apps", href: "/thelist", count: appCount },
+    {
+        id: "libraries",
+        label: "Libraries",
+        href: "/thelist/libraries",
+        count: libraryCount,
+    },
+] as const;
+---
+
+<div
+    class="inline-flex items-center gap-1 rounded-full border border-hairline bg-surface p-1"
+    role="tablist"
+>
+    {
+        tabs.map((tab) => (
+            <a
+                href={tab.href}
+                role="tab"
+                aria-selected={active === tab.id}
+                class:list={[
+                    "flex items-center gap-2 rounded-full px-4 py-1.5 text-[0.875rem] font-medium transition-colors",
+                    active === tab.id
+                        ? "bg-surface-3 text-fg"
+                        : "text-fg-muted hover:text-fg",
+                ]}
+            >
+                {tab.label}
+                <span
+                    class:list={[
+                        "tnum text-[0.75rem]",
+                        active === tab.id ? "text-fg-dim" : "text-fg-dim/70",
+                    ]}
+                >
+                    {tab.count}
+                </span>
+            </a>
+        ))
+    }
+</div>
