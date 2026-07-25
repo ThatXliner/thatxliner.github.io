@@ -293,6 +293,26 @@
     }
 }
 
+/* A chapter's progress rule, pinned under its era label in the margin. It is
+   a readout, not an ornament: how far through this chapter you are. Static
+   state is "full", so browsers without scroll-driven animation get a plain
+   drawn rule rather than an empty track. */
+.rail {
+    display: block;
+    position: relative;
+    width: 2.25rem;
+    height: 1px;
+    margin-top: 0.7rem;
+    background-color: var(--color-hairline-strong);
+}
+.rail::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-fg-muted);
+    transform-origin: left center;
+}
+
 /* Photographic falloff: an image that dissolves into the page instead of
    ending at a hard edge or sitting in a bordered box. */
 .falloff {
@@ -423,12 +443,32 @@
             view-timeline-name: --station;
         }
 
-        .station-body {
+        .station-body,
+        .station-era,
+        .station-title > *,
+        .rail::after {
             animation-timing-function: linear;
             animation-fill-mode: both;
             animation-timeline: --station;
             animation-range: cover;
+        }
+        .station-body {
             animation-name: station;
+        }
+        /* The chapter headline rises out from behind its own edge and lands
+           just before the prose under it settles — the same gesture the
+           section titles use, so a chapter opens the way a section does. */
+        .station-title > * {
+            animation-name: station-title;
+        }
+        /* The era holds a beat longer than its prose at both ends, so the
+           margin always names where you are — it is the signpost, and a
+           signpost that arrives late or leaves early is useless. */
+        .station-era {
+            animation-name: station-era;
+        }
+        .rail::after {
+            animation-name: rail;
         }
 
         /* The hero recedes as you leave it: it scales back and dims, the way
@@ -488,6 +528,54 @@
     }
 }
 
+@keyframes station-title {
+    0%,
+    4% {
+        transform: translateY(105%);
+    }
+    24%,
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes station-era {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+        color: var(--color-fg-dim);
+    }
+    20% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    32% {
+        color: var(--color-fg);
+    }
+    76% {
+        opacity: 1;
+        color: var(--color-fg);
+    }
+    100% {
+        opacity: 0.3;
+        transform: translateY(-6px);
+        color: var(--color-fg-dim);
+    }
+}
+
+/* Fills across exactly the span in which its chapter is the lit one, so the
+   rule is empty as the chapter arrives and full as you leave it. */
+@keyframes rail {
+    0%,
+    26% {
+        transform: scaleX(0);
+    }
+    70%,
+    100% {
+        transform: scaleX(1);
+    }
+}
+
 @keyframes lag {
     to {
         transform: translateY(38px);
@@ -522,9 +610,11 @@ html[data-noanim] :is(
         .drift-slow,
         .drift-fast,
         .lag,
-        .station-body
+        .station-body,
+        .station-era
     ),
-html[data-noanim] :is(.mask-load, .mask-scroll) > * {
+html[data-noanim] .rail::after,
+html[data-noanim] :is(.mask-load, .mask-scroll, .station-title) > * {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

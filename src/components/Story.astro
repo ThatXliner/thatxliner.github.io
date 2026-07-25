@@ -106,7 +106,9 @@ const awards = [
     </div>
 
     <!-- The era stays pinned in the margin while you read its chapter, so the
-         timeline is legible without drawing a decorative spine down the page. -->
+         timeline is legible without drawing a decorative spine down the page.
+         Pinned there it also carries the chapter's progress rule, which is the
+         only "where am I" affordance the journey needs. -->
     <div class="mx-auto mt-16 max-w-[52rem] px-gutter md:mt-24">
         {
             chapters.map((chapter, i) => (
@@ -116,12 +118,15 @@ const awards = [
                         i > 0 && "border-t border-hairline",
                     ]}
                 >
-                    <p class="t-eyebrow reveal md:sticky md:top-24 md:self-start">
+                    <p class="station-era t-eyebrow md:sticky md:top-24 md:self-start">
                         {chapter.era}
+                        <span class="rail" aria-hidden="true" />
                     </p>
                     <div class="station-body">
                         <h3 class="text-[1.25rem] leading-snug font-semibold tracking-[-0.022em] text-balance md:text-[1.5rem]">
-                            {chapter.title}
+                            <span class="mask station-title">
+                                <span>{chapter.title}</span>
+                            </span>
                         </h3>
                         <p class="t-body mt-3.5">{chapter.body}</p>
                         {chapter.links.length > 0 && (
