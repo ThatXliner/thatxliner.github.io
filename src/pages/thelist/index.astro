@@ -12,6 +12,7 @@ import { libraries } from "@/data/libraries";
 <Layout
     title="The List — Apps by Bryan Hu"
     description="Every app Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch. All free, all open source."
+    image="/og/thelist.png"
 >
     <Nav />
 
@@ -51,11 +52,15 @@ import { libraries } from "@/data/libraries";
                 apps.map((app) => (
                     <article class="plane plane-hover reveal group flex flex-col overflow-hidden">
                         <a
-                            href={app.url}
+                            href={app.url ?? app.repo}
                             target="_blank"
                             rel="noopener noreferrer"
                             class="block"
-                            aria-label={`Open ${app.name}`}
+                            aria-label={
+                                app.url
+                                    ? `Open ${app.name}`
+                                    : `${app.name} on GitHub`
+                            }
                         >
                             {app.image ? (
                                 <Image
@@ -96,17 +101,19 @@ import { libraries } from "@/data/libraries";
                             </p>
 
                             <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 pt-0">
-                                <a
-                                    href={app.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="a-link text-[0.875rem]"
-                                >
-                                    Open
-                                    <span class="chev" aria-hidden="true">
-                                        &rsaquo;
-                                    </span>
-                                </a>
+                                {app.url && (
+                                    <a
+                                        href={app.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="a-link text-[0.875rem]"
+                                    >
+                                        Open
+                                        <span class="chev" aria-hidden="true">
+                                            &rsaquo;
+                                        </span>
+                                    </a>
+                                )}
                                 <a
                                     href={app.repo}
                                     target="_blank"

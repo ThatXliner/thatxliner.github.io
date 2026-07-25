@@ -4,11 +4,12 @@ import cardcutter from "@/assets/apps/cardcutter.png";
 import chineseFont from "@/assets/apps/chinese-font.png";
 import coredumped from "@/assets/apps/coredumped.png";
 import easyvpn from "@/assets/apps/easyvpn.png";
+import fadaig from "@/assets/apps/fadaig.png";
 import hologram from "@/assets/apps/hologram.png";
-import istheresoftwarethat from "@/assets/apps/istheresoftwarethat.png";
 import ljv from "@/assets/apps/ljv.png";
 import nerdlens from "@/assets/apps/nerdlens.png";
 import sweepr from "@/assets/apps/sweepr.png";
+import temppromax from "@/assets/apps/temppromax.png";
 import wavelength from "@/assets/apps/wavelength.png";
 import wuzursched from "@/assets/apps/wuzursched.png";
 
@@ -18,8 +19,11 @@ export interface App {
     /** Where it runs, in the user's terms — not the tech stack. */
     platform: string;
     language: string;
-    /** The live app. Every entry has one; a card that links nowhere is noise. */
-    url: string;
+    /**
+     * Where to try it. Omitted for hardware projects, which have nothing to
+     * open — those cards link to the source instead.
+     */
+    url?: string;
     repo: string;
     /** Screenshot of the running app. Omitted where there's nothing to shoot. */
     image?: ImageMetadata;
@@ -72,14 +76,24 @@ export const apps: App[] = [
         image: cardcutter,
     },
     {
-        name: "Is There Software That…",
+        name: "temppromax",
         tagline:
-            "Describe what you need in plain English and get the free or open-source tool that actually does it.",
-        platform: "Web",
-        language: "TypeScript",
-        url: "https://istheresoftwarethat-tmp.netlify.app/",
-        repo: "https://github.com/ThatXliner/istheresoftwarethat.com",
-        image: istheresoftwarethat,
+            "A temperature monitor for Apple Silicon that reads PMU sensors over the HID Event System — no sudo, no daemon, no entitlements.",
+        platform: "macOS",
+        language: "Swift",
+        url: "https://bryanhu.com/temppromax/",
+        repo: "https://github.com/ThatXliner/temppromax",
+        image: temppromax,
+    },
+    {
+        name: "FADAIG",
+        tagline:
+            "An Arduino Leonardo pretending to be a keyboard so it can win iMessage Word Hunt for you. Ethically dubious, technically sound.",
+        platform: "Arduino",
+        language: "Python",
+        // Hardware project — there's nothing to open, so no url.
+        repo: "https://github.com/ThatXliner/FADAIG",
+        image: fadaig,
     },
     {
         name: "sweepr",

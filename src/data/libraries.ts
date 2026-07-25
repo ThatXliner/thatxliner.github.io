@@ -24,6 +24,8 @@ export const libraries: Library[] = [
         ecosystem: "Rust",
         language: "Rust",
         repo: "https://github.com/ThatXliner/rust-but-lisp",
+        // My most-starred repo, and you should absolutely not depend on it.
+        install: "( ͡° ͜ʖ ͡°)",
     },
     {
         name: "aioudp",
@@ -68,7 +70,7 @@ export const libraries: Library[] = [
     {
         name: "xclif",
         tagline:
-            "My command-line interface framework: declarative commands, derived from type hints.",
+            "File-based routing for CLI subcommands — the directory tree is the command tree.",
         ecosystem: "Python",
         language: "Python",
         repo: "https://github.com/ThatXliner/xclif",
@@ -91,10 +93,12 @@ export const libraries: Library[] = [
     {
         name: "gah",
         tagline:
-            "Git Add Hunk, built so coding agents can stage partial changes without an interactive prompt.",
-        ecosystem: "CLI",
+            "Git Add Hunk: non-interactive hunk staging, so a coding agent can stage partial changes without git add -p.",
+        ecosystem: "Rust",
         language: "Rust",
         repo: "https://github.com/ThatXliner/gah",
+        install: "cargo install gah",
+        registry: { label: "crates.io", url: "https://crates.io/crates/gah" },
     },
     {
         name: "pyt2",
@@ -127,42 +131,21 @@ export const libraries: Library[] = [
         repo: "https://github.com/ThatXliner/obsidian-supergraph",
     },
     {
-        name: "obsidian-yodo",
-        tagline: "Surfaces the TODOs buried across your Obsidian vault.",
-        ecosystem: "Obsidian",
-        language: "TypeScript",
-        repo: "https://github.com/ThatXliner/obsidian-yodo",
+        name: "claude-plugins",
+        tagline:
+            "My Claude Code plugin marketplace — add it once and every plugin below becomes installable by name.",
+        ecosystem: "Claude Code",
+        language: "Shell",
+        repo: "https://github.com/ThatXliner/claude-plugins",
+        install: "/plugin marketplace add ThatXliner/claude-plugins",
     },
     {
         name: "xtras",
         tagline:
-            "The Claude Code skills I actually use, packaged as an installable plugin.",
+            "The Claude Code skills I actually use, packaged as a plugin. Needs the marketplace above added first.",
         ecosystem: "Claude Code",
         language: "Shell",
         repo: "https://github.com/ThatXliner/xtras",
-    },
-    {
-        name: "temppromax",
-        tagline:
-            "A temperature monitor CLI that still works on modern macOS, unlike most of them.",
-        ecosystem: "CLI",
-        language: "Swift",
-        repo: "https://github.com/ThatXliner/temppromax",
-    },
-    {
-        name: "FADAIG",
-        tagline:
-            "An Arduino Leonardo pretending to be a keyboard so it can win Word Hunt for you. Ethically dubious, technically sound.",
-        ecosystem: "Arduino",
-        language: "Python",
-        repo: "https://github.com/ThatXliner/FADAIG",
-    },
-    {
-        name: "ipdt",
-        tagline:
-            "An engine for running Iterated Prisoner's Dilemma tournaments between competing strategies.",
-        ecosystem: "Rust",
-        language: "Rust",
-        repo: "https://github.com/ThatXliner/ipdt",
+        install: "claude plugin install xtras",
     },
 ];
