@@ -1,0 +1,42 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+// The bezel is drawn in CSS rather than baked into the image, so the
+// screenshot stays pixel-crisp at any size and the material is ours: one
+// hairline, one honest drop shadow, one thin top highlight where a real
+// glass edge would catch light. No frosted panels.
+interface Props {
+    src: ImageMetadata;
+    alt: string;
+    class?: string;
+}
+
+const { src, alt, class: className } = Astro.props;
+---
+
+<div
+    class:list={[
+        // No `shrink-0` here: two of these sit side by side inside a flex row,
+        // and `w-full` on a non-shrinking item would demand 200% of the
+        // container and blow out the page on narrow screens.
+        "relative w-full max-w-[17rem] min-w-0 rounded-[2.4rem] border border-white/[0.14] bg-surface-2 p-[0.4rem] shadow-[0_50px_100px_-30px_rgba(0,0,0,0.95),0_10px_30px_-10px_rgba(0,0,0,0.7)] sm:max-w-[19.5rem]",
+        className,
+    ]}
+>
+    <div class="overflow-hidden rounded-[2.05rem] bg-black">
+        <Image
+            src={src}
+            alt={alt}
+            width={560}
+            densities={[1, 2]}
+            draggable="false"
+            class="block h-auto w-full select-none"
+        />
+    </div>
+    <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 rounded-[2.4rem] bg-linear-to-b from-white/[0.09] via-transparent to-transparent"
+    >
+    </div>
+</div>

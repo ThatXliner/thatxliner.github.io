@@ -1,0 +1,274 @@
+---
+import { Icon } from "astro-icon/components";
+import { projects } from "@/data/projects";
+import {
+    getAllRepositories,
+    getForkedRepositories,
+    getGitHubStats,
+} from "@/lib/github";
+
+const repositories = await getAllRepositories();
+const forks = await getForkedRepositories();
+const gh = await getGitHubStats();
+
+const totalStars = repositories.reduce((sum, repo) => sum + repo.starCount, 0);
+
+const stats = [
+    { value: totalStars, label: "stars on my own work" },
+    { value: gh.totalContributions, label: "contributions this year" },
+    { value: gh.totalRepos, label: "repositories" },
+    { value: forks.length, label: "upstream projects fixed" },
+];
+
+// Two rows travelling in opposite directions. Split by index rather than by
+// slicing halves so both rows stay populated if the repo count is odd.
+const rowA = repositories.filter((_, i) => i % 2 === 0);
+const rowB = repositories.filter((_, i) => i % 2 === 1);
+
+// Inline markers in project descriptions: **label** or **label|url**
+function segments(text: string) {
+    return text.split(/\*\*(.*?)\*\*/g).map((part, i) => {
+        if (i % 2 === 0) return { kind: "text" as const, text: part };
+        const pipe = part.indexOf("|");
+        return pipe === -1
+            ? { kind: "strong" as const, text: part }
+            : {
+                  kind: "link" as const,
+                  text: part.slice(0, pipe),
+                  href: part.slice(pipe + 1),
+              };
+    });
+}
+---
+
+<section id="work" class="relative border-t border-hairline">
+    <div
+        class="mx-auto max-w-[1180px] px-gutter pt-24 pb-4 text-center md:pt-36"
+    >
+        <p class="t-eyebrow reveal">Open source</p>
+        <h2 class="t-title mx-auto mt-3 max-w-[26ch] text-balance">
+            <span class="mask mask-scroll"><span>Code I gave&nbsp;away.</span></span>
+        </h2>
+        <p class="t-lede reveal mx-auto mt-5 max-w-[50ch] text-balance">
+            Python libraries, developer tooling, and a long tail of pull
+            requests into other people's projects. All of it public, most of it
+            still maintained.
+        </p>
+    </div>
+
+    <!-- Live figures. Pulled fresh whenever the site is rebuilt. -->
+    <dl
+        class="mx-auto mt-16 grid max-w-[1180px] grid-cols-2 gap-y-10 px-gutter md:mt-20 md:grid-cols-4"
+    >
+        {
+            stats.map((stat) => (
+                <div class="reveal border-t border-hairline pt-5">
+                    <dd
+                        class="tnum text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-semibold tracking-[-0.04em]"
+                        data-countup={stat.value}
+                    >
+                        0
+                    </dd>
+                    <dt class="t-caption mt-2.5">{stat.label}</dt>
+                </div>
+            ))
+        }
+    </dl>
+
+    <!-- ══ Repository ticker ════════════════════════════════════════════ -->
+    <div class="relative mt-20 md:mt-28">
+        <div class="flex flex-col gap-4">
+            {
+                [rowA, rowB].map((row, rowIndex) => (
+                    <div class="group flex gap-4 overflow-hidden [--duration:110s] [--gap:1rem]">
+                        {[0, 1].map(() => (
+                            <div
+                                class:list={[
+                                    "flex shrink-0 animate-marquee justify-around gap-4 group-hover:[animation-play-state:paused] motion-reduce:animate-none",
+                                    rowIndex === 1 &&
+                                        "[animation-direction:reverse]",
+                                ]}
+                            >
+                                {row.map((repo) => (
+                                    <a
+                                        href={`https://github.com/ThatXliner/${repo.name}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="plane plane-hover flex h-[9.25rem] w-[19rem] shrink-0 flex-col p-5 text-left"
+                                    >
+                                        <div class="flex items-center gap-2">
+                                            <Icon
+                                                name="octicon:repo"
+                                                class="size-3.5 shrink-0 text-fg-dim"
+                                            />
+                                            <span class="truncate text-[0.9375rem] font-semibold">
+                                                {repo.name}
+                                            </span>
+                                        </div>
+                                        <p class="t-caption mt-2 line-clamp-2 min-h-[2.5em]">
+                                            {repo.body}
+                                        </p>
+                                        <div class="mt-auto flex items-center gap-4 pt-3">
+                                            {repo.language && (
+                                                <span class="flex items-center gap-1.5 text-[0.75rem] text-fg-dim">
+                                                    <span
+                                                        class="size-2 rounded-full"
+                                                        style={`background-color:${repo.languageColor || "#4d9fff"}`}
+                                                    />
+                                                    {repo.language}
+                                                </span>
+                                            )}
+                                            <span class="tnum flex items-center gap-1 text-[0.75rem] text-fg-dim">
+                                                <Icon
+                                                    name="octicon:star-24"
+                                                    class="size-3"
+                                                />
+                                                {repo.starCount}
+                                            </span>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                ))
+            }
+        </div>
+        <!-- Edges dissolve into the page instead of being clipped. -->
+        <div
+            aria-hidden="true"
+            class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-linear-to-r from-void to-transparent sm:w-32"
+        >
+        </div>
+        <div
+            aria-hidden="true"
+            class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-void to-transparent sm:w-32"
+        >
+        </div>
+    </div>
+
+    <!-- ══ Featured projects ════════════════════════════════════════════ -->
+    <div class="mx-auto max-w-[1180px] px-gutter pt-24 pb-24 md:pt-32 md:pb-36">
+        <div class="text-center">
+            <p class="t-eyebrow reveal">Featured</p>
+            <h3 class="t-headline reveal mt-2.5">
+                A closer look at {projects.length} of them.
+            </h3>
+        </div>
+
+        <div class="mt-12 grid gap-4 md:mt-16 md:grid-cols-2">
+            {
+                projects.map((project) => (
+                    <a
+                        href={project.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="plane plane-hover group flex flex-col p-7 md:p-8"
+                    >
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h4 class="text-[1.0625rem] font-semibold">
+                                    {project.name}
+                                </h4>
+                                <p class="t-caption mt-0.5">
+                                    {project.tagline}
+                                </p>
+                            </div>
+                            <Icon
+                                name="lucide:arrow-up-right"
+                                class="size-4 shrink-0 text-fg-dim transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                            />
+                        </div>
+
+                        <p class="t-body mt-4 text-[0.9375rem]">
+                            {segments(project.description).map((seg) =>
+                                seg.kind === "text" ? (
+                                    <span>{seg.text}</span>
+                                ) : (
+                                    <span class="font-medium text-fg">
+                                        {seg.text}
+                                    </span>
+                                ),
+                            )}
+                        </p>
+
+                        <div class="mt-auto flex items-center gap-4 pt-6">
+                            <span class="flex items-center gap-1.5 text-[0.75rem] text-fg-dim">
+                                <span
+                                    class="size-2 rounded-full"
+                                    style={`background-color:${project.languageColor}`}
+                                />
+                                {project.language}
+                            </span>
+                            {project.stars !== undefined && project.stars > 0 && (
+                                <span class="tnum flex items-center gap-1 text-[0.75rem] text-fg-dim">
+                                    <Icon
+                                        name="octicon:star-24"
+                                        class="size-3"
+                                    />
+                                    {project.stars}
+                                </span>
+                            )}
+                        </div>
+                    </a>
+                ))
+            }
+        </div>
+
+        <div class="mt-10 text-center">
+            <a
+                href="https://github.com/ThatXliner?tab=repositories"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="a-link"
+            >
+                All repositories on GitHub<span class="chev" aria-hidden="true"
+                    >&rsaquo;</span
+                >
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Figures count up once, when they first arrive. Progressive enhancement:
+    // without JS the server-rendered value is already correct.
+    const targets = document.querySelectorAll<HTMLElement>("[data-countup]");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches;
+
+    const format = (n: number) => n.toLocaleString("en-US");
+
+    for (const el of targets) {
+        const end = Number(el.dataset.countup ?? 0);
+        el.textContent = reduced ? format(end) : "0";
+    }
+
+    if (!reduced && targets.length > 0) {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    const el = entry.target as HTMLElement;
+                    observer.unobserve(el);
+
+                    const end = Number(el.dataset.countup ?? 0);
+                    const duration = 1100;
+                    const start = performance.now();
+
+                    const tick = (now: number) => {
+                        const t = Math.min((now - start) / duration, 1);
+                        // Same decelerating curve as the CSS motion.
+                        const eased = 1 - Math.pow(1 - t, 3);
+                        el.textContent = format(Math.round(end * eased));
+                        if (t < 1) requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                }
+            },
+            { threshold: 0.4 },
+        );
+
+        targets.forEach((el) => observer.observe(el));
+    }
+</script>

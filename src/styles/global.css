@@ -1,13 +1,74 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* ═══════════════════════════════════════════════════════════════════════
+   Design system
+
+   Near-black, one typeface, one accent. Hierarchy comes from size, weight
+   and tracking — never from gradients, glow, or a second family. Depth
+   comes from real planes and hairlines, not from frosted glass.
+
+   Things that are banned in this file, on purpose, because they are what
+   made the last version read as tacky:
+     · gradient-filled text
+     · animated gradients and any looping/pulsing animation
+     · `blur-3xl` colored blobs behind content
+     · particles, sparkles, ambient shaders
+     · rounded translucent "glass" cards stacked on everything
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@theme {
+    /* Planes. The page is true black; surfaces lift off it in small steps. */
+    --color-void: #000000;
+    --color-surface: #0a0a0c;
+    --color-surface-2: #141417;
+    --color-surface-3: #1d1d21;
+
+    /* Type. Three densities, matched to how far down the hierarchy you are. */
+    --color-fg: #f5f5f7;
+    --color-fg-muted: #8a8a90;
+    --color-fg-dim: #636369;
+
+    /* Hairlines do the work that borders used to. */
+    --color-hairline: #ffffff17;
+    --color-hairline-strong: #ffffff2b;
+
+    /* Exactly one accent, and it is reserved for interactive text. */
+    --color-accent: #4d9fff;
+
+    --font-sans: var(--font-sans);
+
+    --spacing-gutter: clamp(1.25rem, 5vw, 5rem);
+}
+
+/* shadcn tokens, re-pointed so any leftover primitive inherits this palette
+   instead of its own grays. */
+:root {
+    --radius: 0.75rem;
+    --background: var(--color-void);
+    --foreground: var(--color-fg);
+    --card: var(--color-surface);
+    --card-foreground: var(--color-fg);
+    --popover: var(--color-surface-2);
+    --popover-foreground: var(--color-fg);
+    --primary: var(--color-fg);
+    --primary-foreground: var(--color-void);
+    --secondary: var(--color-surface-2);
+    --secondary-foreground: var(--color-fg);
+    --muted: var(--color-surface-2);
+    --muted-foreground: var(--color-fg-muted);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-void);
+    --destructive: #ff453a;
+    --border: var(--color-hairline);
+    --input: var(--color-hairline);
+    --ring: var(--color-accent);
+}
 
 @theme inline {
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
+    --radius-xl: calc(var(--radius) + 6px);
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -20,27 +81,13 @@
     --color-secondary-foreground: var(--secondary-foreground);
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
-    --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+
     --animate-marquee: marquee var(--duration) infinite linear;
-    --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
     @keyframes marquee {
         from {
             transform: translateX(0);
@@ -49,157 +96,383 @@
             transform: translateX(calc(-100% - var(--gap)));
         }
     }
-    @keyframes marquee-vertical {
-        from {
-            transform: translateY(0);
-        }
-        to {
-            transform: translateY(calc(-100% - var(--gap)));
-        }
-    }
-    --animate-gradient: gradient 8s linear infinite;
-    @keyframes gradient {
-        to {
-            background-position: var(--bg-size, 300%) 0;
-        }
-    }
-}
-
-:root {
-    --radius: 0.625rem;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
+        border-color: var(--color-hairline);
     }
+
+    html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+        background-color: var(--color-void);
+    }
+
     body {
-        @apply bg-background text-foreground;
+        background-color: var(--color-void);
+        color: var(--color-fg);
+        font-family: var(--font-sans);
+        font-synthesis-weight: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+        background-color: var(--color-fg);
+        color: var(--color-void);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+        border-radius: 2px;
     }
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
-    animation: none;
-    mix-blend-mode: normal;
+/* ── Type roles ───────────────────────────────────────────────────────────
+   Display type needs negative tracking that scales with size, which is the
+   single most common thing people get wrong when imitating this look: set
+   big type at default tracking and it instantly reads amateur. */
+
+.t-display {
+    font-weight: 600;
+    font-size: clamp(2.6rem, 7.4vw, 6.25rem);
+    line-height: 1.04;
+    letter-spacing: -0.045em;
 }
 
-/* Register your custom font family and tell the browser where to find it. */
-@font-face {
-    font-family: "Inter-Thin";
-    src: url("/fonts/Inter-4.1/web/Inter-Thin.woff2") format("woff");
-    font-weight: 100;
-    font-style: normal;
-    font-display: swap;
+.t-title {
+    font-weight: 600;
+    font-size: clamp(2rem, 4.6vw, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
 }
-.inter-thin {
-    font-family: "Inter-Thin", sans-serif;
+
+.t-headline {
+    font-weight: 600;
+    font-size: clamp(1.375rem, 2.2vw, 1.875rem);
+    line-height: 1.2;
+    letter-spacing: -0.022em;
 }
-/* Scroll-driven hero exit: layers leave at different speeds, so scrolling
-   away from the hero reads as depth rather than a page sliding up. */
-@media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) {
-        .scroll-exit-fast {
-            animation: scroll-exit-fast linear both;
-            animation-timeline: scroll();
-            animation-range: 0vh 90vh;
-        }
-        .scroll-exit-slow {
-            animation: scroll-exit-slow linear both;
-            animation-timeline: scroll();
-            animation-range: 0vh 90vh;
-        }
+
+/* The standfirst under a display line. Muted on purpose — the headline is
+   the statement, this is the footnote to it. */
+.t-lede {
+    font-size: clamp(1.0625rem, 1.4vw, 1.3125rem);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    color: var(--color-fg-muted);
+}
+
+.t-body {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    letter-spacing: -0.005em;
+    color: var(--color-fg-muted);
+}
+
+.t-caption {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    letter-spacing: 0;
+    color: var(--color-fg-dim);
+}
+
+/* Small semibold label, normal case. Not wide-tracked uppercase — that is a
+   different design language and it fights this one. */
+.t-eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.005em;
+    color: var(--color-fg-muted);
+}
+
+.tnum {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Links ──────────────────────────────────────────────────────────────── */
+
+/* Inline text link: accent, with a chevron that steps forward on hover. */
+.a-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    transition: opacity 0.2s ease;
+}
+.a-link:hover {
+    opacity: 0.75;
+}
+.a-link .chev {
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.a-link:hover .chev {
+    transform: translateX(2.5px);
+}
+
+/* Underline that draws in from the left, for links inside running text. */
+.a-underline {
+    color: var(--color-fg);
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.a-underline:hover {
+    background-size: 100% 1px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 980px;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition:
+        background-color 0.22s ease,
+        border-color 0.22s ease,
+        color 0.22s ease,
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn:active {
+    transform: scale(0.975);
+}
+
+.btn-primary {
+    background-color: var(--color-fg);
+    color: var(--color-void);
+}
+.btn-primary:hover {
+    background-color: #ffffff;
+}
+
+.btn-ghost {
+    border: 1px solid var(--color-hairline-strong);
+    color: var(--color-fg);
+}
+.btn-ghost:hover {
+    border-color: var(--color-fg-muted);
+    background-color: #ffffff0a;
+}
+
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+
+/* A real plane, not frosted glass: a solid lifted surface, one hairline, and
+   a shadow that behaves like a shadow. */
+.plane {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-xl);
+    transition:
+        background-color 0.3s ease,
+        border-color 0.3s ease,
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Hover lifts the plane and deepens its shadow — a real change in elevation
+   rather than a colour wash or a glow. */
+.plane-hover:hover {
+    background-color: var(--color-surface-2);
+    border-color: var(--color-hairline-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .plane-hover:hover {
+        transform: none;
     }
 }
-@keyframes scroll-exit-fast {
-    to {
-        transform: translateY(-90px);
+
+/* Photographic falloff: an image that dissolves into the page instead of
+   ending at a hard edge or sitting in a bordered box. */
+.falloff {
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 62%,
+        transparent 99%
+    );
+    mask-image: linear-gradient(to bottom, black 62%, transparent 99%);
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────────
+   Two mechanisms only. Load entrances use `rise`, everything below the fold
+   is scroll-driven CSS with no JS and no observers. Every curve is the same
+   decelerating ease, which is what makes movement feel like one object with
+   mass rather than a pile of separate effects. */
+
+@keyframes rise {
+    from {
         opacity: 0;
-        filter: blur(6px);
+        transform: translateY(24px);
     }
-}
-@keyframes scroll-exit-slow {
     to {
-        transform: translateY(-30px);
-        opacity: 0.15;
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.hover-glow:hover {
-    @media (hover: hover) {
-        --tw-drop-shadow-size: drop-shadow(
-            0 0 5px var(--tw-drop-shadow-color, white)
-        );
-        --tw-drop-shadow: var(--tw-drop-shadow-size);
-        filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
-            var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,)
-            var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+.rise {
+    animation: rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Masked line reveal ───────────────────────────────────────────────────
+   Display type rises out from behind its own edge rather than fading in.
+   This is the single most expensive-feeling text gesture available and it
+   costs nothing: one clipped wrapper, one translate.
+
+   The padding/negative-margin pair keeps descenders (g, y, p) from being
+   sheared off by the clip — forgetting it is what makes most attempts at
+   this look broken. */
+.mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+}
+.mask > * {
+    display: block;
+}
+
+@keyframes line-up {
+    from {
+        transform: translateY(105%);
     }
-    transition-duration: 0.2s;
-    transition-property: filter;
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* On load, for the hero only. */
+.mask-load > * {
+    animation: line-up 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        /* Content arrives as it enters the viewport, scrubbed to scroll. */
+        .reveal {
+            animation: rise linear both;
+            animation-timeline: view();
+            animation-range: entry 5% entry 48%;
+        }
+
+        /* Product art arrives with mass: it comes toward you and settles,
+           scrubbed to scroll position rather than fired by an observer. This
+           is the one gesture the whole page is built around, so it uses the
+           same curve as everything else. */
+        .approach {
+            animation: approach linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 72%;
+        }
+
+        /* Section titles get the same masked rise, scrubbed to scroll. */
+        .mask-scroll > * {
+            animation: line-up linear both;
+            animation-timeline: view();
+            animation-range: entry 6% entry 54%;
+        }
+
+        /* Differential parallax. Two elements crossing the viewport at
+           slightly different rates read as two objects at different depths,
+           which is most of what makes a product shot feel physical. Amplitudes
+           stay small on purpose — past about 40px it stops reading as depth
+           and starts reading as a gimmick. */
+        .drift-slow,
+        .drift-fast {
+            animation-name: drift;
+            animation-timing-function: linear;
+            animation-fill-mode: both;
+            animation-timeline: view();
+            animation-range: cover;
+        }
+        .drift-slow {
+            --drift: 13px;
+        }
+        .drift-fast {
+            --drift: 30px;
+        }
+
+        /* The hero portrait lags the text it sits under, so leaving the hero
+           separates the two planes instead of sliding one flat layer away. */
+        .lag {
+            animation: lag linear both;
+            animation-timeline: scroll();
+            animation-range: 0vh 100vh;
+        }
+
+        /* The hero recedes as you leave it: it scales back and dims, the way
+           a physical layer would as it moves away from you. */
+        .recede {
+            animation: recede linear both;
+            animation-timeline: scroll();
+            animation-range: 0vh 100vh;
+            transform-origin: 50% 40%;
+        }
+    }
+}
+
+@keyframes approach {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(48px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes drift {
+    from {
+        transform: translateY(var(--drift));
+    }
+    to {
+        transform: translateY(calc(var(--drift) * -1));
+    }
+}
+
+@keyframes lag {
+    to {
+        transform: translateY(38px);
+    }
+}
+
+@keyframes recede {
+    to {
+        transform: scale(0.955);
+        opacity: 0;
+        filter: blur(3px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rise,
+    .mask-load > * {
+        animation: none;
+    }
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* Screenshot/QA harness: `/preview` sets this so scroll-driven work renders
+   in its settled state in a static capture. Not used by the real page. */
+html[data-noanim]
+    :is(.rise, .reveal, .approach, .recede, .drift-slow, .drift-fast, .lag),
+html[data-noanim] :is(.mask-load, .mask-scroll) > * {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
 }

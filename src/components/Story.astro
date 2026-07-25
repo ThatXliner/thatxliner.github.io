@@ -1,19 +1,187 @@
 ---
-import StorySection from "./ui/StorySection";
-import ScrubTitle from "./ui/ScrubTitle";
+import { Icon } from "astro-icon/components";
+
+const chapters = [
+    {
+        era: "Roots",
+        title: "I learned to build by shipping to strangers.",
+        body: "Python libraries on PyPI, with real users and real bug reports: async UDP in aioudp, HTML-to-Markdown in unmarkd, project tooling in pyt2 and idae. Publishing them taught me everything around the code — docs, CI, semver, and how to tell someone their feature request is out of scope.",
+        links: [
+            { label: "aioudp", url: "https://github.com/ThatXliner/aioudp" },
+            { label: "unmarkd", url: "https://github.com/ThatXliner/unmarkd" },
+        ],
+    },
+    {
+        era: "Teams",
+        title: "Then I learned what a deadline with other people feels like.",
+        body: "FRC Team 3256: elevator subsystems, 3D simulation, anti-tip logic, and the scouting app. Two seasons, seven awards, and a lasting respect for code that has to work on the first try in front of a crowd.",
+        links: [{ label: "Team 3256", url: "https://github.com/Team3256" }],
+    },
+    {
+        era: "Leadership",
+        title: "Someone had to run it, so I did.",
+        body: "I was CEO of VC Assist, a student-run non-profit maintaining my school's digital infrastructure, and I founded the VCSD software development club — where I wrote the curriculum and built the teaching tools, because nobody else was going to.",
+        links: [
+            { label: "VC Assist", url: "https://vcassist.org" },
+            { label: "VCSD Club", url: "https://vcsdclub.org" },
+        ],
+    },
+    {
+        era: "Proof",
+        title: "Competitions were the reality check.",
+        body: "3rd place in the 2025 Congressional App Challenge for CA-19, top 2% of picoCTF 2026 at 174th out of 8,747, and USACO Silver. The App Challenge entry mattered most, because it turned into the thing I do now.",
+        links: [],
+    },
+    {
+        era: "Now",
+        title: "That entry became a company.",
+        body: "It grew into Billion, heading to iOS and Android. Quillium came out of a different frustration entirely. I'm all in on both, which is a nicer way of saying I have stopped starting new projects.",
+        links: [
+            { label: "Billion", url: "https://www.billion-news.app/" },
+            { label: "Quillium", url: "https://quillium.bryanhu.com/" },
+        ],
+    },
+];
+
+const awards = [
+    {
+        label: "3rd Place — Congressional App Challenge, CA-19",
+        year: "2025",
+        url: "https://www.congressionalappchallenge.us/",
+    },
+    {
+        label: "Creativity Award — Daly Division, FRC Championship",
+        year: "2025",
+        url: "https://www.thebluealliance.com/event/2025dal#awards",
+    },
+    {
+        label: "Excellence in Engineering — Contra Costa Regional",
+        year: "2025",
+        url: "https://www.thebluealliance.com/event/2025capt#awards",
+    },
+    {
+        label: "Innovation in Control — Ventura County Regional",
+        year: "2025",
+        url: "https://www.thebluealliance.com/event/2025cave#awards",
+    },
+    {
+        label: "Engineering Inspiration — San Francisco Regional",
+        year: "2025",
+        url: "https://www.thebluealliance.com/event/2025casf#awards",
+    },
+    {
+        label: "Judges' Award — Capital City Classic",
+        year: "2025",
+        url: "https://www.thebluealliance.com/event/2025cacc#awards",
+    },
+    {
+        label: "picoCTF — 174th of 8,747 nationally",
+        year: "2026",
+        url: "https://picoctf.org/",
+    },
+    { label: "USACO Silver", year: "2023", url: "https://usaco.org/" },
+    {
+        label: "Regional Finalists — Silicon Valley Regional",
+        year: "2024",
+        url: "https://www.thebluealliance.com/event/2024casj#awards",
+    },
+    {
+        label: "Engineering Inspiration — Arizona Valley Regional",
+        year: "2024",
+        url: "https://www.thebluealliance.com/event/2024azva#awards",
+    },
+    // Newest first. Sort is stable, so entries sharing a year keep the order
+    // they're written in above.
+].sort((a, b) => Number(b.year) - Number(a.year));
 ---
 
-<div class="w-full py-16 md:py-24 px-6" id="story">
-    <h1
-        class="pointer-events-none text-center text-4xl sm:text-5xl md:text-6xl font-bold mb-2"
+<section id="story" class="relative border-t border-hairline">
+    <div
+        class="mx-auto max-w-[1180px] px-gutter pt-24 pb-4 text-center md:pt-36"
     >
-        <ScrubTitle client:visible text="The Story So Far" />
-    </h1>
-    <p
-        class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-12 md:mb-16"
-    >
-        How I got here &mdash; and where it's going
-    </p>
+        <p class="t-eyebrow reveal">The story so far</p>
+        <h2 class="t-title mx-auto mt-3 max-w-[24ch] text-balance">
+            <span class="mask mask-scroll"><span>How I got&nbsp;here.</span></span>
+        </h2>
+    </div>
 
-    <StorySection client:only />
-</div>
+    <!-- The era stays pinned in the margin while you read its chapter, so the
+         timeline is legible without drawing a decorative spine down the page. -->
+    <div class="mx-auto mt-16 max-w-[52rem] px-gutter md:mt-24">
+        {
+            chapters.map((chapter, i) => (
+                <article
+                    class:list={[
+                        "grid gap-x-10 gap-y-3 py-10 md:grid-cols-[7rem_1fr] md:py-14",
+                        i > 0 && "border-t border-hairline",
+                    ]}
+                >
+                    <p class="t-eyebrow reveal md:sticky md:top-24 md:self-start">
+                        {chapter.era}
+                    </p>
+                    <div class="reveal">
+                        <h3 class="text-[1.25rem] leading-snug font-semibold tracking-[-0.022em] text-balance md:text-[1.5rem]">
+                            {chapter.title}
+                        </h3>
+                        <p class="t-body mt-3.5">{chapter.body}</p>
+                        {chapter.links.length > 0 && (
+                            <div class="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                                {chapter.links.map((link) => (
+                                    <a
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="a-link text-[0.875rem]"
+                                    >
+                                        {link.label}
+                                        <span class="chev" aria-hidden="true">
+                                            &rsaquo;
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </article>
+            ))
+        }
+    </div>
+
+    <!-- ══ Awards ═══════════════════════════════════════════════════════ -->
+    <div class="mx-auto max-w-[52rem] px-gutter pt-16 pb-24 md:pt-24 md:pb-36">
+        <div class="reveal flex items-baseline justify-between gap-4">
+            <h3 class="t-headline">The receipts.</h3>
+            <span class="t-caption tnum">{awards.length} awards</span>
+        </div>
+
+        <ul class="mt-8">
+            {
+                awards.map((award) => (
+                    <li class="reveal border-t border-hairline">
+                        <a
+                            href={award.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="group flex items-baseline gap-4 py-3.5"
+                        >
+                            <span class="text-[0.9375rem] text-fg-muted transition-colors group-hover:text-fg">
+                                {award.label}
+                            </span>
+                            <span
+                                aria-hidden="true"
+                                class="mb-1 min-w-4 flex-1 border-b border-hairline"
+                            />
+                            <span class="t-caption tnum shrink-0">
+                                {award.year || "—"}
+                            </span>
+                            <Icon
+                                name="lucide:arrow-up-right"
+                                class="size-3.5 shrink-0 text-fg-dim opacity-0 transition-opacity group-hover:opacity-100"
+                            />
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</section>

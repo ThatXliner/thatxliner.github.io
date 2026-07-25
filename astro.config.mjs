@@ -17,19 +17,26 @@ export default defineConfig({
   },
 
   integrations: [react(), icon(), sitemap()],
-  // experimental: {
-  //   fonts: [
-  //     {
-  //       name: "Inter",
-  //       cssVariable: "--font-inter",
-  //       provider: fontProviders.fontsource(),
-  //       // Specify weights that are actually used
-  //       weights: [100],
-  //       // Specify styles that are actually used
-  //       styles: ["normal"],
-  //       // Download only font files for characters used on the page
-  //       subsets: ["latin"],
-  //     },
-  //   ],
-  // },
+
+  // One typeface, doing every job. Restraint is the point: hierarchy comes
+  // from size, weight and tracking, not from a second family. Inter is the
+  // closest freely-licensed analogue to SF Pro, including the tight optical
+  // tracking that display sizes need.
+  fonts: [
+    {
+      name: "Inter",
+      cssVariable: "--font-sans",
+      provider: fontProviders.google(),
+      weights: ["400 700"],
+      styles: ["normal"],
+      subsets: ["latin"],
+      fallbacks: [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Helvetica Neue",
+        "sans-serif",
+      ],
+    },
+  ],
 });

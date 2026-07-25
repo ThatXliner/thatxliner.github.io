@@ -1,24 +1,91 @@
 ---
-import ContactBar from "./ui/contact-bar";
+import { Icon } from "astro-icon/components";
+
+const elsewhere = [
+    {
+        label: "GitHub",
+        href: "https://github.com/ThatXliner",
+        icon: "simple-icons:github",
+    },
+    {
+        label: "LinkedIn",
+        href: "https://www.linkedin.com/in/thatxliner/",
+        icon: "simple-icons:linkedin",
+    },
+    {
+        label: "Blog",
+        href: "https://bryanhu.com/blog/",
+        icon: "lucide:pen-line",
+    },
+    {
+        label: "Instagram",
+        href: "https://www.instagram.com/icliptheworld",
+        icon: "simple-icons:instagram",
+    },
+    {
+        label: "Discord",
+        href: "https://discord.gg/7YHfbBUh4n",
+        icon: "simple-icons:discord",
+    },
+];
+
+const year = new Date().getFullYear();
 ---
 
-<div
-    class="min-h-screen flex flex-col items-center justify-center gap-4 md:gap-6 px-6"
-    id="contact"
->
-    <span
-        class="pointer-events-none bg-[linear-gradient(90deg,var(--color-purple-400),var(--color-amber-400),var(--color-sky-400),var(--color-purple-400))] bg-[length:300%_auto] animate-gradient motion-reduce:animate-none bg-clip-text text-center text-5xl sm:text-6xl md:text-8xl leading-none font-semibold text-transparent"
+<section id="contact" class="relative border-t border-hairline">
+    <div
+        class="mx-auto max-w-[1180px] px-gutter pt-28 pb-20 text-center md:pt-40 md:pb-28"
     >
-        Let's connect
-    </span>
-    <p class="text-gray-400 text-base md:text-lg max-w-md text-center px-4">
-        Got a project in mind, want to collaborate, or just want to say hi?
-    </p>
-    <a
-        href="mailto:thatxliner@gmail.com"
-        class="text-gray-300 hover:text-white transition-colors text-sm tracking-wide"
-    >
-        thatxliner@gmail.com
-    </a>
-    <ContactBar client:only />
-</div>
+        <h2 class="t-display mx-auto max-w-[16ch] text-balance">
+            <span class="mask mask-scroll"><span>Let's build</span></span>
+            <span class="mask mask-scroll text-fg-muted"
+                ><span>something.</span></span
+            >
+        </h2>
+
+        <p class="t-lede reveal mx-auto mt-7 max-w-[44ch] text-balance">
+            Hiring, collaborating, or just want to argue about editor
+            architecture — I read everything.
+        </p>
+
+        <div
+            class="reveal mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-4"
+        >
+            <a href="mailto:thatxliner@gmail.com" class="btn btn-primary">
+                thatxliner@gmail.com
+            </a>
+            <a href="/resume.pdf" download="BryanHu_Resume.pdf" class="a-link">
+                Download résumé<span class="chev" aria-hidden="true"
+                    >&rsaquo;</span
+                >
+            </a>
+        </div>
+    </div>
+
+    <footer class="border-t border-hairline">
+        <div
+            class="mx-auto flex max-w-[1180px] flex-col-reverse items-center justify-between gap-6 px-gutter py-8 md:flex-row"
+        >
+            <p class="t-caption">
+                &copy; {year} Bryan Hu &middot; Palo Alto, California
+            </p>
+
+            <nav class="flex items-center gap-6">
+                {
+                    elsewhere.map((item) => (
+                        <a
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={item.label}
+                            title={item.label}
+                            class="text-fg-dim transition-colors hover:text-fg"
+                        >
+                            <Icon name={item.icon} class="size-[1.125rem]" />
+                        </a>
+                    ))
+                }
+            </nav>
+        </div>
+    </footer>
+</section>

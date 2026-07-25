@@ -1,18 +1,218 @@
 ---
-import CreativeSection from "./ui/CreativeSection";
 import { Image } from "astro:assets";
+import { Icon } from "astro-icon/components";
 import c200 from "../assets/c200-no-bg.png";
+
+const production = [
+    {
+        role: "Camera operator",
+        detail: "Canon C200",
+        context: "School assemblies and productions",
+    },
+    {
+        role: "Vision switcher",
+        detail: "Live multi-cam",
+        context: "Assemblies and church services",
+    },
+    {
+        role: "Post",
+        detail: "Final Cut Pro · Logic Pro · Darktable",
+        context: "Editing, grading, and music production",
+    },
+];
+
+const gear = [
+    { name: "Canon EOS R7", kind: "Body" },
+    { name: "Canon EOS 40D", kind: "Body" },
+    { name: "EF 70–200mm f/4L IS USM", kind: "Telephoto" },
+    { name: "Tamron 35mm f/1.4 SP Di USD", kind: "Prime" },
+    { name: "EF 50mm f/1.8 II", kind: "Nifty fifty" },
+    { name: "EF-S 28–105mm STM", kind: "Kit" },
+];
+
+// Years played is derived from the year each instrument started, so the
+// figures and the headline age on their own instead of quietly going stale.
+const startedPlaying = { piano: 2017, trombone: 2018 };
+const thisYear = new Date().getFullYear();
+
+const music = [
+    {
+        instrument: "Piano",
+        years: thisYear - startedPlaying.piano,
+        role: "Solo pianist",
+        awards: [
+            "Certificate of Merit Level 10, State Honors",
+            "3rd Place — USOMC Intermediate Baroque, 2023",
+        ],
+    },
+    {
+        instrument: "Trombone",
+        years: thisYear - startedPlaying.trombone,
+        role: "Concert band and jazz band",
+        awards: ["2nd Place — Folsom Jazz Festival, 2025"],
+    },
+];
+
+const [piano, trombone] = music;
+
+// Spelled-out numerals read better than digits in a headline.
+const NUMBER_WORDS = [
+    "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+    "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+    "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+];
+const spell = (n: number) => NUMBER_WORDS[n] ?? String(n);
+const plural = (n: number) => (n === 1 ? "year" : "years");
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 ---
 
-<div class="w-full py-16 px-6 md:px-12" id="creative">
-  <h1
-    class="pointer-events-none text-center text-4xl sm:text-5xl md:text-6xl font-bold mb-2"
-  >
-    Creative Work
-  </h1>
-  <p class="text-center text-sm uppercase tracking-[0.25em] text-gray-500 mb-16">
-    Photography &middot; Production &middot; Music
-  </p>
+<section id="creative" class="relative border-t border-hairline">
+    <div
+        class="mx-auto max-w-[1180px] px-gutter pt-24 pb-4 text-center md:pt-36"
+    >
+        <p class="t-eyebrow reveal">Off the clock</p>
+        <h2 class="t-title mx-auto mt-3 max-w-[26ch] text-balance">
+            <span class="mask mask-scroll"
+                ><span>I also point cameras at&nbsp;things.</span></span
+            >
+        </h2>
+        <p class="t-lede reveal mx-auto mt-5 max-w-[48ch] text-balance">
+            Freelance photographer, production crew, and a musician with more
+            certificates than gigs.
+        </p>
+    </div>
 
-  <CreativeSection client:only c200Src={c200.src} />
-</div>
+    <!-- ══ Production ═══════════════════════════════════════════════════ -->
+    <div class="mx-auto max-w-[1180px] px-gutter pt-16 md:pt-24">
+        <div class="grid items-center gap-12 md:grid-cols-2 md:gap-16">
+            <!-- A real object, lit. This is the warmth the section needs. -->
+            <div class="approach relative order-first md:order-last">
+                <div
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_50%,rgba(255,255,255,0.09),transparent_72%)]"
+                >
+                </div>
+                <Image
+                    src={c200}
+                    alt="Canon C200 cinema camera"
+                    width={760}
+                    densities={[1, 2]}
+                    draggable="false"
+                    class="relative mx-auto h-auto w-full max-w-[30rem] select-none drop-shadow-[0_40px_60px_rgba(0,0,0,0.85)]"
+                />
+            </div>
+
+            <div>
+                <h3 class="t-headline reveal text-balance">
+                    Behind the camera, and behind the switcher.
+                </h3>
+                <dl class="mt-8">
+                    {
+                        production.map((item) => (
+                            <div class="reveal border-t border-hairline py-4">
+                                <dt class="text-[0.9375rem] font-semibold">
+                                    {item.role}
+                                </dt>
+                                <dd class="t-caption mt-1">
+                                    {item.detail} &middot; {item.context}
+                                </dd>
+                            </div>
+                        ))
+                    }
+                </dl>
+                <a
+                    href="https://forms.gle/XUSbKXj6n1RW3kcC9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-ghost reveal mt-8"
+                >
+                    <Icon name="lucide:camera" class="size-4" />
+                    Hire me to shoot something
+                </a>
+            </div>
+        </div>
+
+        <!-- Gear, as a plain list. It's a list of facts; it doesn't need cards. -->
+        <div class="mt-20 md:mt-28">
+            <h3 class="t-eyebrow reveal">In the bag</h3>
+            <ul
+                class="mt-6 grid gap-x-12 gap-y-0 sm:grid-cols-2 lg:grid-cols-3"
+            >
+                {
+                    gear.map((item) => (
+                        <li class="reveal flex items-baseline gap-4 border-t border-hairline py-3.5">
+                            <span class="text-[0.9375rem]">{item.name}</span>
+                            <span
+                                aria-hidden="true"
+                                class="mb-1 min-w-4 flex-1 border-b border-hairline"
+                            />
+                            <span class="t-caption shrink-0">{item.kind}</span>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- ══ Music ════════════════════════════════════════════════════════ -->
+    <div class="mx-auto max-w-[1180px] px-gutter pt-24 pb-24 md:pt-36 md:pb-36">
+        <div class="text-center">
+            <p class="t-eyebrow reveal">Music</p>
+            <h3 class="t-headline reveal mt-2.5">
+                {capitalize(spell(piano.years))} {plural(piano.years)} of piano,
+                {spell(trombone.years)} of trombone.
+            </h3>
+        </div>
+
+        <div class="mx-auto mt-12 grid max-w-4xl gap-4 md:mt-16 md:grid-cols-2">
+            {
+                music.map((entry) => (
+                    <div class="plane reveal p-7 md:p-8">
+                        <div class="flex items-baseline justify-between gap-4">
+                            <h4 class="text-[1.0625rem] font-semibold">
+                                {entry.instrument}
+                            </h4>
+                            <span class="tnum text-[2rem] leading-none font-semibold tracking-[-0.04em] text-fg-dim">
+                                {entry.years}
+                                <span class="t-caption ml-1 tracking-normal">
+                                    yrs
+                                </span>
+                            </span>
+                        </div>
+                        <p class="t-caption mt-1">{entry.role}</p>
+                        <ul class="mt-5">
+                            {entry.awards.map((award) => (
+                                <li class="t-body border-t border-hairline py-3 text-[0.875rem]">
+                                    {award}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ))
+            }
+        </div>
+
+        <div
+            class="reveal mt-10 flex flex-wrap items-center justify-center gap-x-7 gap-y-4"
+        >
+            <a
+                href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-ghost"
+            >
+                <Icon name="simple-icons:spotify" class="size-4" />
+                Spotify
+            </a>
+            <a
+                href="https://music.apple.com/us/artist/bryan-hu/1751789628"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-ghost"
+            >
+                <Icon name="simple-icons:applemusic" class="size-4" />
+                Apple Music
+            </a>
+        </div>
+    </div>
+</section>

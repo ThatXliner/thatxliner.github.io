@@ -1,4 +1,16 @@
-import type { Project } from "@/components/ui/ProjectCard";
+export interface Project {
+    name: string;
+    tagline: string;
+    /** Supports `**bold**` and `**label|url**` inline markers. */
+    description: string;
+    url: string;
+    language: string;
+    languageColor: string;
+    stars?: number;
+    tags: string[];
+    icon: string;
+    award?: string;
+}
 
 // Featured open-source work. Billion and Quillium live in the Ventures
 // section — don't re-list them here.

@@ -1,0 +1,71 @@
+---
+import { Image } from "astro:assets";
+import me from "../assets/me_upper.png";
+---
+
+<section
+    id="top"
+    class="relative flex min-h-svh flex-col items-center overflow-hidden"
+>
+    <!-- Key light. Not decoration — it exists so a figure in a black jacket
+         separates from a black page, the way a studio backlight does. One
+         soft ellipse, no color, no animation. -->
+    <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-x-0 top-1/4 bottom-0 bg-[radial-gradient(ellipse_48%_44%_at_50%_74%,rgba(255,255,255,0.13),transparent_70%)]"
+    >
+    </div>
+
+    <div
+        class="recede relative flex w-full flex-1 flex-col items-center px-gutter pt-28 text-center md:pt-32"
+    >
+        <!-- Two-tone headline: the claim in full white, the turn in muted
+             gray. This is the thing a gradient fill was badly imitating. -->
+        <!-- `w-full` matters here: these are flex items in an `items-center`
+             column, so without it they size to their content and can push past
+             the viewport on narrow screens instead of wrapping. -->
+        <h1 class="t-display w-full max-w-[18ch] text-balance">
+            <span class="mask mask-load"><span>I build things,</span></span>
+            <span class="mask mask-load text-fg-muted"
+                ><span style="animation-delay:110ms"
+                    >then I rebuild them.</span
+                ></span
+            >
+        </h1>
+
+        <p
+            class="t-lede rise mt-7 w-full max-w-[52ch] text-balance"
+            style="animation-delay:200ms"
+        >
+            I'm Bryan Hu — founder of Billion and Quillium, open-source author,
+            and the person who writes the robot code.
+        </p>
+
+        <div
+            class="rise mt-9 flex w-full flex-wrap items-center justify-center gap-x-7 gap-y-4"
+            style="animation-delay:290ms"
+        >
+            <a href="#building" class="btn btn-primary">See what I'm building</a>
+            <a href="/resume.pdf" download="BryanHu_Resume.pdf" class="a-link">
+                Résumé<span class="chev" aria-hidden="true">&rsaquo;</span>
+            </a>
+        </div>
+
+        <!-- The portrait closes the hero and dissolves into the next section,
+             so the fold has no hard edge to it. -->
+        <div
+            class="lag pointer-events-none relative mt-auto w-full max-w-[17rem] pt-14 sm:max-w-[19rem]"
+        >
+            <div class="rise" style="animation-delay:150ms">
+                <Image
+                    src={me}
+                    alt="Bryan Hu"
+                    width={420}
+                    densities={[1, 2]}
+                    draggable="false"
+                    class="falloff h-auto w-full translate-y-px select-none brightness-[1.05]"
+                />
+            </div>
+        </div>
+    </div>
+</section>
