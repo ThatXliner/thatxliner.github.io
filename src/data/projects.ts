@@ -1,113 +1,54 @@
 export interface Project {
     name: string;
+    /** Repo name on GitHub — used to look up the live star count. */
+    repoName: string;
     tagline: string;
-    /** Supports `**bold**` and `**label|url**` inline markers. */
+    /** Supports `**bold**` emphasis markers. */
     description: string;
     url: string;
     language: string;
     languageColor: string;
-    stars?: number;
-    tags: string[];
-    icon: string;
-    award?: string;
 }
 
-// Featured open-source work. Billion and Quillium live in the Ventures
-// section — don't re-list them here.
+/**
+ * Three, not eight. The home page shows the highest-impact work and sends
+ * people to The List for everything else — a grid of eight flattened the
+ * strong entries into the weak ones.
+ *
+ * Chosen on measured reach rather than taste, each leading a different axis:
+ * rust-but-lisp on attention (149 stars, ~8x anything else), unmarkd on usage
+ * (~1,000 PyPI downloads a month), aioudp on both (~650 a month, most-starred
+ * of the libraries). Star counts render live; see Work.astro.
+ */
 export const projects: Project[] = [
-  {
-    name: "aioudp",
-    tagline: "Async UDP for Python",
-    description:
-      "A **websockets|https://websockets.readthedocs.io/**-inspired **async/await** API for **UDP** in Python. Provides a clean, high-level interface for UDP communication with full **asyncio|https://docs.python.org/3/library/asyncio.html** support. Published on **PyPI|https://pypi.org/project/aioudp/** with complete documentation on **ReadTheDocs|https://aioudp.readthedocs.io/**.",
-    url: "https://github.com/ThatXliner/aioudp",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 18,
-    tags: ["asyncio", "networking", "PyPI"],
-    icon: "logos:python",
-  },
-  {
-    name: "unmarkd",
-    tagline: "HTML to Markdown, reversed",
-    description:
-      "An extremely configurable **HTML-to-Markdown** converter built on **BeautifulSoup4|https://www.crummy.com/software/BeautifulSoup/**. Highly extensible via subclassing — customize tag conversion, code block language detection, list formatting, and more. Published on **PyPI|https://pypi.org/project/unmarkd/**.",
-    url: "https://github.com/ThatXliner/unmarkd",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 16,
-    tags: ["markdown", "HTML", "PyPI"],
-    icon: "lucide:file-text",
-  },
-  {
-    name: "pyt2",
-    tagline: "Opinionated Python project template",
-    description:
-      "A comprehensive Python project template using **Copier|https://copier.readthedocs.io/**. Ships with Poetry, pre-commit, **Ruff|https://docs.astral.sh/ruff/**, MyPy, Hypothesis testing, multi-platform GitHub Actions CI, automated **PyPI publishing|https://docs.pypi.org/trusted-publishers/** via Trusted Publishers, and Sphinx docs.",
-    url: "https://github.com/ThatXliner/pyt2",
-    language: "Jinja",
-    languageColor: "#a52a22",
-    stars: 14,
-    tags: ["devtools", "template", "CI/CD"],
-    icon: "lucide:layout-template",
-  },
-  {
-    name: "idae",
-    tagline: "PEP 723 script runner",
-    description:
-      "Run standalone Python scripts that declare their dependencies inline via **PEP 723|https://peps.python.org/pep-0723/** metadata comments. Automatically creates **cached virtual environments**, installs dependencies, and executes the script. Published on **PyPI|https://pypi.org/project/idae/**.",
-    url: "https://github.com/ThatXliner/idae",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 11,
-    tags: ["PEP 723", "devtools", "PyPI"],
-    icon: "lucide:play",
-  },
-  {
-    name: "FADAIG",
-    tagline: "For Absolutely Destroying An iMessage Game",
-    description:
-      "A hardware/software bot that physically plays the GamePigeon Word Hunt game. An **Arduino Leonardo|https://docs.arduino.cc/hardware/leonardo/** connected to an iPhone solves the word grid algorithmically and inputs swipe gestures via **USB HID|https://en.wikipedia.org/wiki/USB_human_interface_device_class** — bridging software and hardware for maximum overkill.",
-    url: "https://github.com/ThatXliner/FADAIG",
-    language: "Python",
-    languageColor: "#3572A5",
-    stars: 7,
-    tags: ["Arduino", "hardware", "automation"],
-    icon: "simple-icons:arduino",
-  },
-  {
-    name: "LJV",
-    tagline: "Lissajous music visualizer",
-    description:
-      "A real-time music visualizer that creates **Lissajous curves|https://en.wikipedia.org/wiki/Lissajous_curve** from audio files. Uses **WebGL2|https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext** for hardware-accelerated 60fps rendering with additive blending trail effects. Packaged as a native desktop app via **Tauri|https://tauri.app/**.",
-    url: "https://github.com/ThatXliner/ljv",
-    language: "Svelte",
-    languageColor: "#ff3e00",
-    stars: 2,
-    tags: ["WebGL", "Tauri", "audio"],
-    icon: "lucide:audio-waveform",
-  },
-  {
-    name: "obsidian-supergraph",
-    tagline: "Card-based graph view for Obsidian",
-    description:
-      "An **Obsidian|https://obsidian.md/** plugin providing a zoomable graph view that shows note titles and snippet previews as cards. Features smart zoom levels, drag-and-drop, click-to-open, auto-updating, and link visualization.",
-    url: "https://github.com/ThatXliner/obsidian-supergraph",
-    language: "TypeScript",
-    languageColor: "#3178c6",
-    stars: 2,
-    tags: ["Obsidian", "plugin", "graph"],
-    icon: "lucide:network",
-  },
-  {
-    name: "Slashtilities",
-    tagline: "Discord utility bot (retired)",
-    description:
-      "A slash command-based **Discord|https://discord.com/** utility bot. Built with **discord.py|https://discordpy.readthedocs.io/** providing various utility commands. Now retired.",
-    url: "https://github.com/ThatXliner/slashtilities",
-    language: "Python",
-    languageColor: "#3572A5",
-    tags: ["Discord", "bot", "retired"],
-    icon: "simple-icons:discord",
-  },
+    {
+        name: "rust-but-lisp",
+        repoName: "rust-but-lisp",
+        tagline: "Rust, in S-expressions",
+        description:
+            "A **transpiler** that lets you write Rust as **Lisp**. S-expressions go in, real compiled Rust comes out. It is the least useful thing here and by far the most widely shared.",
+        url: "https://github.com/ThatXliner/rust-but-lisp",
+        language: "Rust",
+        languageColor: "#dea584",
+    },
+    {
+        name: "unmarkd",
+        repoName: "unmarkd",
+        tagline: "HTML to Markdown, reversed",
+        description:
+            "An extremely configurable **HTML-to-Markdown** converter built on **BeautifulSoup**. Subclass it to control how any tag converts — code fences, language detection, list style. The most-downloaded thing I've published.",
+        url: "https://github.com/ThatXliner/unmarkd",
+        language: "Python",
+        languageColor: "#3572A5",
+    },
+    {
+        name: "aioudp",
+        repoName: "aioudp",
+        tagline: "Async UDP for Python",
+        description:
+            "A **websockets**-style **async/await** API for UDP, instead of asyncio's raw transport and protocol classes. Published on **PyPI** with full documentation on **ReadTheDocs**.",
+        url: "https://github.com/ThatXliner/aioudp",
+        language: "Python",
+        languageColor: "#3572A5",
+    },
 ];

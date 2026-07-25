@@ -22,7 +22,7 @@ export const libraries: Library[] = [
     {
         name: "rust-but-lisp",
         tagline:
-            "Rust, but with S-expressions. A proc-macro that lets you write Lisp and get real Rust out the other side.",
+            "Rust, but with S-expressions. A transpiler that takes Lisp in and emits real Rust out the other side.",
         ecosystem: "Rust",
         language: "Rust",
         repo: "https://github.com/ThatXliner/rust-but-lisp",

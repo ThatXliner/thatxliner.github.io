@@ -5,6 +5,7 @@ import {
     getAllRepositories,
     getForkedRepositories,
     getGitHubStats,
+    getRepoStars,
 } from "@/lib/github";
 
 const repositories = await getAllRepositories();
@@ -12,6 +13,12 @@ const forks = await getForkedRepositories();
 const gh = await getGitHubStats();
 
 const totalStars = repositories.reduce((sum, repo) => sum + repo.starCount, 0);
+
+// Featured star counts come from the API too — the numbers that used to live
+// in projects.ts had already drifted behind reality.
+const featuredStars = await getRepoStars(
+    projects.map((project) => project.repoName),
+);
 
 const stats = [
     { value: totalStars, label: "stars on my own work" },
@@ -170,7 +177,9 @@ function segments(text: string) {
             </h3>
         </div>
 
-        <div class="mt-12 grid gap-4 md:mt-16 md:grid-cols-2">
+        <!-- Three across, not a two-column grid: with an odd count the last
+             card would sit alone in the left half. -->
+        <div class="mt-12 grid gap-4 md:mt-16 md:grid-cols-3">
             {
                 projects.map((project) => (
                     <a
@@ -214,13 +223,15 @@ function segments(text: string) {
                                 />
                                 {project.language}
                             </span>
-                            {project.stars !== undefined && project.stars > 0 && (
+                            {(featuredStars[project.repoName] ?? 0) > 0 && (
                                 <span class="tnum flex items-center gap-1 text-[0.75rem] text-fg-dim">
                                     <Icon
                                         name="octicon:star-24"
                                         class="size-3"
                                     />
-                                    {project.stars}
+                                    {featuredStars[
+                                        project.repoName
+                                    ].toLocaleString("en-US")}
                                 </span>
                             )}
                         </div>

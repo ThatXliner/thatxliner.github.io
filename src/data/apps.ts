@@ -1,6 +1,7 @@
 import type { ImageMetadata } from "astro";
 
 import cardcutter from "@/assets/apps/cardcutter.png";
+import chess2 from "@/assets/apps/chess2.png";
 import chineseFont from "@/assets/apps/chinese-font.png";
 import coredumped from "@/assets/apps/coredumped.png";
 import easyvpn from "@/assets/apps/easyvpn.png";
@@ -125,6 +126,16 @@ export const apps: App[] = [
         url: "https://lyners-sweepr.vercel.app",
         repo: "https://github.com/ThatXliner/sweepr",
         image: sweepr,
+    },
+    {
+        name: "Chess 2",
+        tagline:
+            "Chess on a 16×16 board with pieces the original never had — wizards, giants, and a much longer walk to the other side.",
+        platform: "Web",
+        language: "Svelte",
+        url: "https://thatxliner.github.io/chess2/",
+        repo: "https://github.com/ThatXliner/chess2",
+        image: chess2,
     },
     {
         name: "coredumped",

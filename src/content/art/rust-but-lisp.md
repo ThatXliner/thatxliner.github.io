@@ -2,8 +2,8 @@
 title: rust-but-lisp
 kind: code
 date: 2025-02-14
-blurb: A proc-macro that lets you write Lisp and get real Rust out the other side.
-medium: Rust · proc-macro
+blurb: A transpiler that takes Lisp in and emits real Rust out the other side.
+medium: Rust · transpiler
 links:
     - label: Source
       url: https://github.com/ThatXliner/rust-but-lisp
