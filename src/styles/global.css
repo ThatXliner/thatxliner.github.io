@@ -265,6 +265,85 @@
     background-color: #ffffff0a;
 }
 
+/* The one sanctioned exception to the "no animated gradients" rule above.
+   The hero's single call to action is allowed to wink; nothing else on the
+   page is. It stays honest by being geometry rather than a wash: the pill is
+   fully opaque, and the colour lives only in a 2px ring and the light that
+   ring throws onto the black behind it. One loop, constant speed, no pulse. */
+
+/* Inherited on purpose: the glow is a copy of the ring, and it reads the same
+   animated angle off the button rather than running a second animation that
+   could drift. Registered so the angle interpolates instead of snapping. */
+@property --spin {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+}
+
+@keyframes btn-spin {
+    to {
+        --spin: 360deg;
+    }
+}
+
+/* Three things stacked in one place, and no more than that: a blurred disc of
+   the gradient (the light), an opaque pill with a 2px gradient ring (the
+   button), and the label. The light is never masked — masking runs after
+   filtering, so any mask box would chop the blur off and leave the halo
+   ending on a hard edge. It is simply hidden by the pill it sits under. */
+.btn-rainbow {
+    --rainbow: #ff4d6d, #ff9f4d, #ffe14d, #3ddc84, #4d9fff, #a06bff, #ff4d6d;
+    position: relative;
+    /* A stacking context in every state. Without it, `.btn:active`'s transform
+       makes one only while pressed, which flips where the z-index: -1 layers
+       below land relative to this element's own background. */
+    isolation: isolate;
+    background: none;
+    /* The border eats 2px on each side, so the padding gives it back and the
+       button measures exactly the same as any other .btn. */
+    border: 2px solid transparent;
+    padding: calc(0.8rem - 2px) calc(1.5rem - 2px);
+    color: var(--color-void);
+    animation: btn-spin 5.5s linear infinite;
+}
+
+/* The light. Unclipped, so it falls off into the page the way light does. */
+.btn-rainbow::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from var(--spin), var(--rainbow));
+    filter: blur(10px);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+.btn-rainbow:hover::before {
+    opacity: 1;
+}
+
+/* The button face, painted over the light: two layers, two clips — the opaque
+   pill stops at the padding edge, the gradient shows only through the ring. */
+.btn-rainbow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: 2px solid transparent;
+    border-radius: inherit;
+    background:
+        linear-gradient(var(--color-fg), var(--color-fg)) padding-box,
+        conic-gradient(from var(--spin), var(--rainbow)) border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-rainbow,
+    .btn-rainbow::before {
+        animation: none;
+    }
+}
+
 /* ── Surfaces ───────────────────────────────────────────────────────────── */
 
 /* A real plane, not frosted glass: a solid lifted surface, one hairline, and
