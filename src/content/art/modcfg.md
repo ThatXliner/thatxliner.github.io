@@ -2,7 +2,7 @@
 title: ModCFG
 kind: code
 date: 2022-06-18
-blurb: Yes, another configuration language — whitespace-sensitive, and built mostly to find out what designing a syntax feels like.
+blurb: Yes, yet another configuration language.
 medium: Python · language design
 links:
     - label: PyPI

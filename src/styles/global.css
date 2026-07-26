@@ -377,6 +377,48 @@
     animation: line-up 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Per-character reveal ─────────────────────────────────────────────────
+   The same masked rise, but each letter carries its own delay, so the line
+   assembles left to right instead of arriving as one slab. Reserved for the
+   hero headline — it is the one line on the site with the room to earn it.
+
+   Words stay whole so the line still wraps and balances normally; only the
+   letters inside them are broken out. Splitting into inline-blocks does cost
+   kerning between adjacent letters, which is why this is not applied to
+   every masked line on the site. */
+.split-word {
+    display: inline-block;
+    white-space: nowrap;
+}
+.split-char {
+    display: inline-block;
+    animation: char-up 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--char-delay, 0ms);
+
+    /* Each letter hides behind its own edge, not the line's. On a narrow
+       viewport a line wraps to two rows inside one `.mask`, and a letter
+       waiting its turn one row up would otherwise sit on top of the row
+       below rather than out of sight.
+
+       `clip-path` rather than `overflow`, because `overflow` on an
+       inline-block moves its baseline to the bottom margin edge and would
+       drop the whole headline off its own baseline. Only the bottom edge
+       does any work: 0.14em of slack spares descenders, and the sides and
+       top are held well clear so nothing trims a letterform at rest. */
+    clip-path: inset(-100% -0.25em -0.14em -0.25em);
+}
+
+/* The 0.16em is what puts a letter just past that 0.14em descender slack, so
+   no sliver of it shows in the band before its turn. */
+@keyframes char-up {
+    from {
+        transform: translateY(calc(100% + 0.16em));
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
 @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
         /* Content arrives as it enters the viewport, scrubbed to scroll. */
@@ -592,7 +634,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .rise,
-    .mask-load > * {
+    .mask-load > *,
+    .split-char {
         animation: none;
     }
     html {
@@ -614,6 +657,7 @@ html[data-noanim] :is(
         .station-era
     ),
 html[data-noanim] .rail::after,
+html[data-noanim] .split-char,
 html[data-noanim] :is(.mask-load, .mask-scroll, .station-title) > * {
     animation: none !important;
     opacity: 1 !important;

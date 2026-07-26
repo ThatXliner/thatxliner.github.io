@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import me from "../assets/me_upper.png";
+import SplitText from "./SplitText.astro";
 ---
 
 <section
@@ -24,25 +25,32 @@ import me from "../assets/me_upper.png";
         <!-- `w-full` matters here: these are flex items in an `items-center`
              column, so without it they size to their content and can push past
              the viewport on narrow screens instead of wrapping. -->
-        <h1 class="t-display w-full max-w-[18ch] text-balance">
-            <span class="mask mask-load"><span>I build things,</span></span>
-            <span class="mask mask-load text-fg-muted"
-                ><span style="animation-delay:110ms"
-                    >then I rebuild them.</span
-                ></span
-            >
+        <!-- The split spans are `aria-hidden`, so the heading carries its own
+             accessible name — a screen reader must not read this letter by
+             letter. `start` on the second line continues the first line's
+             count, with two extra slots of held breath at the comma. -->
+        <h1
+            class="t-display w-full max-w-[18ch] text-balance"
+            aria-label="I build things, then I rebuild them."
+        >
+            <SplitText text="I build things," />
+            <SplitText
+                text="then I rebuild them."
+                class="text-fg-muted"
+                start={17}
+            />
         </h1>
 
         <p
             class="t-lede rise mt-7 w-full max-w-[52ch] text-balance"
-            style="animation-delay:200ms"
+            style="animation-delay:360ms"
         >
-            I'm Bryan Hu — founder of Billion and Quillium. Programmer, photographer, and pianist.
+            I'm Bryan Hu, founder of Billion and Quillium. Programmer, photographer, and pianist.
         </p>
 
         <div
             class="rise mt-9 flex w-full flex-wrap items-center justify-center gap-x-7 gap-y-4"
-            style="animation-delay:290ms"
+            style="animation-delay:470ms"
         >
             <a href="#building" class="btn btn-primary">See what I'm building</a>
             <a href="/resume.pdf" download="BryanHu_Resume.pdf" class="a-link">

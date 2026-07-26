@@ -1,0 +1,54 @@
+---
+/* Splits a line of display type into per-character spans so it can rise one
+   letter at a time out from behind its own edge.
+
+   Words stay whole (`inline-block`, `nowrap`) so wrapping and `text-balance`
+   still work on the line, and the spaces between them are real text nodes so
+   selecting and copying the headline yields the actual sentence.
+
+   The split markup is `aria-hidden`; whatever renders this is responsible for
+   carrying the accessible name (see the `aria-label` on the hero's `h1`).
+   Letter-by-letter spans are unreadable to a screen reader otherwise. */
+interface Props {
+    text: string;
+    class?: string;
+    /* Delay slots consumed before this line's first character. Lets a second
+       line continue the first one's count instead of restarting at zero. */
+    start?: number;
+    /* ms between characters. */
+    stagger?: number;
+}
+
+const { text, class: className, start = 0, stagger = 18 } = Astro.props;
+
+/* Spaces consume a slot too, so the stagger tracks horizontal position across
+   the line rather than drifting ahead of it. */
+let slot = start;
+const words = text.split(" ").map((word) => {
+    const chars = [...word].map((char) => ({ char, delay: slot++ * stagger }));
+    slot++;
+    return chars;
+});
+---
+
+<span class:list={["mask", "split", className]} aria-hidden="true">
+    <span>
+        {
+            words.map((chars, w) => (
+                <>
+                    <span class="split-word">
+                        {chars.map(({ char, delay }) => (
+                            <span
+                                class="split-char"
+                                style={`--char-delay:${delay}ms`}
+                            >
+                                {char}
+                            </span>
+                        ))}
+                    </span>
+                    {w < words.length - 1 && " "}
+                </>
+            ))
+        }
+    </span>
+</span>

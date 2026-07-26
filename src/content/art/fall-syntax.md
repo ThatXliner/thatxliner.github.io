@@ -2,7 +2,7 @@
 title: Fall Syntax
 kind: code
 date: 2021-10-01
-blurb: A syntax theme for your eyes — autumn colours, chosen against a contrast checker rather than a mood board.
+blurb: A syntax theme for your eyes
 medium: Less · Atom theme
 image: ./fall-syntax.png
 links:
