@@ -1,0 +1,178 @@
+---
+import { Icon } from "astro-icon/components";
+import Layout from "@/layouts/Layout.astro";
+import Nav from "@/components/Nav.astro";
+import Footer from "@/components/Footer.astro";
+import ListTabs from "@/components/ListTabs.astro";
+import { apps } from "@/data/apps";
+import {
+    libraries,
+    other,
+    tools,
+    type MadeCategory,
+    type MadeItem,
+} from "@/data/libraries";
+import { getRepoStars } from "@/lib/github";
+
+interface Props {
+    active: MadeCategory;
+    items: MadeItem[];
+    title: string;
+    description: string;
+    intro: string;
+    nextHref: string;
+    nextLabel: string;
+}
+
+const {
+    active,
+    items,
+    title,
+    description,
+    intro,
+    nextHref,
+    nextLabel,
+} = Astro.props;
+
+// Fetched at build time so the counts can't drift the way stored ones did.
+const stars = await getRepoStars(items.map((item) => item.repoName ?? item.name));
+---
+
+<Layout title={title} description={description} image="/og/thelist.png">
+    <Nav />
+
+    <main>
+        <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
+            <p class="t-eyebrow rise">The List</p>
+            <h1 class="t-display mt-3 max-w-[20ch] text-balance">
+                <span class="mask mask-load"><span>Everything</span></span>
+                <span class="mask mask-load text-fg-muted"
+                    ><span style="animation-delay:110ms">I've made.</span></span
+                >
+            </h1>
+            <p
+                class="t-lede rise mt-7 max-w-[56ch] text-balance"
+                style="animation-delay:220ms"
+            >
+                {intro}
+            </p>
+
+            <div class="rise mt-9" style="animation-delay:300ms">
+                <ListTabs
+                    {active}
+                    appCount={apps.length}
+                    libraryCount={libraries.length}
+                    toolCount={tools.length}
+                    otherCount={other.length}
+                />
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-[1180px] px-gutter pt-12 pb-20 md:pt-16">
+            <ul>
+                {
+                    items.map((item) => {
+                        const count = stars[item.repoName ?? item.name];
+                        return (
+                            <li class="reveal border-t border-hairline">
+                                <div class="grid gap-x-10 gap-y-3 py-7 md:grid-cols-[minmax(0,1fr)_auto] md:py-8">
+                                    <div>
+                                        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                            <h2 class="t-headline text-[1.125rem] md:text-[1.25rem]">
+                                                <a
+                                                    href={item.repo}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="transition-colors hover:text-accent"
+                                                >
+                                                    {item.name}
+                                                </a>
+                                            </h2>
+                                            <span class="t-caption">
+                                                {item.ecosystem}
+                                            </span>
+                                            {count !== undefined && count > 0 && (
+                                                <span class="t-caption tnum flex items-center gap-1">
+                                                    <Icon
+                                                        name="octicon:star-24"
+                                                        class="size-3"
+                                                    />
+                                                    {count.toLocaleString("en-US")}
+                                                </span>
+                                            )}
+                                            {item.status && (
+                                                <span class="flag">
+                                                    {item.status}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <p class="t-body mt-2 max-w-[62ch] text-[0.9375rem]">
+                                            {item.tagline}
+                                        </p>
+
+                                        <div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+                                            <a
+                                                href={item.repo}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="flex items-center gap-1.5 text-[0.875rem] text-fg-muted transition-colors hover:text-fg"
+                                            >
+                                                <Icon
+                                                    name="simple-icons:github"
+                                                    class="size-3.5"
+                                                />
+                                                Source
+                                            </a>
+                                            {item.registry && (
+                                                <a
+                                                    href={item.registry.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="a-link text-[0.875rem]"
+                                                >
+                                                    {item.registry.label}
+                                                    <span
+                                                        class="chev"
+                                                        aria-hidden="true"
+                                                    >
+                                                        &rsaquo;
+                                                    </span>
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {item.install && (
+                                        <div class="md:self-center">
+                                            <code class="inline-block max-w-full overflow-x-auto rounded-md border border-hairline bg-surface px-3.5 py-2 font-mono text-[0.8125rem] text-fg-muted select-all">
+                                                {item.install}
+                                            </code>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+        </section>
+
+        <section class="mx-auto max-w-[1180px] px-gutter pb-24 text-center md:pb-36">
+            <div class="reveal flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
+                <a href={nextHref} class="btn btn-primary">{nextLabel}</a>
+                <a
+                    href="https://github.com/ThatXliner?tab=repositories"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-1.5 text-[0.9375rem] text-fg-muted transition-colors hover:text-fg"
+                >
+                    <Icon name="simple-icons:github" class="size-4" />
+                    Browse all of them
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <Footer />
+</Layout>

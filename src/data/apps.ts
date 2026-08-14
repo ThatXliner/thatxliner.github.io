@@ -34,9 +34,9 @@ export interface App {
     status?: string;
 }
 
-// Only shipped, publicly usable things live here — libraries and tooling stay
-// in the Open Source section on the home page. Everything listed is a public
-// repo; nothing private is surfaced, linked, or alluded to.
+// Only shipped, publicly usable things live here. Developer-facing packages,
+// tools, and experiments live in data/libraries.ts. Everything listed is a
+// public repo; nothing private is surfaced, linked, or alluded to.
 export const apps: App[] = [
     {
         name: "NerdLens",

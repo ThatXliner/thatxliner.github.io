@@ -6,7 +6,7 @@ import { FEATURES } from "@/flags";
 // same-document fragment navigation, so nothing reloads.
 const links = [
     { label: "Building", href: "/#building", section: "building" },
-    // Matches /thelist and /thelist/libraries, so both tabs light the nav.
+    // Matches every /thelist category, so all four tabs light the nav.
     { label: "The List", href: "/thelist", pathPrefix: "/thelist" },
     // Appears only when the section is built — a link to a page that doesn't
     // exist in dist would be a 404 in production.

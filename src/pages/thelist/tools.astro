@@ -1,0 +1,14 @@
+---
+import MadeListPage from "@/components/MadeListPage.astro";
+import { tools } from "@/data/libraries";
+---
+
+<MadeListPage
+    active="tools"
+    items={tools}
+    title="The List — Tools by Bryan Hu"
+    description="Developer tools by Bryan Hu: command-line utilities, refactoring tools, and project scaffolding. All free and open source."
+    intro="Things that sit beside the code: command-line utilities, refactoring machinery, and project scaffolds. Mostly built to remove one recurring annoyance for good."
+    nextHref="/thelist/other"
+    nextLabel="See the other things"
+/>

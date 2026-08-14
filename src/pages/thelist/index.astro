@@ -6,7 +6,7 @@ import Nav from "@/components/Nav.astro";
 import Footer from "@/components/Footer.astro";
 import ListTabs from "@/components/ListTabs.astro";
 import { apps } from "@/data/apps";
-import { libraries } from "@/data/libraries";
+import { libraries, other, tools } from "@/data/libraries";
 ---
 
 <Layout
@@ -32,7 +32,9 @@ import { libraries } from "@/data/libraries";
             >
                 I build a lot of small things. These are the ones that got
                 finished enough for other people to use — apps you can open, and
-                libraries you can install. All free, all open source.
+                libraries you can import, tools you can install, and stranger
+                experiments that don't fit either box. All free, all open
+                source.
             </p>
 
             <div class="rise mt-9" style="animation-delay:300ms">
@@ -40,6 +42,8 @@ import { libraries } from "@/data/libraries";
                     active="apps"
                     appCount={apps.length}
                     libraryCount={libraries.length}
+                    toolCount={tools.length}
+                    otherCount={other.length}
                 />
             </div>
         </section>

@@ -15,12 +15,19 @@ export interface Library {
     status?: string;
 }
 
+export type MadeCategory = "libraries" | "tools" | "other";
+
+export interface MadeItem extends Library {
+    category: MadeCategory;
+}
+
 // Developer-facing work: things you install, import, or scaffold from. Anything
 // an end user opens lives in data/apps.ts instead. Star counts are fetched live
 // at build time rather than stored here, because stored ones went stale.
-export const libraries: Library[] = [
+const made: MadeItem[] = [
     {
         name: "rust-but-lisp",
+        category: "other",
         tagline:
             "Rust, but with S-expressions. A transpiler that takes Lisp in and emits real Rust out the other side.",
         ecosystem: "Rust",
@@ -31,6 +38,7 @@ export const libraries: Library[] = [
     },
     {
         name: "aioudp",
+        category: "libraries",
         tagline:
             "A websockets-style async/await API for UDP in Python, instead of asyncio's raw transport and protocol classes.",
         ecosystem: "Python",
@@ -41,6 +49,7 @@ export const libraries: Library[] = [
     },
     {
         name: "unmarkd",
+        category: "libraries",
         tagline:
             "An extremely configurable HTML-to-Markdown converter — a Markdown reverser. Subclass it to control how any tag converts.",
         ecosystem: "Python",
@@ -51,6 +60,7 @@ export const libraries: Library[] = [
     },
     {
         name: "idae",
+        category: "tools",
         tagline:
             "Runs standalone Python scripts that declare their own dependencies inline via PEP 723, in cached virtual environments.",
         ecosystem: "Python",
@@ -61,6 +71,7 @@ export const libraries: Library[] = [
     },
     {
         name: "git-worm",
+        category: "tools",
         tagline:
             "A git worktree manager that doesn't make you think about paths. Built on xclif.",
         ecosystem: "CLI",
@@ -71,6 +82,7 @@ export const libraries: Library[] = [
     },
     {
         name: "xclif",
+        category: "libraries",
         tagline:
             "File-based routing for CLI subcommands — the directory tree is the command tree.",
         ecosystem: "Python",
@@ -81,6 +93,7 @@ export const libraries: Library[] = [
     },
     {
         name: "patchwork-cli",
+        category: "tools",
         tagline:
             "AST-native code refactoring without an LLM — but designed for one to drive. Structural edits, not string replacement.",
         ecosystem: "Rust",
@@ -94,6 +107,7 @@ export const libraries: Library[] = [
     },
     {
         name: "gah",
+        category: "tools",
         tagline:
             "Git Add Hunk: non-interactive hunk staging, so a coding agent can stage partial changes without git add -p.",
         ecosystem: "Rust",
@@ -104,6 +118,7 @@ export const libraries: Library[] = [
     },
     {
         name: "pyt2",
+        category: "tools",
         tagline:
             "An opinionated Python project template: Copier, Ruff, MyPy, Hypothesis, multi-platform CI, and Trusted Publishing to PyPI.",
         ecosystem: "Python",
@@ -113,6 +128,7 @@ export const libraries: Library[] = [
     },
     {
         name: "ztractor",
+        category: "libraries",
         tagline:
             "Runs Zotero's translators outside Zotero to pull structured citation metadata off any page.",
         ecosystem: "npm",
@@ -126,6 +142,7 @@ export const libraries: Library[] = [
     },
     {
         name: "obsidian-supergraph",
+        category: "other",
         tagline:
             "A card-based graph view for Obsidian that shows note contents alongside their links, for actual research.",
         ecosystem: "Obsidian",
@@ -134,6 +151,7 @@ export const libraries: Library[] = [
     },
     {
         name: "claude-plugins",
+        category: "other",
         tagline:
             "My Claude Code plugin marketplace — add it once and every plugin below becomes installable by name.",
         ecosystem: "Claude Code",
@@ -143,6 +161,7 @@ export const libraries: Library[] = [
     },
     {
         name: "xtras",
+        category: "other",
         tagline:
             "The Claude Code skills I actually use, packaged as a plugin. Needs the marketplace above added first.",
         ecosystem: "Claude Code",
@@ -152,6 +171,7 @@ export const libraries: Library[] = [
     },
     {
         name: "gitmoji-atom",
+        category: "other",
         tagline:
             "Searchable gitmoji autocomplete inside Atom, so you could find the right emoji without leaving the commit box.",
         ecosystem: "Atom",
@@ -163,6 +183,7 @@ export const libraries: Library[] = [
     },
     {
         name: "stacksearch",
+        category: "libraries",
         tagline:
             "The first thing I ever built: an unofficial API and CLI for searching StackOverflow and the rest of StackExchange. It shipped to PyPI with docs and CI, which taught me more than the code did.",
         ecosystem: "Python",
@@ -179,3 +200,7 @@ export const libraries: Library[] = [
         status: "Unmaintained",
     },
 ];
+
+export const libraries = made.filter((item) => item.category === "libraries");
+export const tools = made.filter((item) => item.category === "tools");
+export const other = made.filter((item) => item.category === "other");
