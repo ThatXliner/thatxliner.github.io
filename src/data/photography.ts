@@ -7,6 +7,7 @@ import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
 import hitchhiker from "@/assets/photography/hitchhiker.webp";
+import lullAtZephyrCove from "@/assets/photography/lull-at-zephyr-cove.webp";
 import marketStreet from "@/assets/photography/market-street.webp";
 import moonOverTheHills from "@/assets/photography/moon-over-the-hills.webp";
 import northbound from "@/assets/photography/northbound.webp";
@@ -81,6 +82,13 @@ export const photographs: Photograph[] = [
         date: "December 2025",
         camera: "Canon EOS 40D",
         image: moonOverTheHills,
+    },
+    {
+        title: "The Lull at Zephyr Cove",
+        alt: "A paddlewheel boat and its reflection resting on the still gray water of Zephyr Cove",
+        date: "December 2025",
+        camera: "Canon EOS 40D",
+        image: lullAtZephyrCove,
     },
     {
         title: "Market Street",

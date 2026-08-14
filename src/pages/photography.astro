@@ -11,27 +11,41 @@ import { photographs } from "@/data/photography";
     description="Selected photography by Bryan Hu: quiet light, street scenes, and the details between them."
 >
     <Nav />
-    <main>
-        <header class="mx-auto max-w-[1180px] px-gutter pt-32 pb-14 md:pt-40 md:pb-20">
-            <p class="t-eyebrow rise">Selected work</p>
-            <h1 class="t-display mt-3 max-w-[13ch] text-balance">
-                <span class="mask mask-load"><span>My</span></span>
-                <span class="mask mask-load text-fg-muted">
-                    <span class="italic" style="animation-delay:110ms">
-                        Photography
-                    </span>
-                </span>
-            </h1>
-            <p
-                class="t-lede rise mt-7 max-w-[48ch] text-balance"
-                style="animation-delay:220ms"
-            >
-                Capturing the beauty of God's world, one click at a time.
-            </p>
-        </header>
+    <main class="photography-page">
+        <section class="photo-hero relative isolate overflow-hidden">
+            <div class="photo-atmosphere" aria-hidden="true">
+                <div class="photo-orb photo-orb-a"></div>
+                <div class="photo-orb photo-orb-b"></div>
+                <div class="photo-orb photo-orb-c"></div>
+                <div class="photo-grain"></div>
+            </div>
 
+            <header
+                class="photo-hero-copy relative z-10 mx-auto flex min-h-[78svh] max-w-[1180px] flex-col justify-center px-gutter pt-24 pb-36 md:min-h-[84svh] md:pt-28 md:pb-44"
+            >
+                <p class="t-eyebrow rise">Selected work</p>
+                <h1 class="t-display mt-3 max-w-[13ch] text-balance">
+                    <span class="mask mask-load"><span>My</span></span>
+                    <span class="mask mask-load text-fg-muted">
+                        <span class="photography-word" style="animation-delay:110ms">
+                            Photography
+                        </span>
+                    </span>
+                </h1>
+                <p
+                    class="t-lede rise mt-7 max-w-[48ch] text-balance"
+                    style="animation-delay:220ms"
+                >
+                    Capturing the beauty of God's world, one click at a time.
+                </p>
+            </header>
+
+            <div class="photo-glass-horizon" aria-hidden="true"></div>
+        </section>
+
+        <div class="gallery-surface relative z-10 -mt-px bg-void">
         <div
-            class="mx-auto flex max-w-[1400px] flex-col gap-4 px-gutter pb-10 sm:flex-row sm:items-center sm:justify-between md:pb-12"
+            class="mx-auto flex max-w-[1400px] flex-col gap-4 px-gutter pt-9 pb-10 sm:flex-row sm:items-center sm:justify-between md:pt-11 md:pb-12"
         >
             <div class="flex items-center gap-2" aria-label="Filter by camera">
                 <span class="t-caption mr-1 hidden sm:inline">Camera</span>
@@ -114,6 +128,7 @@ import { photographs } from "@/data/photography";
                 ))
             }
         </section>
+        </div>
     </main>
     <Footer />
 
@@ -142,6 +157,108 @@ import { photographs } from "@/data/photography";
 </Layout>
 
 <style>
+    .photography-page {
+        --photo-scroll: 0;
+    }
+
+    .photography-word {
+        display: inline-block;
+        font-family: var(--font-serif);
+        font-size: 1.34em;
+        font-style: italic;
+        font-weight: 500;
+        line-height: 0.88;
+        letter-spacing: -0.055em;
+    }
+
+    .photo-hero {
+        background:
+            linear-gradient(180deg, transparent 45%, rgb(0 0 0 / 0.3) 72%, #000 100%),
+            #030406;
+    }
+
+    .photo-atmosphere {
+        position: absolute;
+        inset: -12% -8% -5%;
+        overflow: hidden;
+        pointer-events: none;
+        transform: translate3d(0, calc(var(--photo-scroll) * 0.09px), 0)
+            scale(calc(1 + var(--photo-scroll) * 0.00004));
+        transform-origin: 50% 35%;
+        will-change: transform;
+    }
+
+    .photo-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(clamp(55px, 8vw, 125px));
+        opacity: calc(0.48 - var(--photo-scroll) * 0.00032);
+        mix-blend-mode: screen;
+        will-change: transform, opacity;
+    }
+
+    .photo-orb-a {
+        width: min(78vw, 74rem);
+        aspect-ratio: 1.6;
+        top: 5%;
+        right: -18%;
+        background: radial-gradient(ellipse, rgb(34 88 112 / 0.75), transparent 68%);
+        transform: rotate(-14deg) translate3d(0, calc(var(--photo-scroll) * -0.035px), 0);
+    }
+
+    .photo-orb-b {
+        width: min(64vw, 58rem);
+        aspect-ratio: 1.25;
+        top: 22%;
+        left: -18%;
+        background: radial-gradient(ellipse, rgb(73 45 103 / 0.6), transparent 69%);
+        transform: rotate(18deg) translate3d(0, calc(var(--photo-scroll) * -0.06px), 0);
+    }
+
+    .photo-orb-c {
+        width: min(58vw, 52rem);
+        aspect-ratio: 1.55;
+        bottom: 2%;
+        left: 38%;
+        background: radial-gradient(ellipse, rgb(104 68 36 / 0.34), transparent 70%);
+        transform: rotate(-8deg) translate3d(0, calc(var(--photo-scroll) * -0.02px), 0);
+    }
+
+    .photo-grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.11;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+        mix-blend-mode: soft-light;
+    }
+
+    .photo-hero-copy {
+        transform: translate3d(0, calc(var(--photo-scroll) * 0.12px), 0);
+        opacity: calc(1 - var(--photo-scroll) * 0.00105);
+        will-change: transform, opacity;
+    }
+
+    .photo-glass-horizon {
+        position: absolute;
+        z-index: 5;
+        inset: auto 0 0;
+        height: clamp(9rem, 22vh, 16rem);
+        border-top: 1px solid rgb(255 255 255 / 0.1);
+        background: linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(0 0 0 / 0.32) 38%, #000 92%);
+        -webkit-backdrop-filter: blur(22px) saturate(115%);
+        backdrop-filter: blur(22px) saturate(115%);
+        mask-image: linear-gradient(to bottom, transparent, black 24%, black);
+    }
+
+    .gallery-surface::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 7rem;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgb(255 255 255 / 0.018), transparent);
+    }
+
     .filter-pill,
     .sort-pill {
         border: 1px solid var(--color-hairline-strong);
@@ -168,6 +285,15 @@ import { photographs } from "@/data/photography";
         color: var(--color-void);
         background: var(--color-fg);
         border-color: var(--color-fg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .photo-atmosphere,
+        .photo-orb,
+        .photo-hero-copy {
+            transform: none;
+            opacity: 1;
+        }
     }
 </style>
 
@@ -241,4 +367,26 @@ import { photographs } from "@/data/photography";
     });
 
     updateGallery();
+
+    const photographyPage = document.querySelector<HTMLElement>(
+        ".photography-page",
+    );
+    const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (photographyPage && !reduceMotion) {
+        let frame = 0;
+        const updateDepth = () => {
+            frame = 0;
+            const scroll = Math.min(window.scrollY, window.innerHeight * 1.15);
+            photographyPage.style.setProperty("--photo-scroll", String(scroll));
+        };
+        const requestDepth = () => {
+            if (!frame) frame = requestAnimationFrame(updateDepth);
+        };
+
+        updateDepth();
+        window.addEventListener("scroll", requestDepth, { passive: true });
+    }
 </script>

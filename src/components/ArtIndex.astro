@@ -1,12 +1,18 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
 import ArtFrame from "./ArtFrame.astro";
+import { photographs } from "@/data/photography";
 
 interface Props {
     pieces: CollectionEntry<"art">[];
 }
 
 const { pieces } = Astro.props;
+
+// Keep these bodies of work ready to restore, but leave the art landing page
+// focused on photography for now.
+const showMusicAndCode = false;
 
 // Grouped rather than filtered: three sections need no JavaScript and no tab
 // state, and the whole body of work is visible in one scroll.
@@ -21,9 +27,17 @@ const groups = [
         note: "Programming is an art.",
         intro: "PLACEHOLDER — this is where you argue that code is a medium and not just a tool: why a program can be a piece the same way a photograph is. It belongs to this section rather than the top of the page, so it reads as the case for the work sitting underneath it. Yours to write; replace this string in src/components/ArtIndex.astro.",
     },
-    { kind: "photo" as const, label: "Photography", note: "To reveal God's beauty." },
     { kind: "music" as const, label: "Music", note: "For the ear." },
 ];
+
+const featuredPhotoTitles = [
+    "Firmament",
+    "The Lull at Zephyr Cove",
+    "Counter Service",
+];
+const featuredPhotos = featuredPhotoTitles
+    .map((title) => photographs.find((photo) => photo.title === title))
+    .filter((photo) => photo !== undefined);
 
 const byKind = (kind: string) =>
     pieces
@@ -34,7 +48,7 @@ const formatYear = (date: Date) => date.getFullYear();
 ---
 
 {
-    groups.map((group) => {
+    showMusicAndCode && groups.map((group) => {
         const items = byKind(group.kind);
         if (items.length === 0) return null;
         return (
@@ -98,3 +112,103 @@ const formatYear = (date: Date) => date.getFullYear();
         );
     })
 }
+
+<section class="mx-auto max-w-[1180px] px-gutter pt-16 md:pt-24">
+    <div class="reveal flex items-baseline justify-between gap-4 border-b border-hairline pb-4">
+        <h2 class="t-headline">Photography</h2>
+        <p class="t-caption">To reveal God's beauty.</p>
+    </div>
+
+    <div class="mt-8 grid gap-5 md:grid-cols-3">
+        {
+            featuredPhotos.map((photo) => (
+                <button
+                    type="button"
+                    class="featured-photo plane plane-hover reveal group w-full cursor-zoom-in overflow-hidden text-left"
+                    data-src={photo.image.src}
+                    data-alt={photo.alt}
+                    data-title={photo.title}
+                    aria-label={`Open ${photo.title}`}
+                >
+                    <Image
+                        src={photo.image}
+                        alt={photo.alt}
+                        widths={[480, 800]}
+                        sizes="(min-width: 768px) 33vw, 90vw"
+                        loading="lazy"
+                        draggable="false"
+                        class="aspect-[4/3] w-full object-cover select-none transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                    />
+                    <div class="border-t border-hairline p-5">
+                        <div class="flex items-baseline justify-between gap-3">
+                            <h3 class="text-[1rem] font-semibold">{photo.title}</h3>
+                            <span class="t-caption shrink-0">
+                                {new Date(`${photo.date} 1`).getFullYear()}
+                            </span>
+                        </div>
+                        <p class="t-caption mt-2">{photo.camera}</p>
+                    </div>
+                </button>
+            ))
+        }
+    </div>
+
+    <a href="/photography" class="a-link reveal mt-8 text-[0.9375rem]">
+        View the full photography gallery
+        <span class="chev" aria-hidden="true">&rsaquo;</span>
+    </a>
+</section>
+
+<dialog
+    id="featured-photo-viewer"
+    class="m-auto h-dvh max-h-none w-screen max-w-none border-0 bg-black/94 p-0 text-fg backdrop:bg-black/94"
+>
+    <form method="dialog">
+        <button
+            class="fixed top-5 right-5 z-10 flex size-11 items-center justify-center rounded-full bg-black/60 text-2xl text-white transition-colors hover:bg-white hover:text-black"
+            aria-label="Close photograph"
+        >
+            &times;
+        </button>
+    </form>
+    <div class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
+        <img
+            id="featured-photo-viewer-image"
+            src=""
+            alt=""
+            class="max-h-[calc(100dvh-6rem)] max-w-full object-contain"
+        />
+        <p id="featured-photo-viewer-title" class="t-caption text-fg-muted"></p>
+    </div>
+</dialog>
+
+<script>
+    const viewer = document.querySelector<HTMLDialogElement>(
+        "#featured-photo-viewer",
+    );
+    const viewerImage = document.querySelector<HTMLImageElement>(
+        "#featured-photo-viewer-image",
+    );
+    const viewerTitle = document.querySelector<HTMLElement>(
+        "#featured-photo-viewer-title",
+    );
+
+    document
+        .querySelectorAll<HTMLButtonElement>(".featured-photo")
+        .forEach((card) => {
+            card.addEventListener("click", () => {
+                if (!viewer || !viewerImage || !viewerTitle) return;
+                viewerImage.src = card.dataset.src ?? "";
+                viewerImage.alt = card.dataset.alt ?? "";
+                viewerTitle.textContent = card.dataset.title ?? "";
+                viewer.showModal();
+            });
+        });
+
+    viewer?.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target instanceof Node && !viewerImage?.contains(target)) {
+            viewer.close();
+        }
+    });
+</script>

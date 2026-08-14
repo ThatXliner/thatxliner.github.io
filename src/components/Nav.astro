@@ -13,20 +13,8 @@ const links = [
     ...(FEATURES.art
         ? [{ label: "Art", href: "/art", pathPrefix: "/art" }]
         : []),
-    {
-        label: "Photography",
-        href: "/photography",
-        pathPrefix: "/photography",
-        minWidth: "md",
-    },
     { label: "Work", href: "/#work", section: "work" },
     { label: "Story", href: "/#story", section: "story", minWidth: "md" },
-    {
-        label: "Off the clock",
-        href: "/#creative",
-        section: "creative",
-        minWidth: "md",
-    },
 ];
 
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";

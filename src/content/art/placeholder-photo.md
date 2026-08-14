@@ -4,6 +4,7 @@ kind: photo
 date: 2026-01-01
 blurb: Swap this file for a real frame — drop the image next to it and point `image:` at it.
 medium: Canon EOS R7 · 70–200mm
+draft: true
 ---
 
 > **Placeholder.** No photo attached yet, so the card renders an empty frame.

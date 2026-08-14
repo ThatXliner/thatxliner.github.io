@@ -16,10 +16,8 @@ export default defineConfig({
 
   integrations: [icon(), sitemap()],
 
-  // One typeface, doing every job. Restraint is the point: hierarchy comes
-  // from size, weight and tracking, not from a second family. Inter is the
-  // closest freely-licensed analogue to SF Pro, including the tight optical
-  // tracking that display sizes need.
+  // Inter remains the site's working face. Cormorant is reserved for the
+  // photography title, where a single editorial gesture is intentional.
   fonts: [
     {
       name: "Inter",
@@ -35,6 +33,15 @@ export default defineConfig({
         "Helvetica Neue",
         "sans-serif",
       ],
+    },
+    {
+      name: "Cormorant Garamond",
+      cssVariable: "--font-serif",
+      provider: fontProviders.google(),
+      weights: ["500"],
+      styles: ["italic"],
+      subsets: ["latin"],
+      fallbacks: ["Iowan Old Style", "Baskerville", "Times New Roman", "serif"],
     },
   ],
 });
