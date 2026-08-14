@@ -1,0 +1,127 @@
+import type { ImageMetadata } from "astro";
+
+import cagedLight from "@/assets/photography/caged-light.webp";
+import canopy from "@/assets/photography/canopy.webp";
+import counterService from "@/assets/photography/counter-service.webp";
+import firmament from "@/assets/photography/firmament.webp";
+import forestPassing from "@/assets/photography/forest-passing.webp";
+import gateInFog from "@/assets/photography/gate-in-fog.webp";
+import hitchhiker from "@/assets/photography/hitchhiker.webp";
+import marketStreet from "@/assets/photography/market-street.webp";
+import moonOverTheHills from "@/assets/photography/moon-over-the-hills.webp";
+import northbound from "@/assets/photography/northbound.webp";
+import roadToSunset from "@/assets/photography/road-to-sunset.webp";
+import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
+import throughTheWindow from "@/assets/photography/through-the-window.webp";
+import winterMoon from "@/assets/photography/winter-moon.webp";
+
+export interface Photograph {
+    title: string;
+    alt: string;
+    date: string;
+    camera: "Canon EOS 40D" | "Canon EOS R7";
+    image: ImageMetadata;
+    /** Reserved for future links to project-specific portfolios. */
+    project?: string;
+}
+
+export const photographs: Photograph[] = [
+    {
+        title: "Firmament",
+        alt: "A dense field of stars and the Milky Way crossing a dark night sky",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: firmament,
+    },
+    {
+        title: "Canopy",
+        alt: "Shafts of sunlight cutting through a dense redwood canopy",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: canopy,
+    },
+    {
+        title: "Hitchhiker",
+        alt: "A tiny insect standing on a sunlit hand",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: hitchhiker,
+    },
+    {
+        title: "Caged Light",
+        alt: "A glowing bulb enclosed by a black wire shade",
+        date: "November 2025",
+        camera: "Canon EOS 40D",
+        image: cagedLight,
+    },
+    {
+        title: "Forest, Passing",
+        alt: "An abstract motion-blurred view of light between tree trunks",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: forestPassing,
+    },
+    {
+        title: "Gate in Fog",
+        alt: "The Golden Gate Bridge disappearing into fog, seen from a bus",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: gateInFog,
+    },
+    {
+        title: "Through the Window",
+        alt: "A San Francisco street framed by a dark bus window",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: throughTheWindow,
+    },
+    {
+        title: "Moon over the Hills",
+        alt: "A full moon rising above dark rolling hills and a row of houses",
+        date: "December 2025",
+        camera: "Canon EOS 40D",
+        image: moonOverTheHills,
+    },
+    {
+        title: "Market Street",
+        alt: "An orange historic streetcar waiting on Market Street",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: marketStreet,
+    },
+    {
+        title: "Counter Service",
+        alt: "Diners gathered beneath red pendant lights at a food counter",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: counterService,
+    },
+    {
+        title: "Steam at the Curb",
+        alt: "Steam rising around workers and a streetcar at an intersection",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: steamAtTheCurb,
+    },
+    {
+        title: "Northbound",
+        alt: "Railway tracks converging toward the horizon between two platforms",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: northbound,
+    },
+    {
+        title: "Winter Moon",
+        alt: "A pale moon suspended above a snow-covered mountain ridge at dusk",
+        date: "January 2026",
+        camera: "Canon EOS 40D",
+        image: winterMoon,
+    },
+    {
+        title: "Road to Sunset",
+        alt: "A snowy mountain road curving toward an orange sunset between bare trees",
+        date: "January 2026",
+        camera: "Canon EOS 40D",
+        image: roadToSunset,
+    },
+];
