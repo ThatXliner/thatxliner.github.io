@@ -1,9 +1,43 @@
 ---
-import { Image } from "astro:assets";
+import { Picture, getImage } from "astro:assets";
 import Layout from "@/layouts/Layout.astro";
 import Nav from "@/components/Nav.astro";
 import Footer from "@/components/Footer.astro";
 import { photographs } from "@/data/photography";
+
+const viewerBreakpoints = [1280, 1920, 2560, 3200, 3840, 4800];
+const galleryPhotos = await Promise.all(
+    photographs.map(async (photo) => {
+        const widths = [
+            ...viewerBreakpoints.filter((width) => width < photo.image.width),
+            photo.image.width,
+        ];
+        const [avif, webp] = await Promise.all([
+            getImage({
+                src: photo.image,
+                widths,
+                sizes: "100vw",
+                format: "avif",
+                quality: "high",
+            }),
+            getImage({
+                src: photo.image,
+                widths,
+                sizes: "100vw",
+                format: "webp",
+                quality: "high",
+            }),
+        ]);
+
+        return {
+            ...photo,
+            viewerAvifSrcset: avif.srcSet.attribute,
+            viewerWebpSrcset: webp.srcSet.attribute,
+            viewerFallback:
+                webp.srcSet.values.at(-1)?.url ?? webp.src,
+        };
+    }),
+);
 ---
 
 <Layout
@@ -84,7 +118,7 @@ import { photographs } from "@/data/photography";
             class="mx-auto max-w-[1400px] columns-1 gap-5 px-gutter pb-24 sm:columns-2 lg:columns-3 md:pb-36"
         >
             {
-                photographs.map((photo) => (
+                galleryPhotos.map((photo) => (
                     <figure
                         class="reveal mb-10 break-inside-avoid md:mb-14"
                         data-camera={photo.camera}
@@ -93,16 +127,21 @@ import { photographs } from "@/data/photography";
                         <button
                             type="button"
                             class="photo-open group block w-full cursor-zoom-in overflow-hidden bg-surface text-left"
-                            data-src={photo.image.src}
+                            data-viewer-avif-srcset={photo.viewerAvifSrcset}
+                            data-viewer-webp-srcset={photo.viewerWebpSrcset}
+                            data-viewer-fallback={photo.viewerFallback}
                             data-alt={photo.alt}
                             data-title={photo.title}
                             aria-label={`Open ${photo.title}`}
                         >
-                            <Image
+                            <Picture
                                 src={photo.image}
                                 alt={photo.alt}
-                                widths={[480, 800, 1200]}
+                                formats={["avif"]}
+                                fallbackFormat="webp"
+                                widths={[480, 800, 1200, 1600]}
                                 sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+                                quality="high"
                                 loading="lazy"
                                 draggable="false"
                                 class="h-auto w-full select-none transition-transform duration-500 ease-out group-hover:scale-[1.015]"
@@ -137,12 +176,16 @@ import { photographs } from "@/data/photography";
             </button>
         </form>
         <div class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
-            <img
-                id="photo-viewer-image"
-                src=""
-                alt=""
-                class="max-h-[calc(100dvh-6rem)] max-w-full object-contain"
-            />
+            <picture class="contents">
+                <source id="photo-viewer-avif" type="image/avif" />
+                <img
+                    id="photo-viewer-image"
+                    src=""
+                    alt=""
+                    sizes="100vw"
+                    class="max-h-[calc(100dvh-6rem)] max-w-full object-contain"
+                />
+            </picture>
             <p id="photo-viewer-title" class="t-caption text-fg-muted"></p>
         </div>
     </dialog>
@@ -214,14 +257,19 @@ import { photographs } from "@/data/photography";
     const viewerImage = document.querySelector<HTMLImageElement>(
         "#photo-viewer-image",
     );
+    const viewerAvif = document.querySelector<HTMLSourceElement>(
+        "#photo-viewer-avif",
+    );
     const viewerTitle = document.querySelector<HTMLElement>(
         "#photo-viewer-title",
     );
 
     document.querySelectorAll<HTMLButtonElement>(".photo-open").forEach((button) => {
         button.addEventListener("click", () => {
-            if (!viewer || !viewerImage || !viewerTitle) return;
-            viewerImage.src = button.dataset.src ?? "";
+            if (!viewer || !viewerImage || !viewerAvif || !viewerTitle) return;
+            viewerAvif.srcset = button.dataset.viewerAvifSrcset ?? "";
+            viewerImage.srcset = button.dataset.viewerWebpSrcset ?? "";
+            viewerImage.src = button.dataset.viewerFallback ?? "";
             viewerImage.alt = button.dataset.alt ?? "";
             viewerTitle.textContent = button.dataset.title ?? "";
             viewer.showModal();
@@ -230,6 +278,15 @@ import { photographs } from "@/data/photography";
 
     viewer?.addEventListener("click", (event) => {
         if (event.target === viewer) viewer.close();
+    });
+
+    viewer?.addEventListener("close", () => {
+        if (viewerAvif) viewerAvif.srcset = "";
+        if (viewerImage) {
+            viewerImage.removeAttribute("srcset");
+            viewerImage.src = "";
+            viewerImage.alt = "";
+        }
     });
 
     const gallery = document.querySelector<HTMLElement>("#photo-gallery");
