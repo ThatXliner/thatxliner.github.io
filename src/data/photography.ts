@@ -1,6 +1,6 @@
 import type { ImageMetadata } from "astro";
 
-import betweenInnings from "@/assets/photography/between-innings.webp";
+import betweenInnings from "@/assets/photography/between-innings.jpg";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
 import counterService from "@/assets/photography/counter-service.webp";
