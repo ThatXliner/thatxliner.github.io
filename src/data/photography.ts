@@ -1,5 +1,6 @@
 import type { ImageMetadata } from "astro";
 
+import betweenInnings from "@/assets/photography/between-innings.webp";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
 import counterService from "@/assets/photography/counter-service.webp";
@@ -97,6 +98,13 @@ export const photographs: Photograph[] = [
         date: "July 2026",
         camera: "Canon EOS R7",
         image: homeward,
+    },
+    {
+        title: "Between Innings",
+        alt: "A young spectator in a black hood sits on striped stadium bleachers while looking sideways",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: betweenInnings,
     },
     {
         title: "Market Street",
