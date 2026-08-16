@@ -6,7 +6,6 @@ import counterService from "@/assets/photography/counter-service.webp";
 import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
-import hitchhiker from "@/assets/photography/hitchhiker.webp";
 import homeward from "@/assets/photography/homeward.webp";
 import lullAtZephyrCove from "@/assets/photography/lull-at-zephyr-cove.webp";
 import marketStreet from "@/assets/photography/market-street.webp";
@@ -42,13 +41,6 @@ export const photographs: Photograph[] = [
         date: "August 2026",
         camera: "Canon EOS 40D",
         image: canopy,
-    },
-    {
-        title: "Hitchhiker",
-        alt: "A tiny insect standing on a sunlit hand",
-        date: "August 2026",
-        camera: "Canon EOS 40D",
-        image: hitchhiker,
     },
     {
         title: "Caged Light",
