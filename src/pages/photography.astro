@@ -12,7 +12,7 @@ const galleryPhotos = await Promise.all(
             ...viewerBreakpoints.filter((width) => width < photo.image.width),
             photo.image.width,
         ];
-        const [avif, webp] = await Promise.all([
+        const [avif, webp, jpeg] = await Promise.all([
             getImage({
                 src: photo.image,
                 widths,
@@ -27,14 +27,22 @@ const galleryPhotos = await Promise.all(
                 format: "webp",
                 quality: "high",
             }),
+            getImage({
+                src: photo.image,
+                widths,
+                sizes: "100vw",
+                format: "jpeg",
+                quality: "high",
+            }),
         ]);
 
         return {
             ...photo,
             viewerAvifSrcset: avif.srcSet.attribute,
             viewerWebpSrcset: webp.srcSet.attribute,
+            viewerJpegSrcset: jpeg.srcSet.attribute,
             viewerFallback:
-                webp.srcSet.values.at(-1)?.url ?? webp.src,
+                jpeg.srcSet.values.at(-1)?.url ?? jpeg.src,
         };
     }),
 );
@@ -129,6 +137,7 @@ const galleryPhotos = await Promise.all(
                             class="photo-open group block w-full cursor-zoom-in overflow-hidden bg-surface text-left"
                             data-viewer-avif-srcset={photo.viewerAvifSrcset}
                             data-viewer-webp-srcset={photo.viewerWebpSrcset}
+                            data-viewer-jpeg-srcset={photo.viewerJpegSrcset}
                             data-viewer-fallback={photo.viewerFallback}
                             data-alt={photo.alt}
                             data-title={photo.title}
@@ -137,8 +146,8 @@ const galleryPhotos = await Promise.all(
                             <Picture
                                 src={photo.image}
                                 alt={photo.alt}
-                                formats={["avif"]}
-                                fallbackFormat="webp"
+                                formats={["avif", "webp"]}
+                                fallbackFormat="jpeg"
                                 widths={[480, 800, 1200, 1600]}
                                 sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
                                 quality="high"
@@ -178,6 +187,7 @@ const galleryPhotos = await Promise.all(
         <div class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
             <picture class="contents">
                 <source id="photo-viewer-avif" type="image/avif" />
+                <source id="photo-viewer-webp" type="image/webp" />
                 <img
                     id="photo-viewer-image"
                     src=""
@@ -260,15 +270,26 @@ const galleryPhotos = await Promise.all(
     const viewerAvif = document.querySelector<HTMLSourceElement>(
         "#photo-viewer-avif",
     );
+    const viewerWebp = document.querySelector<HTMLSourceElement>(
+        "#photo-viewer-webp",
+    );
     const viewerTitle = document.querySelector<HTMLElement>(
         "#photo-viewer-title",
     );
 
     document.querySelectorAll<HTMLButtonElement>(".photo-open").forEach((button) => {
         button.addEventListener("click", () => {
-            if (!viewer || !viewerImage || !viewerAvif || !viewerTitle) return;
+            if (
+                !viewer ||
+                !viewerImage ||
+                !viewerAvif ||
+                !viewerWebp ||
+                !viewerTitle
+            )
+                return;
             viewerAvif.srcset = button.dataset.viewerAvifSrcset ?? "";
-            viewerImage.srcset = button.dataset.viewerWebpSrcset ?? "";
+            viewerWebp.srcset = button.dataset.viewerWebpSrcset ?? "";
+            viewerImage.srcset = button.dataset.viewerJpegSrcset ?? "";
             viewerImage.src = button.dataset.viewerFallback ?? "";
             viewerImage.alt = button.dataset.alt ?? "";
             viewerTitle.textContent = button.dataset.title ?? "";
@@ -282,6 +303,7 @@ const galleryPhotos = await Promise.all(
 
     viewer?.addEventListener("close", () => {
         if (viewerAvif) viewerAvif.srcset = "";
+        if (viewerWebp) viewerWebp.srcset = "";
         if (viewerImage) {
             viewerImage.removeAttribute("srcset");
             viewerImage.src = "";
