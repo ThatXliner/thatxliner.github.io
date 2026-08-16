@@ -1,4 +1,4 @@
-\documentclass[10.5pt, letterpaper]{article}
+\documentclass[11pt,letterpaper]{article}
 
 \usepackage[margin=0.45in]{geometry}
 \usepackage{enumitem}
@@ -10,147 +10,81 @@
 \usepackage{xcolor}
 
 \pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{0.22in}
+\definecolor{accent}{HTML}{2563EB}
 
-\definecolor{accent}{HTML}{2563eb}
-
-\titleformat{\section}{\large\bfseries\uppercase}{}{0em}{}[\titlerule]
-\titlespacing{\section}{0pt}{6pt}{3pt}
+\titleformat{\section}{\normalsize\bfseries\uppercase}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{7pt}{3pt}
 
 \begin{document}
 
-%% ── Header ──
 \begin{center}
-  {\LARGE\bfseries Bryan Hu} \\[4pt]
+  {\LARGE\bfseries Bryan Hu} \\[3pt]
+  {\small
   \href{mailto:thatxliner@gmail.com}{thatxliner@gmail.com} \enspace$|$\enspace
   +1 (669) 689-1368 \enspace$|$\enspace
   \href{https://bryanhu.com}{bryanhu.com} \enspace$|$\enspace
   \href{https://github.com/ThatXliner}{github.com/ThatXliner} \enspace$|$\enspace
   \href{https://linkedin.com/in/thatxliner}{linkedin.com/in/thatxliner}
+  }
 \end{center}
 
-%% ── Highlights bar — first horizontal scan ──
-\vspace{2pt}
+\vspace{1pt}
 \noindent\colorbox{accent!8}{\makebox[\dimexpr\textwidth-2\fboxsep][c]{\strut\footnotesize
-\textbf{144$\bigstar$ rust-but-lisp} ~ Featured on Hacker News
+\textbf{100K+ PyPI downloads}
 ~{\color{black!30}|}~
-\textbf{19$\bigstar$ aioudp} ~ Top async UDP lib on PyPI
+\textbf{3$\times$ hackathon winner} --- \$3.5K earned
 ~{\color{black!30}|}~
-\textbf{3rd Place} ~ Congressional App Challenge '25
+\textbf{144$\bigstar$ open-source project} --- featured on Hacker News
 }}
-\vspace{4pt}
 
-%% ── Open Source Contributions (leadership first — strongest signal) ──
-\section{Open Source Contributions}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{VC Assist} --- \textit{CEO} \\
-Student-run non-profit enhancing digital educational infrastructure at Valley Christian Schools. Built and maintained the full-stack platform (frontend, backend, web scrapers); later led a full frontend rewrite to improve performance and UX.
-% What I did: Built the original full-stack platform including frontend, backend, and web scrapers; later led a complete frontend rewrite
-% Learned: Non-profit leadership, full-stack architecture, web scraping at scale, frontend performance
-\item \textbf{VCSD Club} --- \textit{Founder} \\
-Founded the Valley Christian HS Software Development Club from scratch. Designed the club website, authored curriculum, and shipped restlock-holmes --- an interactive game teaching REST APIs to beginners.
-% What I did: Founded the club, built the club website, authored beginner curriculum, shipped restlock-holmes — an interactive REST API teaching game
-% Learned: Curriculum design, teaching REST concepts, Svelte, founding and running a student organization
-\item \textbf{FRC Team 3256} --- \textit{Programmer} \\
-Robot programming for 2024–2025 seasons: elevator subsystem, 3D simulation for driver practice, anti-tip logic, controller mapping, structured logging, and a competition scouting app built with Tauri 2.0.
-% What I did: Implemented elevator subsystem, built 3D robot simulation for driver practice, added anti-tip logic and controller mapping, set up structured logging infrastructure, shipped competition scouting app in Tauri 2.0
-% Learned: Java robotics frameworks (WPILib), real-time control systems, 3D simulation, cross-platform desktop apps with Tauri
+\section{Award-Winning Projects}
+\begin{itemize}[leftmargin=1.35em,nosep,itemsep=3pt]
+\item \textbf{\href{https://github.com/EvanZhouDev/felt-1}{Felt-1}} --- \textbf{3rd Place, WeaveHacks 4} \enspace$|$\enspace \textbf{\$1K + TRMNL} \\
+\textbf{Built anchor-normalized neural similarity and contrastive scoring} for an isoneural converter spanning image, audio, and text; developed multimodal experiments and agent failover across 45 commits. \textit{TypeScript, Python}
+
+\item \textbf{\href{https://github.com/superplanehq/superplane/pull/5094}{Planelets}} --- \textbf{1st Place, SuperPlane Hackathon} \enspace$|$\enspace \textbf{\$1,500} \\
+\textbf{Delivered a 1,600+ line Go plugin backend} with runtime manifest discovery, typed configuration, actions, webhook triggers, caching, and tests; also shipped SDKs in four languages. \textit{Go, TypeScript}
+
+\item \textbf{Zyma} --- \textbf{\$1,000 CodeForCause Winner} --- Shipped a client attendance platform in 12 hours with authentication and a reusable design system. \textit{Next.js, Supabase}
+\item \textbf{\href{https://github.com/billion-app/billion}{Billion}} --- \textbf{3rd Place, Congressional App Challenge 2025} --- Built the content feed, scraping pipeline, and architecture for an AI-powered political information app. \textit{TypeScript, React Native}
 \end{itemize}
 
-%% ── Award-Winning & Featured — full-width, multi-line (high visual weight) ──
-\section{Award-Winning \& Featured Projects}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{\href{https://github.com/billion-app/billion}{Billion}} \hfill \textit{TypeScript \enspace|\enspace React Native \enspace|\enspace Supabase \enspace|\enspace 3 \(\ \bigstar\)} \\
-AI-powered app making political info accessible via short-form content. \textbf{3rd place, 2025 Congressional App Challenge (CA-19).}
-
-\item \textbf{\href{https://github.com/ThatXliner/rust-but-lisp}{rust-but-lisp}} \hfill \textit{Rust \enspace|\enspace 144 \(\ \bigstar\)} \\
-Transpiler: Rust semantics in Lisp syntax. S-expressions $\to$ \texttt{.rs} $\to$ native binary. \textbf{Featured on Hacker News.}
-
-\item \textbf{\href{https://github.com/ThatXliner/patchwork}{patchwork}} \hfill \textit{Rust \enspace|\enspace Tree-sitter \enspace|\enspace 6 \(\ \bigstar\)} \\
-AST-native sed --- find/replace/delete code by syntactic structure, not regex. Built for LLM refactoring pipelines.
-
-\item \textbf{Zyma} \hfill \textit{Next.js \enspace|\enspace Supabase \enspace|\enspace TailwindCSS \enspace|\enspace \textbf{\$1000 CodeForCause Hackathon Winner}} \\
-Client attendance tracker; first version shipped in 12 hours with Supabase auth and modern design system.
+\section{Open Source Reach}
+\begin{itemize}[leftmargin=1.35em,nosep,itemsep=2.5pt]
+\item \textbf{100,000+ cumulative PyPI downloads} --- Published and maintained \href{https://pypi.org/project/aioudp/}{aioudp}, \href{https://pypi.org/project/unmarkd/}{unmarkd}, \href{https://pypi.org/project/idae/}{idae}, \href{https://github.com/ThatXliner/pyt2}{pyt2}, \href{https://pypi.org/project/xclif/}{xclif}, and \href{https://pypi.org/project/git-worm/}{git-worm}.
+\item \textbf{\href{https://github.com/ThatXliner/rust-but-lisp}{rust-but-lisp} --- 144 GitHub stars, featured on Hacker News} --- Built a Lisp-to-Rust transpiler that emits compilable Rust.
+\item \textbf{\href{https://github.com/ThatXliner/patchwork-cli}{patchwork-cli}} --- Built an AST-native refactoring CLI for structural code edits using Rust and Tree-sitter, designed for agent-driven development workflows.
 \end{itemize}
 
-%% ── Developer Tools & Libraries — two-column, compact (lower visual weight) ──
-\section{Developer Tools \& Libraries}
-\begin{multicols}{2}
-\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
-\item \textbf{\href{https://github.com/ThatXliner/aioudp}{aioudp}} \enspace \textit{\small Python \enspace|\enspace 19\,$\bigstar$} \\
-  {\small Most-starred async UDP library on PyPI.}
-\item \textbf{\href{https://github.com/ThatXliner/unmarkd}{unmarkd}} \enspace \textit{\small Python \enspace|\enspace 17\,$\bigstar$} \\
-  {\small Configurable HTML$\to$Markdown converter. On PyPI.}
-\item \textbf{\href{https://github.com/ThatXliner/pyt2}{pyt2 / pyt3}} \enspace \textit{\small Python \enspace|\enspace Copier \enspace|\enspace 14\,$\bigstar$} \\
-  {\small Opinionated Python scaffolding with CI, linting, typing.}
-\item \textbf{\href{https://github.com/ThatXliner/idae}{idae}} \enspace \textit{\small Python \enspace|\enspace 11\,$\bigstar$} \\
-  {\small PEP 723 implementation. Inline script metadata runner.}
-\item \textbf{\href{https://github.com/ThatXliner/gah}{gah}} \enspace \textit{\small Rust \enspace|\enspace 1\,$\bigstar$} \\
-  {\small Git Add Hunks --- hunk staging CLI for AI agents.}
-\item \textbf{\href{https://github.com/ThatXliner/rt}{rt}} \enspace \textit{\small Rust} \\
-  {\small Regex text extraction. Like grep for capture groups.}
-\item \textbf{\href{https://github.com/ThatXliner/xclif}{xclif}} \enspace \textit{\small Python \enspace|\enspace 3\,$\bigstar$} \\
-  {\small CLI framework behind codeberg-cli, git-worm, send-cli.}
-\item \textbf{\href{https://github.com/ThatXliner/qbot}{qbot}} \enspace \textit{\small Rust \enspace|\enspace 2\,$\bigstar$} \\
-  {\small Quiz Bowl Discord bot with query language for filtering.}
+\section{Leadership \& Engineering}
+\begin{itemize}[leftmargin=1.35em,nosep,itemsep=2.5pt]
+\item \textbf{\href{https://vcassist.org}{VC Assist} --- CEO} --- Lead a student-run nonprofit improving school infrastructure; built the full-stack platform and scraping systems, then directed a frontend rewrite for performance and usability.
+\item \textbf{\href{https://vcsdclub.org}{VCSD Club} --- Founder} --- Founded the school's software-development club, authored its curriculum, built its website, and shipped an interactive game that teaches REST APIs.
+\item \textbf{FRC Team 3256} --- \textit{Programmer, 2024--2025} \\
+Implemented robot subsystems, 3D driver simulation, anti-tip controls, structured logging, and a Tauri scouting application; contributed to seven team awards including Creativity at World Championships.
 \end{itemize}
-\end{multicols}
 
-%% ── Applications — two-column, compact ──
-\section{Applications}
-\begin{multicols}{2}
-\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
-\item \textbf{\href{https://github.com/ThatXliner/Quillium}{Quillium}} \enspace \textit{\small TypeScript \enspace|\enspace SvelteKit} \\
-  {\small Non-linear prose editor for professional workflows.}
-\item \textbf{\href{https://github.com/ThatXliner/superscribe}{SuperScribe}} \enspace \textit{\small Svelte} \\
-  {\small AI live diagramming --- diagrams what you say in real time.}
-\item \textbf{\href{https://github.com/ThatXliner/sweepr}{sweepr}} \enspace \textit{\small Svelte \enspace|\enspace SvelteKit} \\
-  {\small Minesweeper: Classic, Tactical (battle royale), Blitz (1v1).}
-\item \textbf{\href{https://github.com/ThatXliner/wavelength}{wavelength}} \enspace \textit{\small SvelteKit \enspace|\enspace WebRTC} \\
-  {\small P2P multiplayer guessing game. No server needed.}
-\item \textbf{45} \enspace \textit{\small Next.js \enspace|\enspace TensorFlow \enspace|\enspace Supabase} \\
-  {\small Gamified workout app; led 4 engineers. TensorFlow pose-detection.}
+\section{Selected Engineering}
+\begin{itemize}[leftmargin=1.2em,nosep,itemsep=1.5pt]
+\item \textbf{\href{https://github.com/ThatXliner/Quillium}{Quillium}} --- AI-assisted nonlinear writing editor with revision history and annotations.
+\item \textbf{\href{https://github.com/ThatXliner/FADAIG}{FADAIG}} --- Arduino USB-HID Word Hunt solver combining trie search with hardware automation.
+\item \textbf{\href{https://github.com/ThatXliner/Hologram}{Hologram}} --- Keyboard-first macOS photography culling workspace with RAW/JPEG and EXIF support.
+\item \textbf{\href{https://github.com/ThatXliner/ljv}{LJV}} --- Real-time WebGL2 Lissajous music visualizer packaged as a Tauri desktop app.
 \end{itemize}
-\end{multicols}
 
-%% ── Creative & Research — two-column, compact (least attention, most scannable) ──
-\section{Creative \& Research}
-\begin{multicols}{2}
-\begin{itemize}[leftmargin=1.2em, nosep, itemsep=1pt]
-\item \textbf{\href{https://github.com/ThatXliner/FADAIG}{FADAIG}} \enspace \textit{\small Python \enspace|\enspace CV \enspace|\enspace 8\,$\bigstar$} \\
-  {\small Automated Word Hunt solver via screen capture.}
-\item \textbf{\href{https://github.com/ThatXliner/chinese-font}{chinese-font}} \enspace \textit{\small Python \enspace|\enspace OpenType \enspace|\enspace 4\,$\bigstar$} \\
-  {\small Font replacing Chinese chars with English via ligatures.}
-\item \textbf{\href{https://github.com/ThatXliner/ljv}{ljv}} \enspace \textit{\small Svelte \enspace|\enspace Web Audio \enspace|\enspace 4\,$\bigstar$} \\
-  {\small Lissajous curve music visualizer. Desktop app.}
-\item \textbf{\href{https://github.com/ThatXliner/fall-syntax}{fall-syntax}} \enspace \textit{\small Atom \enspace|\enspace VSCode \enspace|\enspace 6\,$\bigstar$} \\
-  {\small Syntax theme for Atom/Pulsar + VSCode port.}
-\end{itemize}
-\end{multicols}
-
-%% ── Skills ──
 \section{Skills}
-\textbf{Languages:} Python, TypeScript, JavaScript, Rust, Java, C++ \\
-\textbf{Frameworks:} React / Next.js, Svelte / SvelteKit, TailwindCSS \\
-\textbf{Databases:} Supabase, PostgreSQL, SQLite \\
-\textbf{DevOps:} Git, Docker, GitHub Actions, Vercel, CI/CD \\
-\textbf{Automation \& Systems:} Bash, Zsh, Selenium, Playwright, ScraPy \\
-\textbf{Spoken Languages:} English (Native), Mandarin (Fluent)
+\textbf{Languages:} Python, TypeScript, JavaScript, Rust, Go, Java, C++ \\
+\textbf{Web:} React, Next.js, SvelteKit, Tailwind CSS \\
+\textbf{Systems \& Data:} Supabase, PostgreSQL, SQLite, Docker, GitHub Actions, WebGL, Tree-sitter, Playwright
 
-%% ── Music & Production ──
-\section{Music \& Production}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{Piano} (9 years) --- CM Level 10, State Honors; USOMC Intermediate Baroque --- 3rd Place, 2023
-\item \textbf{Trombone} (8 years) --- HS Band \& Jazz Band --- 2nd Place, Folsom Jazz Festival 2025
-\item \textbf{Composer} --- Published on Spotify, Apple Music, and MuseScore
-\item \textbf{Camera \& Post Production} --- Canon C200s, live switching, Final Cut Pro, Logic Pro, Darktable \enspace$|$\enspace \href{https://www.instagram.com/icliptheworld}{instagram.com/icliptheworld}
-\end{itemize}
-
-%% ── Awards ──
-\section{Awards}
-\begin{itemize}[leftmargin=1.5em, nosep]
-\item \textbf{USACO Silver} --- USA Computing Olympiad, competitive algorithmic programming
-\item \textbf{picoCTF 2026 --- 174th / 8,747} --- Carnegie Mellon's national cybersecurity CTF covering binary exploitation, reverse engineering, cryptography, and web security
-\item \textbf{FRC Team 3256} (2024--2025) --- Creativity Award (Champs), Excellence in Engineering, Innovation in Control, Engineering Inspiration $\times$2, Judges' Award, Regional Finalists
+\section{Additional Distinctions}
+\begin{itemize}[leftmargin=1.35em,nosep,itemsep=1pt]
+\item \textbf{USACO Silver} \enspace$|$\enspace \textbf{picoCTF 2026: 174th / 8,747} \enspace$|$\enspace \textbf{FRC: 7 team awards, 2024--2025}
+\item \textbf{Piano} (since 2017) --- CM Level 10, State Honors; USOMC Intermediate Baroque, 3rd Place \quad
+\textbf{Trombone} (since 2018) --- Folsom Jazz Festival, 2nd Place
+\item \textbf{Creative production} --- Composer; camera operator and live switcher; Final Cut Pro, Logic Pro, and Darktable
 \end{itemize}
 
 \end{document}

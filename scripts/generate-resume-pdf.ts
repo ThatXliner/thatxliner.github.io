@@ -1,174 +1,34 @@
-import { resume } from "../src/data/resume";
-import { execSync } from "child_process";
-import { mkdirSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
+import { execFileSync } from "node:child_process";
+import { copyFileSync, mkdirSync, rmSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const outDir = join(import.meta.dirname, "..", "public");
-const tmpDir = join(import.meta.dirname, "..", ".cache", "latex");
-const texDest = join(import.meta.dirname, "..", "resume.tex");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const source = join(root, "resume.tex");
+const outputDir = join(root, "output", "pdf");
+const publicDir = join(root, "public");
+const buildDir = join(root, "tmp", "pdfs", "resume-build");
+const compiled = join(buildDir, "resume.pdf");
+const final = join(outputDir, "Bryan_Hu_Resume.pdf");
+const publicResume = join(publicDir, "resume.pdf");
 
-function escapeLatex(str: string): string {
-  return str
-    .replace(/\\/g, "\\textbackslash{}")
-    .replace(/[&%$#_{}]/g, (m) => `\\${m}`)
-    .replace(/~/g, "\\textasciitilde{}")
-    .replace(/\^/g, "\\textasciicircum{}")
-    .replace(/—/g, "---");
-}
+mkdirSync(outputDir, { recursive: true });
+mkdirSync(publicDir, { recursive: true });
+mkdirSync(buildDir, { recursive: true });
 
-function generateLatex(): string {
-  const r = resume;
-
-  const skillsSection = [
-    `\\textbf{Languages:} ${r.skills.languages.map(escapeLatex).join(", ")}`,
-    `\\textbf{Frameworks:} ${r.skills.frameworks.map(escapeLatex).join(", ")}`,
-    `\\textbf{Tools:} ${r.skills.tools.map(escapeLatex).join(", ")}`,
-  ].join(" \\\\\n");
-
-  const awardsItems = [
-    ...r.awards.map((a) =>
-      `\\item \\textbf{${escapeLatex(a.label)}}${a.description ? ` --- ${escapeLatex(a.description)}` : ""}`
-    ),
-    ...r.frcAwards.map(
-      (a) =>
-        `\\item \\textbf{FRC Team 3256 --- ${escapeLatex(a.label)}} (${a.year})`
-    ),
-  ].join("\n");
-
-  const projectItems = r.projects
-    .map((p) => {
-      const meta = [
-        p.language,
-        p.stars ? `${p.stars} \\(\\ \\bigstar\\)` : null,
-        p.award ? `\\textit{${escapeLatex(p.award)}}` : null,
-      ].filter(Boolean).join(" \\enspace|\\enspace ");
-      const lines = [
-        `\\item \\textbf{${escapeLatex(p.name)}} \\hfill \\textit{${meta}}`,
-        escapeLatex(p.tagline),
-      ];
-      if (p.whatIDid) lines.push(`% What I did: ${p.whatIDid}`);
-      if (p.learned) lines.push(`% Learned: ${p.learned}`);
-      return lines.join("\n");
-    })
-    .join("\n");
-
-  const contributionItems = r.contributions
-    .map((c) => {
-      const lines = [
-        `\\item \\textbf{${escapeLatex(c.name)}} --- \\textit{${escapeLatex(c.role)}} \\\\`,
-        escapeLatex(c.description),
-      ];
-      if (c.whatIDid) lines.push(`% What I did: ${c.whatIDid}`);
-      if (c.learned) lines.push(`% Learned: ${c.learned}`);
-      return lines.join("\n");
-    })
-    .join("\n");
-
-  const musicItems = r.music
-    .map((m) => {
-      const awards = m.awards.map((a) => escapeLatex(a)).join("; ");
-      return `\\item \\textbf{${escapeLatex(m.instrument)}} (${m.years} years) --- ${escapeLatex(m.highlight)}${awards ? ` --- ${awards}` : ""}`;
-    })
-    .join("\n");
-
-  const productionItems = r.production
-    .map(
-      (p) =>
-        `\\item \\textbf{${escapeLatex(p.title)}} --- ${escapeLatex(p.detail)} --- ${escapeLatex(p.context)}`
-    )
-    .join("\n");
-
-  return `\\documentclass[11pt, letterpaper]{article}
-
-\\usepackage[margin=0.6in]{geometry}
-\\usepackage{enumitem}
-\\usepackage[hidelinks]{hyperref}
-\\usepackage{titlesec}
-\\usepackage{parskip}
-\\usepackage{amssymb}
-
-\\pagestyle{empty}
-
-\\titleformat{\\section}{\\large\\bfseries\\uppercase}{}{0em}{}[\\titlerule]
-\\titlespacing{\\section}{0pt}{10pt}{6pt}
-
-\\begin{document}
-
-%% ── Header ──
-\\begin{center}
-  {\\LARGE\\bfseries ${escapeLatex(r.name)}} \\\\[4pt]
-  \\href{mailto:${r.email}}{${escapeLatex(r.email)}} \\enspace$|$\\enspace
-  \\href{https://${r.website}}{${escapeLatex(r.website)}} \\enspace$|$\\enspace
-  \\href{https://github.com/${r.github}}{github.com/${escapeLatex(r.github)}} \\enspace$|$\\enspace
-  \\href{https://linkedin.com/in/${r.linkedin}}{linkedin.com/in/${escapeLatex(r.linkedin)}}
-\\end{center}
-
-%% ── Skills ──
-\\section{Skills}
-${skillsSection}
-
-%% ── Awards ──
-\\section{Awards}
-\\begin{itemize}[leftmargin=1.5em, nosep]
-${awardsItems}
-\\end{itemize}
-
-%% ── Projects ──
-\\section{Projects}
-\\begin{itemize}[leftmargin=1.5em, nosep]
-${projectItems}
-\\end{itemize}
-
-%% ── Open Source Contributions ──
-\\section{Open Source Contributions}
-\\begin{itemize}[leftmargin=1.5em, nosep]
-${contributionItems}
-\\end{itemize}
-
-%% ── Music ──
-\\section{Music}
-\\begin{itemize}[leftmargin=1.5em, nosep]
-${musicItems}
-\\end{itemize}
-
-%% ── Photography \\& Production ──
-\\section{Photography \\& Production}
-\\begin{itemize}[leftmargin=1.5em, nosep]
-${productionItems}
-\\end{itemize}
-
-\\end{document}
-`;
-}
-
-// Generate
-mkdirSync(tmpDir, { recursive: true });
-mkdirSync(outDir, { recursive: true });
-
-const texPath = join(tmpDir, "resume.tex");
-const pdfSrc = join(tmpDir, "resume.pdf");
-const pdfDest = join(outDir, "resume.pdf");
-
-const latex = generateLatex();
-writeFileSync(texPath, latex);
-writeFileSync(texDest, latex);
-console.log("Generated LaTeX →", texDest);
-
+// resume.tex is the single source of truth. Tectonic provides a reproducible
+// LaTeX build without requiring a full local TeX installation.
 try {
-  execSync(
-    `pdflatex -interaction=nonstopmode -output-directory="${tmpDir}" "${texPath}"`,
-    { stdio: "pipe" }
-  );
-  // Run twice for references
-  execSync(
-    `pdflatex -interaction=nonstopmode -output-directory="${tmpDir}" "${texPath}"`,
-    { stdio: "pipe" }
-  );
-} catch (e: any) {
-  console.error("pdflatex failed:", e.stderr?.toString() || e.message);
-  process.exit(1);
+  execFileSync("tectonic", ["--outdir", buildDir, source], {
+    cwd: root,
+    stdio: "inherit",
+  });
+
+  copyFileSync(compiled, final);
+  copyFileSync(compiled, publicResume);
+} finally {
+  rmSync(buildDir, { recursive: true, force: true });
 }
 
-// Copy PDF to public/
-execSync(`cp "${pdfSrc}" "${pdfDest}"`);
-console.log("PDF generated →", pdfDest);
+console.log(`Resume generated -> ${final}`);
+console.log(`Website copy generated -> ${publicResume}`);
