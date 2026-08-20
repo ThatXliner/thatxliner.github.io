@@ -16,6 +16,7 @@ import roadToSunset from "@/assets/photography/road-to-sunset.webp";
 import rosewater from "@/assets/photography/rosewater.webp";
 import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
+import underTheLamps from "@/assets/photography/under-the-lamps.jpg";
 import winterMoon from "@/assets/photography/winter-moon.webp";
 
 export interface Photograph {
@@ -119,6 +120,13 @@ export const photographs: Photograph[] = [
         date: "July 2026",
         camera: "Canon EOS R7",
         image: counterService,
+    },
+    {
+        title: "Under the Lamps",
+        alt: "A man in a wide-brimmed hat and glasses passing beneath glowing market lights",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        image: underTheLamps,
     },
     {
         title: "Steam at the Curb",

@@ -86,12 +86,6 @@ const galleryPhotos = await Promise.all(
                 <button
                     type="button"
                     class="filter-pill"
-                    data-camera="all"
-                    aria-pressed="true">All</button
-                >
-                <button
-                    type="button"
-                    class="filter-pill"
                     data-camera="Canon EOS R7"
                     aria-pressed="false">EOS R7</button
                 >
@@ -322,7 +316,7 @@ const galleryPhotos = await Promise.all(
         document.querySelectorAll<HTMLButtonElement>("[data-sort]"),
     );
 
-    let camera = "all";
+    const selectedCameras = new Set<string>();
     let sort = "newest";
 
     const updateGallery = () => {
@@ -332,16 +326,26 @@ const galleryPhotos = await Promise.all(
                 return sort === "newest" ? difference : -difference;
             })
             .forEach((photo) => {
-                photo.hidden = camera !== "all" && photo.dataset.camera !== camera;
+                photo.hidden =
+                    selectedCameras.size > 0 &&
+                    !selectedCameras.has(photo.dataset.camera ?? "");
                 gallery?.append(photo);
             });
     };
 
     cameraButtons.forEach((button) => {
         button.addEventListener("click", () => {
-            camera = button.dataset.camera ?? "all";
-            cameraButtons.forEach((item) =>
-                item.setAttribute("aria-pressed", String(item === button)),
+            const camera = button.dataset.camera;
+            if (!camera) return;
+
+            if (selectedCameras.has(camera)) {
+                selectedCameras.delete(camera);
+            } else {
+                selectedCameras.add(camera);
+            }
+            button.setAttribute(
+                "aria-pressed",
+                String(selectedCameras.has(camera)),
             );
             updateGallery();
         });
