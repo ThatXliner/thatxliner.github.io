@@ -117,12 +117,11 @@ const galleryPhotos = await Promise.all(
         <section
             id="photo-gallery"
             aria-label="Selected photographs"
-            class="mx-auto max-w-[1400px] columns-1 gap-5 px-gutter pb-24 sm:columns-2 lg:columns-3 md:pb-36"
+            class="mx-auto grid max-w-[1400px] grid-cols-1 items-start gap-x-5 gap-y-10 px-gutter pb-24 sm:grid-cols-2 md:gap-y-14 lg:grid-cols-3 md:pb-36"
         >
             {
                 galleryPhotos.map((photo) => (
                     <figure
-                        class="reveal mb-10 break-inside-avoid md:mb-14"
                         data-camera={photo.camera}
                         data-date={new Date(`${photo.date} 1`).valueOf()}
                     >
@@ -310,7 +309,9 @@ const galleryPhotos = await Promise.all(
         document.querySelectorAll<HTMLElement>("#photo-gallery figure"),
     );
     const cameraButtons = Array.from(
-        document.querySelectorAll<HTMLButtonElement>("[data-camera]"),
+        document.querySelectorAll<HTMLButtonElement>(
+            ".filter-pill[data-camera]",
+        ),
     );
     const sortButtons = Array.from(
         document.querySelectorAll<HTMLButtonElement>("[data-sort]"),
