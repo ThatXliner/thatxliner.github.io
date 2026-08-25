@@ -88,7 +88,7 @@ function segments(text: string) {
                         class="tnum text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-semibold tracking-[-0.04em]"
                         data-countup={stat.value}
                     >
-                        0
+                        {stat.value.toLocaleString("en-US")}
                     </dd>
                     <dt class="t-caption mt-2.5">{stat.label}</dt>
                 </div>
@@ -260,18 +260,14 @@ function segments(text: string) {
 </section>
 
 <script>
-    // Figures count up once, when they first arrive. Progressive enhancement:
-    // without JS the server-rendered value is already correct.
+    // Figures count up once, when they first arrive. The server-rendered
+    // value is already correct, so this is pure decoration — with no JS or
+    // with reduced motion the real number simply sits there.
     const targets = document.querySelectorAll<HTMLElement>("[data-countup]");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
         .matches;
 
     const format = (n: number) => n.toLocaleString("en-US");
-
-    for (const el of targets) {
-        const end = Number(el.dataset.countup ?? 0);
-        el.textContent = reduced ? format(end) : "0";
-    }
 
     if (!reduced && targets.length > 0) {
         const observer = new IntersectionObserver(
@@ -301,3 +297,4 @@ function segments(text: string) {
         targets.forEach((el) => observer.observe(el));
     }
 </script>
+
