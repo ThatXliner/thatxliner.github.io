@@ -372,26 +372,6 @@
     }
 }
 
-/* A chapter's progress rule, pinned under its era label in the margin. It is
-   a readout, not an ornament: how far through this chapter you are. Static
-   state is "full", so browsers without scroll-driven animation get a plain
-   drawn rule rather than an empty track. */
-.rail {
-    display: block;
-    position: relative;
-    width: 2.25rem;
-    height: 1px;
-    margin-top: 0.7rem;
-    background-color: var(--color-hairline-strong);
-}
-.rail::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-color: var(--color-fg-muted);
-    transform-origin: left center;
-}
-
 /* Photographic falloff: an image that dissolves into the page instead of
    ending at a hard edge or sitting in a bordered box. */
 .falloff {
@@ -552,46 +532,6 @@
             animation-range: 0vh 100vh;
         }
 
-        /* ── The story, as one continuous journey ─────────────────────────
-           Each chapter declares its own view timeline, which its children
-           then read. That is what turns five independent `reveal`s into one
-           flowing traversal: a chapter arrives, holds at full contrast for
-           the whole time it is the thing you are reading, then recedes as
-           you pass it — so at any scroll position exactly one chapter is
-           lit and the rest have depth. The name resolves to the nearest
-           ancestor that declares it, so every article drives only itself. */
-        .station {
-            view-timeline-name: --station;
-        }
-
-        .station-body,
-        .station-era,
-        .station-title > *,
-        .rail::after {
-            animation-timing-function: linear;
-            animation-fill-mode: both;
-            animation-timeline: --station;
-            animation-range: cover;
-        }
-        .station-body {
-            animation-name: station;
-        }
-        /* The chapter headline rises out from behind its own edge and lands
-           just before the prose under it settles — the same gesture the
-           section titles use, so a chapter opens the way a section does. */
-        .station-title > * {
-            animation-name: station-title;
-        }
-        /* The era holds a beat longer than its prose at both ends, so the
-           margin always names where you are — it is the signpost, and a
-           signpost that arrives late or leaves early is useless. */
-        .station-era {
-            animation-name: station-era;
-        }
-        .rail::after {
-            animation-name: rail;
-        }
-
         /* The hero recedes as you leave it: it scales back and dims, the way
            a physical layer would as it moves away from you. */
         .recede {
@@ -604,13 +544,17 @@
 }
 
 @keyframes approach {
-    from {
+    0% {
         opacity: 0;
-        transform: scale(0.9) translateY(48px);
+        transform: perspective(1200px) translateY(56px) rotateX(7deg) scale(.94);
     }
-    to {
+    65% {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: perspective(1200px) translateY(6px) rotateX(0deg) scale(.995);
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
     }
 }
 
@@ -620,80 +564,6 @@
     }
     to {
         transform: translateY(calc(var(--drift) * -1));
-    }
-}
-
-/* Percentages here are fractions of the chapter's whole traversal of the
-   viewport, not of a duration — 0% is "about to enter from the bottom" and
-   100% is "fully gone off the top". The long flat middle is the point: it is
-   the window where the chapter is simply readable and nothing is moving. */
-@keyframes station {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    26% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    /* Holds full until the chapter's top edge has actually reached the top of
-       the viewport — dimming text a reader might still be on is the way this
-       pattern usually goes wrong. */
-    70% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% {
-        opacity: 0.3;
-        transform: translateY(-10px);
-    }
-}
-
-@keyframes station-title {
-    0%,
-    4% {
-        transform: translateY(105%);
-    }
-    24%,
-    100% {
-        transform: translateY(0);
-    }
-}
-
-@keyframes station-era {
-    0% {
-        opacity: 0;
-        transform: translateY(12px);
-        color: var(--color-fg-dim);
-    }
-    20% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    32% {
-        color: var(--color-fg);
-    }
-    76% {
-        opacity: 1;
-        color: var(--color-fg);
-    }
-    100% {
-        opacity: 0.3;
-        transform: translateY(-6px);
-        color: var(--color-fg-dim);
-    }
-}
-
-/* Fills across exactly the span in which its chapter is the lit one, so the
-   rule is empty as the chapter arrives and full as you leave it. */
-@keyframes rail {
-    0%,
-    26% {
-        transform: scaleX(0);
-    }
-    70%,
-    100% {
-        transform: scaleX(1);
     }
 }
 
@@ -732,12 +602,10 @@ html[data-noanim] :is(
         .drift-slow,
         .drift-fast,
         .lag,
-        .station-body,
-        .station-era
+        .card-arrive
     ),
-html[data-noanim] .rail::after,
 html[data-noanim] .split-char,
-html[data-noanim] :is(.mask-load, .mask-scroll, .station-title) > * {
+html[data-noanim] :is(.mask-load, .mask-scroll) > * {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -854,3 +722,23 @@ html[data-noanim] :is(.mask-load, .mask-scroll, .station-title) > * {
     font-weight: 600;
     white-space: nowrap;
 }
+
+/* Individual translate leaves the card's hover transform independent. */
+@keyframes card-arrive {
+    from { opacity: 0; translate: 0 36px; }
+    to { opacity: 1; translate: 0 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        .card-arrive {
+            animation: card-arrive cubic-bezier(.22, 1, .36, 1) both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 85%;
+        }
+        @media (min-width: 768px) {
+            .card-arrive:nth-child(2) { animation-range: entry 8% entry 93%; }
+            .card-arrive:nth-child(3) { animation-range: entry 16% entry 100%; }
+        }
+    }
+}
+html[data-noanim] .card-arrive { translate: none !important; }
