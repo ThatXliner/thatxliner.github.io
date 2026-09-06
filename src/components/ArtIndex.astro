@@ -128,6 +128,10 @@ const formatYear = (date: Date) => date.getFullYear();
                     data-src={photo.image.src}
                     data-alt={photo.alt}
                     data-title={photo.title}
+                    data-width={photo.image.width}
+                    data-height={photo.image.height}
+                    aria-haspopup="dialog"
+                    aria-controls="featured-photo-viewer"
                     aria-label={`Open ${photo.title}`}
                 >
                     <Image
@@ -137,7 +141,7 @@ const formatYear = (date: Date) => date.getFullYear();
                         sizes="(min-width: 768px) 33vw, 90vw"
                         loading="lazy"
                         draggable="false"
-                        class="aspect-[4/3] w-full object-cover select-none transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+                        class="aspect-[4/3] w-full object-cover select-none transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.015] motion-reduce:transition-none"
                     />
                     <div class="border-t border-hairline p-5">
                         <div class="flex items-baseline justify-between gap-3">
@@ -161,54 +165,26 @@ const formatYear = (date: Date) => date.getFullYear();
 
 <dialog
     id="featured-photo-viewer"
+    aria-labelledby="featured-photo-viewer-title"
     class="m-auto h-dvh max-h-none w-screen max-w-none border-0 bg-black/94 p-0 text-fg backdrop:bg-black/94"
 >
     <form method="dialog">
         <button
             class="fixed top-5 right-5 z-10 flex size-11 items-center justify-center rounded-full bg-black/60 text-2xl text-white transition-colors hover:bg-white hover:text-black"
+            autofocus
             aria-label="Close photograph"
         >
             &times;
         </button>
     </form>
-    <div class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
-        <img
-            id="featured-photo-viewer-image"
-            src=""
-            alt=""
-            class="max-h-[calc(100dvh-6rem)] max-w-full object-contain"
-        />
+    <div data-viewer-backdrop class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
+        <div data-viewer-frame class="relative shrink-0"></div>
         <p id="featured-photo-viewer-title" class="t-caption text-fg-muted"></p>
     </div>
 </dialog>
 
 <script>
-    const viewer = document.querySelector<HTMLDialogElement>(
-        "#featured-photo-viewer",
-    );
-    const viewerImage = document.querySelector<HTMLImageElement>(
-        "#featured-photo-viewer-image",
-    );
-    const viewerTitle = document.querySelector<HTMLElement>(
-        "#featured-photo-viewer-title",
-    );
+    import { setupPhotoViewer } from "@/lib/photo-viewer";
 
-    document
-        .querySelectorAll<HTMLButtonElement>(".featured-photo")
-        .forEach((card) => {
-            card.addEventListener("click", () => {
-                if (!viewer || !viewerImage || !viewerTitle) return;
-                viewerImage.src = card.dataset.src ?? "";
-                viewerImage.alt = card.dataset.alt ?? "";
-                viewerTitle.textContent = card.dataset.title ?? "";
-                viewer.showModal();
-            });
-        });
-
-    viewer?.addEventListener("click", (event) => {
-        const target = event.target;
-        if (target instanceof Node && !viewerImage?.contains(target)) {
-            viewer.close();
-        }
-    });
+    setupPhotoViewer("#featured-photo-viewer", ".featured-photo");
 </script>

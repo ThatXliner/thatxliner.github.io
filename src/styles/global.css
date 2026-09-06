@@ -1,20 +1,8 @@
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════════════════════════
-   Design system
-
-   Near-black, one typeface, one accent. Hierarchy comes from size, weight
-   and tracking — never from gradients, glow, or a second family. Depth
-   comes from real planes and hairlines, not from frosted glass.
-
-   Things that are banned in this file, on purpose, because they are what
-   made the last version read as tacky:
-     · gradient-filled text
-     · animated gradients and any looping/pulsing animation
-     · `blur-3xl` colored blobs behind content
-     · particles, sparkles, ambient shaders
-     · rounded translucent "glass" cards stacked on everything
-   ═══════════════════════════════════════════════════════════════════════ */
+/* Black surfaces, crisp typography, and a blue accent. Motion is concentrated
+   in section headings, product depth, the repository rows, and the story trail.
+   Supporting information enters with restrained fades. */
 
 @theme {
     /* Planes. The page is true black; surfaces lift off it in small steps. */
@@ -87,15 +75,7 @@
     --color-input: var(--input);
     --color-ring: var(--ring);
 
-    --animate-marquee: marquee var(--duration) infinite linear;
-    @keyframes marquee {
-        from {
-            transform: translateX(0);
-        }
-        to {
-            transform: translateX(calc(-100% - var(--gap)));
-        }
-    }
+
 }
 
 @layer base {
@@ -265,83 +245,14 @@
     background-color: #ffffff0a;
 }
 
-/* The one sanctioned exception to the "no animated gradients" rule above.
-   The hero's single call to action is allowed to wink; nothing else on the
-   page is. It stays honest by being geometry rather than a wash: the pill is
-   fully opaque, and the colour lives only in a 2px ring and the light that
-   ring throws onto the black behind it. One loop, constant speed, no pulse. */
-
-/* Inherited on purpose: the glow is a copy of the ring, and it reads the same
-   animated angle off the button rather than running a second animation that
-   could drift. Registered so the angle interpolates instead of snapping. */
-@property --spin {
-    syntax: "<angle>";
-    inherits: true;
-    initial-value: 0deg;
+/* The main action responds to interaction, then rests. */
+.btn-highlight {
+    box-shadow: inset 0 0 0 2px transparent;
+    transition: background-color .2s ease, box-shadow .25s ease,
+        transform .22s cubic-bezier(.16, 1, .3, 1);
 }
-
-@keyframes btn-spin {
-    to {
-        --spin: 360deg;
-    }
-}
-
-/* Three things stacked in one place, and no more than that: a blurred disc of
-   the gradient (the light), an opaque pill with a 2px gradient ring (the
-   button), and the label. The light is never masked — masking runs after
-   filtering, so any mask box would chop the blur off and leave the halo
-   ending on a hard edge. It is simply hidden by the pill it sits under. */
-.btn-rainbow {
-    --rainbow: #ff4d6d, #ff9f4d, #ffe14d, #3ddc84, #4d9fff, #a06bff, #ff4d6d;
-    position: relative;
-    /* A stacking context in every state. Without it, `.btn:active`'s transform
-       makes one only while pressed, which flips where the z-index: -1 layers
-       below land relative to this element's own background. */
-    isolation: isolate;
-    background: none;
-    /* The border eats 2px on each side, so the padding gives it back and the
-       button measures exactly the same as any other .btn. */
-    border: 2px solid transparent;
-    padding: calc(0.8rem - 2px) calc(1.5rem - 2px);
-    color: var(--color-void);
-    animation: btn-spin 5.5s linear infinite;
-}
-
-/* The light. Unclipped, so it falls off into the page the way light does. */
-.btn-rainbow::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    z-index: -1;
-    border-radius: inherit;
-    background: conic-gradient(from var(--spin), var(--rainbow));
-    filter: blur(10px);
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-.btn-rainbow:hover::before {
-    opacity: 1;
-}
-
-/* The button face, painted over the light: two layers, two clips — the opaque
-   pill stops at the padding edge, the gradient shows only through the ring. */
-.btn-rainbow::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border: 2px solid transparent;
-    border-radius: inherit;
-    background:
-        linear-gradient(var(--color-fg), var(--color-fg)) padding-box,
-        conic-gradient(from var(--spin), var(--rainbow)) border-box;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .btn-rainbow,
-    .btn-rainbow::before {
-        animation: none;
-    }
+.btn-highlight:is(:hover, :focus-visible) {
+    box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 /* ── Surfaces ───────────────────────────────────────────────────────────── */
@@ -359,7 +270,7 @@
 }
 /* Hover lifts the plane and deepens its shadow — a real change in elevation
    rather than a colour wash or a glow. */
-.plane-hover:hover {
+.plane-hover:is(:hover, :focus-within) {
     background-color: var(--color-surface-2);
     border-color: var(--color-hairline-strong);
     transform: translateY(-3px);
@@ -367,7 +278,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .plane-hover:hover {
+    .plane-hover:is(:hover, :focus-within) {
         transform: none;
     }
 }
@@ -383,21 +294,13 @@
     mask-image: linear-gradient(to bottom, black 62%, transparent 99%);
 }
 
-/* ── Motion ─────────────────────────────────────────────────────────────────
-   Two mechanisms only. Load entrances use `rise`, everything below the fold
-   is scroll-driven CSS with no JS and no observers. Every curve is the same
-   decelerating ease, which is what makes movement feel like one object with
-   mass rather than a pile of separate effects. */
+/* Load entrances and section reveals use CSS. The story measures its SVG
+   separately so the drawn trail stays attached to its chapters. */
 
+/* Individual translate leaves a card's hover transform independent. */
 @keyframes rise {
-    from {
-        opacity: 0;
-        transform: translateY(24px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; translate: 0 18px; }
+    to { opacity: 1; translate: 0 0; }
 }
 
 .rise {
@@ -414,7 +317,8 @@
    this look broken. */
 .mask {
     display: block;
-    overflow: hidden;
+    /* Clip without creating a scroll container for descendant timelines. */
+    overflow: clip;
     padding-bottom: 0.14em;
     margin-bottom: -0.14em;
 }
@@ -528,17 +432,8 @@
            separates the two planes instead of sliding one flat layer away. */
         .lag {
             animation: lag linear both;
-            animation-timeline: scroll();
+            animation-timeline: scroll(root);
             animation-range: 0vh 100vh;
-        }
-
-        /* The hero recedes as you leave it: it scales back and dims, the way
-           a physical layer would as it moves away from you. */
-        .recede {
-            animation: recede linear both;
-            animation-timeline: scroll();
-            animation-range: 0vh 100vh;
-            transform-origin: 50% 40%;
         }
     }
 }
@@ -569,15 +464,7 @@
 
 @keyframes lag {
     to {
-        transform: translateY(38px);
-    }
-}
-
-@keyframes recede {
-    to {
-        transform: scale(0.955);
-        opacity: 0;
-        filter: blur(3px);
+        transform: translateY(24px);
     }
 }
 
@@ -590,6 +477,12 @@
     html {
         scroll-behavior: auto;
     }
+    .btn:active,
+    .a-link:hover .chev,
+    .a-link:focus-visible .chev {
+        transform: none;
+        transition: none;
+    }
 }
 
 /* Screenshot/QA harness: `/preview` sets this so scroll-driven work renders
@@ -598,7 +491,6 @@ html[data-noanim] :is(
         .rise,
         .reveal,
         .approach,
-        .recede,
         .drift-slow,
         .drift-fast,
         .lag,
@@ -610,6 +502,7 @@ html[data-noanim] :is(.mask-load, .mask-scroll) > * {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
+    translate: none !important;
 }
 
 /* ── Long-form essays (/art pieces) ────────────────────────────────────────

@@ -68,7 +68,7 @@ function segments(text: string) {
     >
         <p class="t-eyebrow reveal">Open source</p>
         <h2 class="t-title mx-auto mt-3 max-w-[26ch] text-balance">
-            <span class="mask mask-scroll"><a class="underline hover:scale-[1.05] transition" href="https://xkcd.com/225/">For a GNU dawn!</a></span>
+            <span class="mask mask-scroll"><a class="underline transition-colors hover:text-fg-muted" href="https://xkcd.com/225/">For a GNU dawn!</a></span>
         </h2>
         <p class="t-lede reveal mx-auto mt-5 max-w-[50ch] text-balance">
             Python libraries, developer tooling, and a long tail of pull
@@ -85,8 +85,8 @@ function segments(text: string) {
             stats.map((stat) => (
                 <div class="reveal border-t border-hairline pt-5">
                     <dd
-                        class="tnum text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-semibold tracking-[-0.04em]"
                         data-countup={stat.value}
+                        class="tnum text-[clamp(2.25rem,4vw,3.25rem)] leading-none font-semibold tracking-[-0.04em]"
                     >
                         {stat.value.toLocaleString("en-US")}
                     </dd>
@@ -97,22 +97,40 @@ function segments(text: string) {
     </dl>
 
     <!-- ══ Repository ticker ════════════════════════════════════════════ -->
-    <div class="relative mt-20 md:mt-28">
-        <div class="flex flex-col gap-4">
+    <div class="repository-marquee relative mt-20 md:mt-28" data-repository-marquee>
+        <div class="mx-auto mb-4 flex max-w-[1180px] justify-end px-gutter">
+            <button
+                type="button"
+                class="repository-toggle rounded-full border border-hairline px-4 py-2 text-sm text-fg-muted transition-colors hover:text-fg"
+                aria-controls="repository-rows"
+                hidden
+            >Pause repository scrolling</button>
+            <p class="repository-hint t-caption">Scroll or swipe to explore repositories.</p>
+        </div>
+        <div id="repository-rows" class="repository-rows relative flex flex-col gap-4">
             {
                 [rowA, rowB].map((row, rowIndex) => (
-                    <div class="group flex gap-4 overflow-hidden [--duration:110s] [--gap:1rem]">
-                        {[0, 1].map(() => (
+                    <div
+                        class="repository-row flex gap-4 [--duration:110s] [--gap:1rem]"
+                        role="region"
+                        aria-label={`Repository row ${rowIndex + 1}`}
+                        tabindex="0"
+                    >
+                        {[0, 1].map((copy) => (
                             <div
                                 class:list={[
-                                    "flex shrink-0 animate-marquee justify-around gap-4 group-hover:[animation-play-state:paused] motion-reduce:animate-none",
+                                    "repository-copy flex shrink-0 justify-around gap-4",
+                                    copy === 1 && "repository-duplicate",
                                     rowIndex === 1 &&
-                                        "[animation-direction:reverse]",
+                                        "repository-reverse",
                                 ]}
+                                aria-hidden={copy === 1 ? "true" : undefined}
                             >
                                 {row.map((repo) => (
                                     <a
                                         href={`https://github.com/ThatXliner/${repo.name}`}
+                                        tabindex={copy === 1 ? -1 : undefined}
+                                        aria-hidden={copy === 1 ? "true" : undefined}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         class="plane plane-hover flex h-[9.25rem] w-[19rem] shrink-0 flex-col p-5 text-left"
@@ -154,17 +172,17 @@ function segments(text: string) {
                     </div>
                 ))
             }
-        </div>
-        <!-- Edges dissolve into the page instead of being clipped. -->
-        <div
-            aria-hidden="true"
-            class="pointer-events-none absolute inset-y-0 left-0 w-16 bg-linear-to-r from-void to-transparent sm:w-32"
-        >
-        </div>
-        <div
-            aria-hidden="true"
-            class="pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-void to-transparent sm:w-32"
-        >
+            <!-- Edges dissolve into the page instead of being clipped. -->
+            <div
+                aria-hidden="true"
+                class="repository-edge pointer-events-none absolute inset-y-0 left-0 w-16 bg-linear-to-r from-void to-transparent sm:w-32"
+            >
+            </div>
+            <div
+                aria-hidden="true"
+                class="repository-edge pointer-events-none absolute inset-y-0 right-0 w-16 bg-linear-to-l from-void to-transparent sm:w-32"
+            >
+            </div>
         </div>
     </div>
 
@@ -199,7 +217,7 @@ function segments(text: string) {
                             </div>
                             <Icon
                                 name="lucide:arrow-up-right"
-                                class="size-4 shrink-0 text-fg-dim transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                class="size-4 shrink-0 text-fg-dim transition-transform duration-300 motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5 motion-reduce:transition-none"
                             />
                         </div>
 
@@ -259,42 +277,153 @@ function segments(text: string) {
     </div>
 </section>
 
+<style>
+    .repository-row {
+        overflow-x: auto;
+        padding-block: 0.5rem;
+    }
+
+    .repository-row:focus-visible,
+    .repository-toggle:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: -2px;
+    }
+
+    .repository-copy > a {
+        scroll-snap-align: start;
+    }
+
+    /* Without JS or after the first touch, each original card is scrollable. */
+    .repository-marquee:is(:not([data-ready]), [data-manual]) .repository-duplicate,
+    .repository-marquee:is(:not([data-ready]), [data-manual]) .repository-edge {
+        display: none;
+    }
+
+    .repository-marquee[data-ready]:not([data-manual]) .repository-hint {
+        display: none;
+    }
+
+    .repository-marquee:is(:not([data-ready]), [data-manual]) .repository-row {
+        scroll-snap-type: x proximity;
+    }
+
+    .repository-marquee[data-ready]:not([data-manual]) .repository-row {
+        overflow-x: hidden;
+    }
+
+    .repository-marquee[data-ready]:not([data-manual]) .repository-copy {
+        animation: repository-travel var(--duration) infinite linear;
+    }
+
+    .repository-marquee[data-ready]:not([data-manual]) .repository-reverse {
+        animation-direction: reverse;
+    }
+
+    .repository-marquee[data-paused] .repository-copy,
+    .repository-rows:hover .repository-copy,
+    .repository-rows:focus-within .repository-copy {
+        animation-play-state: paused !important;
+    }
+
+    @keyframes repository-travel {
+        from { transform: translateX(0); }
+        to { transform: translateX(calc(-100% - var(--gap))); }
+    }
+
+    .repository-marquee[data-manual] .repository-toggle {
+        display: none;
+    }
+
+    /* Reduced motion responds immediately when the preference changes. */
+    @media (prefers-reduced-motion: reduce) {
+        .repository-marquee[data-ready]:not([data-manual]) .repository-row {
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+        }
+
+        .repository-marquee[data-ready]:not([data-manual]) .repository-copy {
+            animation: none;
+        }
+
+        .repository-marquee .repository-duplicate,
+        .repository-marquee .repository-edge,
+        .repository-marquee .repository-toggle {
+            display: none;
+        }
+
+        .repository-marquee[data-ready]:not([data-manual]) .repository-hint {
+            display: block;
+        }
+    }
+</style>
+
 <script>
-    // Figures count up once, when they first arrive. The server-rendered
-    // value is already correct, so this is pure decoration — with no JS or
-    // with reduced motion the real number simply sits there.
-    const targets = document.querySelectorAll<HTMLElement>("[data-countup]");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)")
-        .matches;
+    // Count each figure once as it enters view; keep final values as the
+    // no-JS and reduced-motion baseline.
+    const counters = [...document.querySelectorAll<HTMLElement>("[data-countup]")];
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const frames = new Map<HTMLElement, number>();
+    const finishCount = (element: HTMLElement) => {
+        const frame = frames.get(element);
+        if (frame !== undefined) cancelAnimationFrame(frame);
+        frames.delete(element);
+        element.textContent = Number(element.dataset.countup).toLocaleString("en-US");
+    };
+    const countObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const element = entry.target as HTMLElement;
+            countObserver.unobserve(element);
+            if (reducedMotion.matches || document.documentElement.hasAttribute("data-noanim")) {
+                finishCount(element);
+                continue;
+            }
+            const end = Number(element.dataset.countup);
+            const start = performance.now();
+            const tick = (now: number) => {
+                const progress = Math.min((now - start) / 1100, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                element.textContent = Math.round(end * eased).toLocaleString("en-US");
+                if (progress < 1) frames.set(element, requestAnimationFrame(tick));
+                else finishCount(element);
+            };
+            frames.set(element, requestAnimationFrame(tick));
+        }
+    }, { threshold: .4 });
+    counters.forEach(element => countObserver.observe(element));
+    reducedMotion.addEventListener("change", () => {
+        if (reducedMotion.matches) counters.forEach(finishCount);
+    });
 
-    const format = (n: number) => n.toLocaleString("en-US");
 
-    if (!reduced && targets.length > 0) {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                for (const entry of entries) {
-                    if (!entry.isIntersecting) continue;
-                    const el = entry.target as HTMLElement;
-                    observer.unobserve(el);
+    const marquee = document.querySelector<HTMLElement>("[data-repository-marquee]");
+    const toggle = marquee?.querySelector<HTMLButtonElement>(".repository-toggle");
 
-                    const end = Number(el.dataset.countup ?? 0);
-                    const duration = 1100;
-                    const start = performance.now();
+    if (marquee && toggle) {
+        toggle.addEventListener("click", () => {
+            const paused = marquee.toggleAttribute("data-paused");
+            toggle.textContent = paused
+                ? "Resume repository scrolling"
+                : "Pause repository scrolling";
+        });
+        const rows = marquee.querySelector(".repository-rows");
+        rows?.addEventListener("focusin", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement) || !target.matches(":focus-visible") ||
+                target.closest(".repository-duplicate")) return;
 
-                    const tick = (now: number) => {
-                        const t = Math.min((now - start) / duration, 1);
-                        // Same decelerating curve as the CSS motion.
-                        const eased = 1 - Math.pow(1 - t, 3);
-                        el.textContent = format(Math.round(end * eased));
-                        if (t < 1) requestAnimationFrame(tick);
-                    };
-                    requestAnimationFrame(tick);
+            // Remove the marquee transform before bringing keyboard focus into view.
+            marquee.setAttribute("data-manual", "");
+            requestAnimationFrame(() => {
+                if (document.activeElement === target) {
+                    target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
                 }
-            },
-            { threshold: 0.4 },
-        );
-
-        targets.forEach((el) => observer.observe(el));
+            });
+        });
+        rows?.addEventListener("touchstart", () => {
+            marquee.setAttribute("data-manual", "");
+        }, { once: true, passive: true });
+        toggle.hidden = false;
+        marquee.setAttribute("data-ready", "");
     }
 </script>
-

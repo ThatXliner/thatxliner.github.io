@@ -19,17 +19,12 @@ import { libraries, other, tools } from "@/data/libraries";
     <main>
         <!-- ── Header ──────────────────────────────────────────────────── -->
         <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
-            <p class="t-eyebrow rise">The List</p>
+            <p class="t-eyebrow">The List</p>
             <h1 class="t-display mt-3 max-w-[20ch] text-balance">
-                <span class="mask mask-load"><span>Everything</span></span>
-                <span class="mask mask-load text-fg-muted"
-                    ><span style="animation-delay:110ms">I've made.</span></span
-                >
+                <span class="block">Everything</span>
+                <span class="block text-fg-muted">I've made.</span>
             </h1>
-            <p
-                class="t-lede rise mt-7 max-w-[56ch] text-balance"
-                style="animation-delay:220ms"
-            >
+            <p class="t-lede mt-7 max-w-[56ch] text-balance">
                 I build a lot of small things. These are the ones that got
                 finished enough for other people to use — apps you can open, and
                 libraries you can import, tools you can install, and stranger
@@ -37,7 +32,7 @@ import { libraries, other, tools } from "@/data/libraries";
                 source.
             </p>
 
-            <div class="rise mt-9" style="animation-delay:300ms">
+            <div class="mt-9">
                 <ListTabs
                     active="apps"
                     appCount={apps.length}
