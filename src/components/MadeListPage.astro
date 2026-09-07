@@ -43,16 +43,21 @@ const stars = await getRepoStars(items.map((item) => item.repoName ?? item.name)
 
     <main>
         <section class="mx-auto max-w-[1180px] px-gutter pt-32 pb-4 md:pt-40">
-            <p class="t-eyebrow">The List</p>
+            <p class="t-eyebrow rise">The List</p>
             <h1 class="t-display mt-3 max-w-[20ch] text-balance">
-                <span class="block">Everything</span>
-                <span class="block text-fg-muted">I've made.</span>
+                <span class="mask mask-load"><span>Everything</span></span>
+                <span class="mask mask-load text-fg-muted"
+                    ><span style="animation-delay:110ms">I've made.</span></span
+                >
             </h1>
-            <p class="t-lede mt-7 max-w-[56ch] text-balance">
+            <p
+                class="t-lede rise mt-7 max-w-[56ch] text-balance"
+                style="animation-delay:220ms"
+            >
                 {intro}
             </p>
 
-            <div class="mt-9">
+            <div class="rise mt-9" style="animation-delay:300ms">
                 <ListTabs
                     {active}
                     appCount={apps.length}
