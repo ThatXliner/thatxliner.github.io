@@ -210,7 +210,7 @@ export function initLoadout(root: HTMLElement) {
     );
   });
   root
-    .querySelector("@/lib/gear/.reset-view")!
+    .querySelector(".reset-view")!
     .addEventListener("click", () => studio?.reset(), { signal });
   const launch = root.querySelector<HTMLButtonElement>("[data-start-3d]")!;
   launch.disabled = false;
@@ -230,17 +230,17 @@ export function initLoadout(root: HTMLElement) {
         return;
       }
       studio = created;
-      root.querySelector("@/lib/gear/.studio-poster")?.remove();
+      root.querySelector(".studio-poster")?.remove();
       launch.hidden = true;
       await studio.select(body, lens, false);
     } catch (error) {
       if (cancelled) return;
       console.error("Camera studio could not start", error);
       text(
-        "@/lib/gear/.viewer-status",
+        ".viewer-status",
         "3D could not load. You can still explore the equipment specs.",
       );
-      root.querySelector<HTMLElement>("@/lib/gear/.viewer-status")!.hidden = false;
+      root.querySelector<HTMLElement>(".viewer-status")!.hidden = false;
       launch.disabled = false;
       launch.textContent = "Try 3D again";
     } finally {

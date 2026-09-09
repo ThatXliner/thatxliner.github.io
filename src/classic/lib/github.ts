@@ -108,7 +108,7 @@ const REPO_FIELDS = `
 
 /** Own (non-fork) repos with at least one star, newest activity first. */
 export function getAllRepositories(): Promise<RepoSummary[]> {
-  return withDevCache("@/lib/.cache/repositories.json", async () => {
+  return withDevCache(".cache/repositories.json", async () => {
     const data = await graphql(`query {
       viewer {
         repositories(first: 100, ownerAffiliations: OWNER, isFork: false, isArchived: false, orderBy: {field: UPDATED_AT, direction: DESC}) {
@@ -124,7 +124,7 @@ export function getAllRepositories(): Promise<RepoSummary[]> {
 
 /** Forks where at least one of our PRs was merged upstream. */
 export function getForkedRepositories(): Promise<RepoSummary[]> {
-  return withDevCache("@/lib/.cache/forks.json", async () => {
+  return withDevCache(".cache/forks.json", async () => {
     const data = await graphql(`query {
       viewer {
         login
@@ -171,7 +171,7 @@ export function getForkedRepositories(): Promise<RepoSummary[]> {
 export function getRepoStars(
   names: string[],
 ): Promise<Record<string, number>> {
-  return withDevCache("@/lib/.cache/repo-stars.json", async () => {
+  return withDevCache(".cache/repo-stars.json", async () => {
     const fields = names
       .map(
         (name, i) =>
@@ -199,7 +199,7 @@ export interface GitHubStats {
 
 /** Contribution + follower counts for the stats section. */
 export function getGitHubStats(): Promise<GitHubStats> {
-  return withDevCache("@/lib/.cache/stats.json", async () => {
+  return withDevCache(".cache/stats.json", async () => {
     const data = await graphql(`query {
       viewer {
         followers { totalCount }

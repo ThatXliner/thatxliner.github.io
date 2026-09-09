@@ -2,7 +2,7 @@
 export function setupPhotoViewer(dialogSelector: string, triggerSelector: string) {
     const viewer = document.querySelector<HTMLDialogElement>(dialogSelector);
     const frame = viewer?.querySelector<HTMLElement>("[data-viewer-frame]");
-    const title = viewer?.querySelector<HTMLElement>("@/lib/.t-caption");
+    const title = viewer?.querySelector<HTMLElement>(".t-caption");
     if (!viewer || !frame || !title) return;
 
     let opening = 0;

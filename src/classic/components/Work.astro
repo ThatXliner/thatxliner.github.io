@@ -397,7 +397,7 @@ function segments(text: string) {
 
 
     const marquee = document.querySelector<HTMLElement>("[data-repository-marquee]");
-    const toggle = marquee?.querySelector<HTMLButtonElement>("@/components/.repository-toggle");
+    const toggle = marquee?.querySelector<HTMLButtonElement>(".repository-toggle");
 
     if (marquee && toggle) {
         toggle.addEventListener("click", () => {
@@ -406,11 +406,11 @@ function segments(text: string) {
                 ? "Resume repository scrolling"
                 : "Pause repository scrolling";
         });
-        const rows = marquee.querySelector("@/components/.repository-rows");
+        const rows = marquee.querySelector(".repository-rows");
         rows?.addEventListener("focusin", (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement) || !target.matches(":focus-visible") ||
-                target.closest("@/components/.repository-duplicate")) return;
+                target.closest(".repository-duplicate")) return;
 
             // Remove the marquee transform before bringing keyboard focus into view.
             marquee.setAttribute("data-manual", "");

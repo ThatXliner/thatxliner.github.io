@@ -245,7 +245,7 @@ const galleryPhotos = await Promise.all(
 <script>
     import { setupPhotoViewer } from "@/classic/lib/photo-viewer";
 
-    setupPhotoViewer("#photo-viewer", "@/pages/.photo-open");
+    setupPhotoViewer("#photo-viewer", ".photo-open");
 
     const gallery = document.querySelector<HTMLElement>("#photo-gallery");
     const photos = Array.from(
@@ -253,7 +253,7 @@ const galleryPhotos = await Promise.all(
     );
     const cameraButtons = Array.from(
         document.querySelectorAll<HTMLButtonElement>(
-            "@/pages/.filter-pill[data-camera]",
+            ".filter-pill[data-camera]",
         ),
     );
     const sortButtons = Array.from(
@@ -308,7 +308,7 @@ const galleryPhotos = await Promise.all(
     updateGallery();
 
     const photographyPage = document.querySelector<HTMLElement>(
-        "@/pages/.photography-page",
+        ".photography-page",
     );
     const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",

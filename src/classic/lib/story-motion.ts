@@ -1,12 +1,12 @@
 /** Measure the ink against the actual chapters so it follows text reflow. */
 export function initStoryMotion() {
-    const journey = document.querySelector<HTMLElement>('@/lib/.journey');
+    const journey = document.querySelector<HTMLElement>('.journey');
     if (!journey) return;
-    const svg = journey.querySelector<SVGSVGElement>('@/lib/.journey-trail')!;
-    const ink = svg.querySelector<SVGPathElement>('@/lib/.trail-ink')!;
-    const guide = svg.querySelector<SVGPathElement>('@/lib/.trail-guide')!;
-    const pen = svg.querySelector<SVGGElement>('@/lib/.trail-pen')!;
-    const chapters = [...journey.querySelectorAll<HTMLElement>('@/lib/.chapter')];
+    const svg = journey.querySelector<SVGSVGElement>('.journey-trail')!;
+    const ink = svg.querySelector<SVGPathElement>('.trail-ink')!;
+    const guide = svg.querySelector<SVGPathElement>('.trail-guide')!;
+    const pen = svg.querySelector<SVGGElement>('.trail-pen')!;
+    const chapters = [...journey.querySelectorAll<HTMLElement>('.chapter')];
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     let length = 0;
     let samples: { y: number; length: number }[] = [];
@@ -32,7 +32,7 @@ export function initStoryMotion() {
             const side = i % 2 ? -1 : 1;
             const r = mobile ? 7 : 13;
             d += ` C ${x - r * 2 * side} ${y - r} ${x - r * side} ${y + r * 2} ${x + 3 * side} ${y + r} C ${x + r * 2 * side} ${y} ${x + r * side} ${y - r} ${x} ${y}`;
-            const copy = chapters[i].querySelector<HTMLElement>('@/lib/.chapter-copy')!;
+            const copy = chapters[i].querySelector<HTMLElement>('.chapter-copy')!;
             // Cross the page only below the prose, in the space between chapters.
             const turnY = chapters[i].offsetTop + copy.offsetTop + copy.offsetHeight + 32;
             const nextY = anchors[i + 1] ?? journey!.offsetHeight - 30;

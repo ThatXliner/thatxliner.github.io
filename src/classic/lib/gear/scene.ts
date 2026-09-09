@@ -8,7 +8,7 @@ export async function createStudio(
   initialBody: Body,
   initialLens: Lens,
 ) {
-  const host = root.querySelector<HTMLElement>("@/lib/gear/.model-canvas")!;
+  const host = root.querySelector<HTMLElement>(".model-canvas")!;
   const setupIds = (body: Body, lens: Lens) => [
     body.id,
     lens.id,
@@ -263,7 +263,7 @@ export async function createStudio(
     );
     draw();
   }
-  const status = root.querySelector<HTMLElement>("@/lib/gear/.viewer-status")!;
+  const status = root.querySelector<HTMLElement>(".viewer-status")!;
   function resize() {
     const { width, height } = host.getBoundingClientRect();
     if (!width || !height) return;
