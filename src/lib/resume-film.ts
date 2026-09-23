@@ -402,6 +402,19 @@ export async function initResumeFilm() {
     const leaf=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),surface(i%2?0x405e36:0x647e47));
     leaf.scale.set(.21,.38,.035);leaf.position.copy(end);leaf.rotation.set(.25,angle,-.5*Math.cos(angle));leaf.castShadow=true;galleryScene.add(leaf);own(leaf);
   }
+  // Fetch photography assets only when their chapter is within two screens.
+  let cameraObserver: IntersectionObserver;
+  let releaseCamera: () => void;
+  const cameraNearby = new Promise<void>((resolve) => {
+    releaseCamera = resolve;
+    cameraObserver = new IntersectionObserver((entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        cameraObserver.disconnect();
+        resolve();
+      }
+    }, { rootMargin: "200% 0px" });
+    cameraObserver.observe(cameraSection);
+  });
   const galleryImages = [
     ...new Set(
       Object.values(
@@ -415,6 +428,8 @@ export async function initResumeFilm() {
   ];
   // Each source is used once. Never wrap around the array to fill empty slots.
   root.dataset.galleryPhotoCount = String(galleryImages.length);
+  void cameraNearby.then(() => {
+  if (disposed) return;
   galleryImages.forEach((photo, index) => {
     const wall = index % 4;
     const slot = Math.floor(index / 4);
@@ -460,6 +475,7 @@ export async function initResumeFilm() {
       own(print);
       schedule();
     });
+  });
   });
   function draw() {
     frame = 0;
@@ -707,6 +723,14 @@ export async function initResumeFilm() {
   });
   root.dataset.cinema = "";
   setMotion();
+  document.addEventListener("astro:before-swap", dispose, { once: true });
+  window.addEventListener(
+    "pagehide",
+    (event) => {
+      if (!event.persisted) dispose();
+    },
+    { once: true },
+  );
   const results = await Promise.allSettled([
     model("/models/macbook.glb").then((object) => {
       object.traverse((child) => {
@@ -732,13 +756,17 @@ export async function initResumeFilm() {
         lid.attach(displayAssembly);
       }
       laptop.add(normalize(object, 4.9));
+      status.hidden = true;
+      root.dataset.models = "laptop-ready";
       schedule();
     }),
-    Promise.all([
+    cameraNearby.then(() => {
+      if (disposed) throw new Error("Scene disposed");
+      return Promise.all([
       model("/models/gear/r7.glb"),
       model("/models/gear/35.glb"),
       model("/models/gear/adapter.glb"),
-    ]).then(([body, lens, adapter]) => {
+    ]); }).then(([body, lens, adapter]) => {
       for (const object of [body, lens, adapter])
         object.traverse((child) => {
           if (!(child instanceof THREE.Mesh)) return;
@@ -806,6 +834,8 @@ export async function initResumeFilm() {
   onScroll();
   function dispose() {
     disposed = true;
+    cameraObserver.disconnect();
+    releaseCamera();
     galleryControl.remove();
     cancelAnimationFrame(frame);
     window.removeEventListener("scroll", onScroll);
@@ -819,12 +849,5 @@ export async function initResumeFilm() {
     envMap.dispose();
     renderer.dispose();
   }
-  document.addEventListener("astro:before-swap", dispose, { once: true });
-  window.addEventListener(
-    "pagehide",
-    (event) => {
-      if (!event.persisted) dispose();
-    },
-    { once: true },
-  );
+
 }
