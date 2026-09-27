@@ -40,13 +40,16 @@ export async function createStudio(
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const reflectionStudio = new THREE.Scene();
-  reflectionStudio.background = new THREE.Color().setRGB(0.16, 0.16, 0.18);
+  // Dark studio walls keep coated optics from reflecting a uniform color wash.
+  reflectionStudio.background = new THREE.Color().setRGB(0.025, 0.025, 0.025);
   // Large light cards give the optics continuous studio reflections.
   for (const [x, y, z, width, height, strength] of [
     [-3, 3, 5, 3, 4.5, 5],
     [4, 2, 2, 2, 4, 3],
     [0, 5, 0, 3, 3, 2],
+    [3, -2, 5, 2, 3, 2], // Low bounce card keeps glass legible at the default angle.
     [-3, 3, -5, 3, 4.5, 5],
+    [-5, 0, 1, 3, 4, 2], // Side bounce reveals molded controls on the grip side.
   ]) {
     const card = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),
@@ -105,7 +108,8 @@ export async function createStudio(
     light.shadow.mapSize.set(1024, 1024);
     light.shadow.camera.near = 0.2;
     light.shadow.camera.far = 25;
-    light.shadow.normalBias = 0.008;
+    // Prevent diagonal self-shadow stripes on the curved camera casting.
+    light.shadow.normalBias = 0.025;
     light.shadow.bias = -0.00002;
     scene.add(light, light.target);
     studioLights.push(light);

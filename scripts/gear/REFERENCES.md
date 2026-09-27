@@ -1177,3 +1177,921 @@ Rebuilt/optimized 40D; checked /tmp/40d-mode-dial-top.png and
 /tmp/40d-mode-dial-detail.png in the interactive viewer. Marks remain separate
 and visible after export. Refreshed the thumbnail. Top display/materials and
 overall photorealism remain incomplete.
+
+
+### 2026-09-23 — 40D top function pictograms, classic route
+Compared the existing 40d-top.jpg reference with the actual /classic viewer.
+Replaced the incorrect LIGHT legend with an illumination pictogram; added the
+metering symbol beside WB and flash-compensation symbol beside ISO. Each stroke
+is projected onto the shoulder surface so the markings follow the casting.
+Rebuilt in Blender and optimized the exported GLB from 22.82 MB to 3.51 MB.
+Verified the exported symbols in the actual interactive viewer from above,
+including a zoomed view. Small text is still faint at normal viewing distance;
+this does not establish overall photorealism.
+
+Finish investigation: in the isolated 40D preview, removing AO did not remove
+the broad top highlight bands. Replacing Graphite polymer's roughness map with
+its matching .52 scalar also retained them. Setting all roughness to 1 masked
+the highlights, which is not evidence of a texture fix. Geometry and environment
+reflection contributions remain to be separated. No finish change was retained.
+
+
+### 2026-09-23 — 40D casting normals and rubber grain
+A texture-free MeshNormalMaterial view showed shoulder ripples in both the raw
+and meshopt-compressed GLB. Increased only the 40D casting's pre-decimation
+relaxation from 4 to 12 iterations. The subsequent display/control cuts preserve
+their edges. Normals comparison showed reduced ripples; no claim that all uneven
+highlights are resolved. Rebuilt and optimized body: 3,477,472 bytes.
+Compared front, side, rear, and top views in /classic's actual interactive viewer.
+Grip, terminal covers, display recess, and rear cover still fit the casting.
+The 40D scanned rubber now uses .9 texture repeats and .65 normal strength
+multiplier, matching the existing R7 treatment. The reference 40d.jpg shows
+pronounced grip and rear-thumb grain; the prior 1.25/.35 treatment became almost
+smooth at viewing distance. Verified clearer rear grain and the front grip in
+the viewer. Other body and lens material settings are unchanged.
+
+
+### 2026-09-23 — 28–135 front ring finish; rejected optical changes
+Compared 28-135-front.jpg with front and oblique views in the actual /classic
+viewer. The printed front ring was too smooth: gave this part a dedicated
+fine-grained matte polymer (.66 roughness, .18 pebble normal strength), leaving
+other black barrel parts unchanged. Rebuilt/optimized lens: about 1.69 MB.
+Refreshed and inspected 28-135 and 40D thumbnail PNGs plus the default R7 setup
+poster (984×630), using the current classic model loader and scene for the poster.
+Production build passed before the static preview refresh.
+
+Tested internal envMapIntensity .35 against original 1.2. It reduced bright
+central reflections head-on but made the bore look more hollow at the default
+oblique angle; rejected. Also rejected outer specularIntensity .35, which shifted
+the front coating to amber. Both optical settings were restored. This leaves the
+optics incomplete: investigate refraction and multi-surface visibility rather
+than further intensity-only adjustments. The separate thumbnail preview uses
+RoomEnvironment, so its reflections are not evidence for the actual studio.
+
+
+### 2026-09-23 — zoom thickness matches exported geometry
+Inspected Three's transmission pass: its capture includes opaque objects, not
+our later transparent internal reflection meshes. An isolated prototype in
+output/gear-modeling/optical-study.html captures these before outer refraction
+(?refract enables the extra pass). Front/oblique comparison showed only a modest
+placement difference; it was not integrated into the site and needs substantially
+stronger visual/performance justification before adoption.
+
+Corrected the 28–135 outer element's volume thickness independently. Its authored
+meniscus is .040 units thick at the center and .075 at the edge; the old runtime
+used .16 everywhere. The exported node has uniform scale .569687, which Three's
+volume shader multiplies into thickness. Runtime now compensates for node scale
+and samples a 64×64 radial thickness map matching the existing modeled surfaces.
+These numbers describe our model, not a measured Canon optical prescription.
+The map is generated once per asset load, tracked for disposal, and requires no
+additional rendering pass. No optical mesh vertex positions change.
+
+Verified front and oblique views in the actual /classic viewer, no browser shader
+errors, and switching to the f/4 lens and back while selecting 40D independently.
+Production build passed (/tmp/28-thickness-build.log). Refreshed and inspected the
+28–135 thumbnail and default setup poster. Multi-surface optics and overall
+photorealism remain incomplete; the thickness correction alone is visually subtle.
+
+### 2026-09-23 — R7 shutter pocket follows grip casting
+Compared the shutter shoulder with the existing R7 front/top photo references.
+Measured the generated shell at shutter center (-1.25, .754 in X/Z): top Y
+.7148503, surface normal (-.06571, .94956, .30662). The previous oval recess
+intersected the casting centrally while sitting above its falling edges.
+
+Blended a small elliptical crown region into the measured tangent plane, cut an
+elliptical pocket into that casting, and placed the dark pocket floor and shutter
+cap along the measured normal. The subsequent shared crown deformation still
+moves all these parts together. This removes the separate raised oval pad.
+Rebuilt R7 in Blender and optimized with Meshopt: 28.69 MB raw to about 4.48 MB.
+
+Verified the default oblique, top, front, and grip-side views in the actual
+/classic viewer (50mm lens for less occlusion on the latter views). Refreshed and
+inspected the body thumbnail and 984×630 setup poster. Uneven broader housing
+highlights and incomplete lens optics remain visible; this is a fit correction,
+not a photorealism sign-off. Changes remain local and unpushed.
+
+### 2026-09-23 — R7 fused casting relaxation
+Extended the existing 40D casting relaxation to R7: 12 smoothing iterations
+instead of 4, before decimation and before control pockets are cut. Compared
+front and default oblique views before/after in /classic, then inspected the
+grip side and rear for displaced controls. Small shoulder highlight irregularities
+are reduced modestly; broad side bands remain, so further smoothing is not a
+complete solution. No browser errors recorded. Refreshed thumbnail and setup
+poster. Optimized asset is 4.39 MB (previously about 4.48 MB); no runtime rendering
+passes added. Build and optimization logs: /tmp/r7-shoulder-smooth.log and
+/tmp/r7-shoulder-smooth-opt.log. Photorealism remains incomplete.
+
+### 2026-09-23 — separate finish streaks from shadow acne
+An isolated side-view study (output/gear-modeling/body-surface-study.html) compared
+mesh normals, uniform material, no AO, no normal texture, and no roughness texture.
+Broad finish variation persisted without AO or normals but disappeared with
+constant roughness. Repeating the painted-metal roughness map at the normal map's
+6× density retained grain while removing the broad variation. Applied this to
+R7/40D painted metal only; scanned rubber keeps its existing mapping.
+
+Actual /classic verification exposed a separate diagonal pattern on the R7 side
+that the shadowless study did not reproduce. Raising spotlight normalBias from
+.008 to .025 removed those self-shadow stripes without increasing shadow-map
+resolution or adding passes. Inspected R7 side, 40D front/oblique and available
+C200 setup for detached contact shadows; no obvious new separation at those
+views. Updated owned-body thumbnails and setup poster. These fixes improve
+surface rendering but do not settle remaining contour and optical fidelity.
+Production build passed (/tmp/casting-final-build.log); git diff --check passed.
+
+### 2026-09-23 — 50mm front recess finish and grooves
+Rechecked the 40D/50mm mount after the insertion animation settled. The earlier
+wide silver annulus was an in-motion capture, not a settled mounting defect;
+mount dimensions and placement are unchanged. Future selection screenshots must
+be checked after insertion finishes.
+
+Compared local 50ii.jpg (source above) with settled front/oblique viewer views.
+Warm optical reflections also occur in the reference; did not change coating
+color based only on their presence. Added three shallow concentric tooling grooves
+to the outer portion of the existing continuous recessed cone. Eleven radial
+rows describe their edges directly instead of a dense uniform grid. Replaced
+near-black flocking on this visible front cone with the existing fine matte
+baffle finish, so its contour is readable under studio light. Internal glass
+and the rest of the barrel are unchanged.
+
+Built in Blender, optimized to 680.57 KB, checked front/oblique in /classic on
+40D and R7, and refreshed the 50mm thumbnail. No browser errors. Logs:
+/tmp/50-front-grooves.log and /tmp/50-front-grooves-opt.log. Photorealistic optics
+and overall model fidelity remain unfinished; this does not change that status.
+
+### 2026-09-23 — 50mm front-element profile and glass materials
+Canon's optical section (https://global.canon/en/c-museum/product/ef295.html,
+https://global.canon/ja/c-museum/wp-content/uploads/2015/05/ef295-lens-construction.gif)
+shows a strongly convex first surface with a nearly planar rear. The previous
+symmetric .022 sag was too shallow. Matched the diagram's approximate visible
+sag/radius ratio using radius .278, sag .079, edge thickness .006 and planar back.
+This is a diagram-derived approximation, not a measured optical prescription.
+
+Separated rear glass from the front material. Internal reflection layers now use
+dielectric coating reflections rather than the older orange metallic treatment.
+Extended the existing generated thickness map to 50mm: .085 modeled center and
+.006 edge thickness, with exported node-scale compensation. No additional pass;
+one 64×64 map allocated once when loading this lens and tracked for disposal.
+
+Verified front/oblique on R7 and oblique on 40D after insertion settled. A broad
+bright internal reflection remains. Trialing matte iris-seat material did not
+remove it, so that trial was reverted. Rebuilt/optimized model: 682.28 KB; refreshed
+thumbnail. Production build passed (/tmp/50-optics-build.log); browser logged no
+errors during the checks. This corrects the modeled profile/material assumptions
+without claiming the unresolved multi-surface optics are photorealistic.
+
+### 2026-09-23 — 50mm missing optical-chamber lining
+A four-panel diagnostic (output/gear-modeling/glass-layers.html) independently
+hid inner glass, outer glass, and all glass. The broad gray crescent remained
+with all glass hidden, proving it was exposed barrel geometry rather than an
+optical reflection. Added a dark cylindrical lining behind the front-element
+retainer, from Z .151 to .531, inner radius .279. It masks sightlines onto the
+outer barrel's unlined interior while leaving the glass and diaphragm visible.
+
+Repeated diagnostic and actual /classic front/oblique/grazing-angle checks on R7,
+plus settled 40D/50mm view. The false gray crescent is removed. Glass reflections
+remain an approximation rather than full multi-surface refraction. No browser
+errors. Rebuilt/optimized asset is 702.94 KB; refreshed thumbnail. Logs:
+/tmp/50-chamber.log and /tmp/50-chamber-opt.log. No rendering passes added.
+
+### 2026-09-23 — zoom retaining faces and rejected coating variation
+Repeated glass-layer isolation for 28–135. Unlike the 50mm, it already has a
+continuous dark lining. Compared retaining faces with 28-135-front.jpg: the
+model's broad metallic annuli read as stacked washers. Split each retaining
+ring into a dark seat and a narrow reflective inner edge. Kept their existing
+positions and aperture radii. Rebuilt/optimized model: about 1.78 MB.
+
+An isolated four-way coating study compared 125, 250, 350 and 450 nm settings.
+A 440–460 nm production trial was greener obliquely but pink head-on in the
+actual studio; rejected it and restored the existing 110–125 range. Do not
+claim measured coating parameters or a solved optical simulation from this test.
+
+Verified final front view with restored coating, oblique retaining-ring trial,
+and no browser errors in /classic. Refreshed thumbnail and default setup poster.
+Build logs: /tmp/28-retainer-finish.log and /tmp/28-retainer-finish-opt.log.
+Remaining work includes multi-surface reflections/refraction and body fidelity.
+
+### 2026-09-23 — owned f/4 switch-panel typography
+Compared the actual side/overhead viewer with 70-200-f4-side.jpg. Replaced generic
+single-line limiter and AF/MF layouts with the reference's stacked limiter and
+staggered AF/MF labels. Added the two position ticks above each slider and small
+lower panel screw, all transformed through the existing curved panel mapping.
+Stabilizer and mode titles have separate position labels. Collar/foot remain
+absent on the owned f/4.
+
+Verified close side and overhead views, no browser errors. Labels remain tiny at
+default viewing distance; do not claim complete readability. The distance window
+still has generic markings and requires a separate reference pass. Rebuilt and
+optimized f/4 model to about 1.96 MB, refreshed thumbnail. Logs:
+/tmp/f4-control-legends.log and /tmp/f4-control-legends-opt.log.
+
+### 2026-09-23 — original f/4 IS distance window
+Sources: Canon manual ENG-10, downloaded from
+https://gdlp01.c-wss.com/gds/2/0300003622/02/ef70-200f4lisusm-im3-eng.pdf;
+top product photo https://www.kenrockwell.com/canon/lenses/images/70-200mm-f4-is/KEN_3055-1200.jpg
+(local 70-200-f4-top.jpg).
+
+Enlarged the f/4 window from .42×.19 to .64×.31 model units to match its relative
+barrel proportions. Replaced generic single-row numbers with green 10/15/30 feet
+above white 3/5/10 metres, separate ft/m units, infinity symbol and compensation
+L, a distance index, and red 100/70 infrared indexes. Added adjacent focal-range
+and USM markings. All follow the same cylindrical mapping as the window.
+
+Verified final overhead close-up in /classic: scale rows and index marks visible,
+window stays on the curved barrel. Glare and small default display size still
+limit legibility. Rebuilt/optimized model about 1.98 MB and refreshed thumbnail.
+Logs: /tmp/f4-distance-window.log and /tmp/f4-distance-window-opt.log.
+
+### 2026-09-24 — f/4 scale window seated in barrel
+Cut a curved shallow pocket into the main white housing and lowered the existing
+window/frame/scale by .026 model units. Adjacent focal-range/USM ink remains on
+the painted barrel. Verified overhead markings and side silhouette in /classic.
+
+Measured generated mesh radial extents independently in Blender: barrel radius
+.6693, frame max .6623, glass max .6673, numeral surfaces .6683. The frame, glass,
+and numerals therefore sit below the surrounding casting, rather than merely
+appearing flush from a favorable angle. Measurements logged in
+/tmp/f4-pocket-measurements.log. Rebuilt and optimized model: about 2.06 MB;
+refreshed thumbnail. Build/optimization logs: /tmp/f4-window-pocket.log and
+/tmp/f4-window-pocket-opt.log. Photorealism and overall marking legibility remain
+incomplete; this corrects the physical seating of the scale window.
+
+### 2026-09-24 — f/4 rear barrel identification and molded ribs
+The top reference shows a two-line IMAGE STABILIZER badge and shallow rear ribs
+missing from the previously blank barrel. Added curved gold lettering with a
+thin white contour, using a dedicated warmer badge finish instead of changing
+the shared gold material. Added short white molded ribs near the rear edge,
+interrupted around the smooth badge region. No collar, foot, or locking knob.
+
+Verified top close-up and default assembled view in /classic, no browser errors.
+The badge is now identifiable, though its contrast still depends on lighting;
+this is not an overall photorealism approval. Refreshed thumbnail. Optimized model
+about 2.16 MB; no runtime code or render-pass changes. Logs:
+/tmp/f4-rear-detail.log and /tmp/f4-rear-detail-opt.log.
+
+### 2026-09-24 — f/4 internal front sleeve reflection
+The front photo (70-200-f4-front.jpg) shows dark internal hardware rather than a
+broad chrome-like band. A four-panel glass-visibility study confirmed the band
+persisted without glass. A second material-isolation study identified the sleeve
+finish: merely switching to Machined optical baffles retained too much specular
+reflection. Assigned the existing low-reflection Optical barrel flocking finish
+to the f/4 sleeve only; rim/filter-thread highlights remain unchanged.
+
+Rebuilt and meshopt/WebP optimized to 2.16 MB; refreshed the lens thumbnail.
+Verified settled R7/f4 assembly in /classic from oblique and front views, with no
+browser errors. The broad sleeve glare is reduced; the layered glass reflections
+still look simplified and this is not a photorealism approval. No runtime render
+passes or loading changes. Logs: /tmp/f4-sleeve.log and /tmp/f4-sleeve-opt.log.
+
+### 2026-09-24 — f/4 front meniscus and first internal group
+Canon's section diagram distinguishes a thin curved front meniscus from the
+more strongly curved first internal group:
+https://global.canon/en/c-museum/product/ef391.html
+https://global.canon/ja/c-museum/wp-content/uploads/2015/05/ef391-lens-construction2.gif
+Saved reference: output/gear-reference/f4-optics.gif.
+
+Replaced the symmetric front element with independently curved faces (front sag
+.050, rear .030, edge thickness .030; center .050), preserving its front apex.
+The first internal element now has front sag .065, rear -.030 and edge .015,
+instead of the nearly planar symmetric .021 profile. These are visual estimates
+from the diagram, not measured optical prescriptions. Added the f/4 to the
+existing scale-compensated thickness-map path, matching .050 center/.030 edge.
+No additional render pass; one 64-square RGBA thickness texture.
+
+Built successfully (15 pages, /tmp/f4-meniscus-build.log), rebuilt and optimized
+GLB to 2.16 MB, refreshed thumbnail. Verified R7 front view and 40D oblique
+assembly in /classic, no browser errors. Geometry now follows the reference more
+closely, but brown internal reflections persist: the layered-glass approximation
+still requires work and photorealism is not achieved. Build/model logs:
+/tmp/f4-meniscus.log and /tmp/f4-meniscus-opt.log.
+
+### 2026-09-24 — studio surround and localized optical reflections
+A controlled four-panel study compared current coatings, hidden inner glass,
+uncoated inner glass, and a dark studio surround. Removing the coating changed
+the broad brown disc into a gray disc; darkening the surround removed the broad
+fill while retaining localized coating highlights. The uniform studio background
+was the source of much of the flat colored appearance, not only glass geometry.
+Helper: output/gear-modeling/inner-study.{html,ts} (ignored diagnostic).
+
+Changed the classic studio background from linear RGB .16/.16/.18 to .025 neutral.
+A .005 trial lost too much body fill. Added a low reflection card at (3,-2,5),
+2 by 3, strength 2, so the default angle still shows the glass instead of an
+empty black bore. The card is baked into the existing PMREM once at setup; no
+new per-frame render pass, light, external texture download, or map resolution.
+
+Verified R7/f4 front and oblique; 40D/f4, 28-135, 50 and Tamron35; C200/f2.8 in
+the actual /classic viewer. No browser errors. The broad colored wash is reduced
+and body contours remain visible. Highlight edges and multilayer optics are
+still approximate, so overall photorealism remains incomplete. Refreshed default
+R7/28 poster with the same lighting. Build log: /tmp/gear-dark-studio-build.log.
+
+### 2026-09-24 — preserve polished optical normals through compression
+A four-panel comparison held geometry/materials/light positions constant and
+varied normal precision and PMREM resolution (256/512). Higher normal precision
+removed the ragged highlight edge; 512 PMREM alone barely helped. Inspection of
+GLB accessors confirmed signed 8-bit normals. glTF Transform 4.5's high meshopt
+preset hard-codes 8-bit octahedral normal filtering, independent of the nominal
+normal quantization setting. Full-model medium/14-bit output fixed it but grew
+the f/4 from 2.16 to 3.05 MB.
+
+The generator now exports _OPTICAL_NORMAL for polished optical materials only.
+Custom attributes survive the high compression preset as float vectors. The
+classic loader promotes that attribute to normal and removes the custom semantic
+before rendering; no additional shader attribute or draw pass. Other materials
+retain compact normals. The glass-only version visually matches the full-precision
+comparison while the f/4 grows only to 2.28 MB. Keep export_attributes=True and
+this custom attribute in subsequent rebuilds; do not strip it during optimization.
+
+Rebuilt/optimized all owned lenses: 28-135 about 1.87 MB, f/4 2.28 MB, 50 about
+786.78 KB, Tamron35 about 1.25 MB. The Tamron rebuild also picks up the earlier
+shared optical face-winding/edge-separation corrections. C200/f2.8 not rebuilt.
+Refreshed all four thumbnails and default poster. Verified R7 f/4 front/oblique,
+all owned selectors/lenses, and 40D/Tamron assembly in /classic; no browser errors.
+Build passed (15 pages, /tmp/optical-normals-build.log). Studies and build logs:
+output/gear-modeling/precision-study.{html,ts}; /tmp/f4-optical-normals.log;
+/tmp/owned-optical-normals.log; /tmp/{lens}-optical-normals-opt.log.
+
+This fixes compressed reflection edges, not the remaining accuracy of multilayer
+optics, body proportions, or all markings. Photorealism goal remains incomplete.
+
+### 2026-09-24 — R7 rear dial face and LCD proportions
+Compared the actual near-level rear view against r7-rear.webp. The wheel's
+existing axial knurl was largely hidden by the surrounding lip; the real dial
+has ridges across its rear-facing annulus. Added 64 shallow beveled radial lands
+from radius .157 to .200 on the exposed face, merged with the existing rubber
+material. Verified the textured annulus around the joystick from rear/oblique.
+
+The level view also exposed an overly short LCD and excessive gap below the
+finder. Increased R7 bezel height from 1.12 to 1.25 and moved its center from
+-.240 to -.175, holding its lower edge at -.800 before body deformation. The
+cover opening, glass and gasket follow those dimensions. Extended both hinge
+sections to .595 and centers to +/-.3125, preserving their bottom alignment and
+central gap. The resulting top edge now sits just below the eyepiece like the
+reference. 40D dimensions remain separate and unchanged.
+
+Rebuilt/optimized R7; verified rear, rear oblique and assembled front in /classic
+with no browser errors. Refreshed R7 thumbnail and default poster. Modeling logs:
+/tmp/r7-rear-dial.log and /tmp/r7-rear-display.log; final optimization log:
+/tmp/r7-rear-display-opt.log. These correct two reference mismatches; full body
+and equipment photorealism has not yet been demonstrated.
+
+### 2026-09-24 — R7 SD-card door and rear rubber boundary
+Canon's side/rear reference identifies the grip-side card door:
+https://personal.canon.jp/product/camera/eos/r7/feature/face-design
+Saved official right view as output/gear-reference/r7-right-canon.jpg. Compared
+with the existing rear photo, it also shows a visible door strip outside the
+rear thumb rubber. The model had neither a distinct side door nor that separation.
+
+Added a thin shaped door skin, perimeter seam and small ribbed finger grip. All
+side vertices are projected onto the actual casting with small surface offsets;
+triangles sample the curvature and projected meshes discard stale planar weighted
+normals. Narrowed the outside edge of the rear rubber and added a three-sided rear
+door boundary projected onto the rear cover. Geometry remains merged by material.
+
+Rebuilt/optimized R7 to 4.51 MB. Verified final rear and grip-side views in /classic,
+no browser errors; refreshed body thumbnail and default poster. Logs:
+/tmp/r7-card-door.log and /tmp/r7-card-door-opt.log. The overall photorealism goal
+remains open. The grip-side strap eye is not yet visibly correct in the side view.
+
+Also located Canon's official SVG wordmark in that page's header and saved it to
+output/gear-reference/canon-wordmark.svg for comparison. A subsequent source audit confirmed the existing Canon text
+already uses canon-contours.json, derived from the previously attributed vector
+wordmark; the Georgia fallback only applies to other text such as the single C.
+
+### 2026-09-24 — R7 grip-side strap eye
+The grip-side fitting still used a small circular ring at fixed x=-1.42. That
+position was buried inside the widened casting, explaining its absence in the
+side view. Canon's official right-side reference shows a horizontal oval fitting
+above the SD door (r7-right-canon.jpg).
+
+Generalized the existing R7 port-side oval fitting to both shoulders: ray-cast
+from the appropriate side, align the seat and open metal aperture to the surface
+normal, and orient its long axis along the body depth. The 40D path is unchanged.
+Verified grip-side and raised rear-oblique views in /classic, plus the opposite
+side for regressions; the eye is visible and seated, no browser errors. Updated
+body thumbnail/default poster. Logs: /tmp/r7-strap-eye.log and
+/tmp/r7-strap-eye-opt.log. Photorealism remains unproven overall.
+
+### 2026-09-24 — Rear ink orientation and R7 magnifier
+Added the blue magnifier ring/handle below the R7 AF-point button, projected onto
+the rear cover using the existing Canon rear reference. Lowered the adjacent SD
+door top edge to leave the reference's clear strip below the control. A raw-GLB
+check showed every icon vertex clears the cover by approximately .002 units, yet
+parts vanished in the viewer: global closed-volume normal recalculation was
+flipping disconnected ink quads. Preserved rear_ink face orientation through
+export; all 132 sampled magnifier vertices now have outward -Z normals (previously
+56 pointed inward). The temporary shadow experiment did not help and was reverted.
+
+Rebuilt/optimized R7 (4.47 MB) and 40D (3.48 MB), since both use rear_ink. Verified
+the complete R7 icon at close zoom and 40D rear legends in the actual /classic
+viewer, with no browser errors. Refreshed both thumbnails and default poster.
+Logs: /tmp/rear-ink-orientation.log, /tmp/r7-rear-ink-opt.log,
+/tmp/40d-rear-ink-opt.log. This is a local correction, not a photorealism sign-off.
+
+### 2026-09-24 — Tamron 35mm coated glass and chamber
+Compared output/gear-reference/35-front.webp with the actual viewer and consulted
+Tamron's F045 description of BBAR-G2 anti-reflection coating:
+https://www.tamron.com/jp/consumer/lenses/f045/
+The runtime still treated this lens's inner optics as orange metal. Included 35
+in the dielectric coating path already used by the other owned lenses, at .35
+reflection opacity. This is an artistic thin-film approximation, not measured
+BBAR-G2 parameters. Front inspection then exposed a bright internal barrel/iris
+housing; changed those two internal surfaces to existing Optical barrel flocking.
+The front-view broad silver band is now dark while glass reflections remain.
+
+Rebuilt/optimized 35 to 1.26 MB; refreshed its thumbnail. Verified R7 front and
+side plus 40D front-oblique setup in /classic, no browser errors. Runtime build
+passed (15 pages, 26.28s); subsequent chamber-only GLB change checked in viewer.
+Logs: /tmp/tamron-coating-build.log, /tmp/tamron-chamber.log,
+/tmp/tamron-chamber-opt.log. Overall photorealism remains incomplete; the modeled
+optical group shapes and multilayer reflections still need closer matching.
+
+### 2026-09-24 — Tamron front optical curvature
+Inspected Tamron's official F045 optical construction diagram:
+https://www.tamron.com/product/pc_file/file/f045_lens-construction_jp.svg
+linked by https://www.tamron.com/jp/consumer/lenses/f045/spec.html.
+The first elements curve toward the object side; the model's shallow symmetric
+biconvex placeholders produced broad flat reflections. Replaced the front with a
+meniscus (radius .513, front sag .120, back sag .115, edge thickness .025) and the
+next visible inner profile with front sag .095, back sag .140, edge .070. These
+are visual estimates from the diagram, not an optical prescription or a complete
+14-element simulation. Added 35 to the scale-compensated radial thickness map,
+matching front center .030 and edge .025 to the actual generated geometry.
+
+Verified R7 front-oblique/head-on and 40D front-oblique in /classic: localized
+reflections replace the former broad flat disc, rim clearance remains visible,
+and console errors are absent. Updated thumbnail. GLB 1.27 MB; no extra render
+passes. Build passed: 15 pages in 23.58s. Logs /tmp/tamron-meniscus{,-opt,-build}.log.
+Overall photorealism remains unproven; body surface accuracy and other lens
+optical details still require further work.
+
+### 2026-09-24 — Body rubber grain scale
+Compared R7 rear/side at normal viewing size with r7.jpg and r7-rear.webp. The
+rubber read as coarse cracked leather rather than fine camera overmold. Increased
+existing scanned rubber texture repeat .9→1.6 for both owned bodies and reduced
+normal multiplier .65→.4; roughness and normal maps retain matching repeats.
+No added texture downloads, geometry, or render passes. Checked same-angle R7
+rear before/after, R7 side and 40D rear in actual viewer; no console errors.
+Refreshed both thumbnails and default poster. Build log /tmp/body-grain-build.log.
+This improves surface scale but does not establish overall photorealism. Side
+inspection still shows uneven highlights on the R7 upper casting; investigate
+its mesh/normals before further finish tuning.
+
+### 2026-09-24 — R7 shoulder diagnosis and pocket edge normals
+Compared compressed and uncompressed R7 in an untextured diagnostic view. Both
+show the shoulder unevenness, ruling out grain maps and meshopt quantization as
+the main cause. Increasing pre-decimation smoothing 12→40 iterations made only a
+small difference and was reverted. Added a 60-degree edge split to the R7 casting
+after Boolean pockets and final deformation, preventing steep pocket walls from
+sharing averaged normals with the exterior. The shutter pocket edge is cleaner;
+the broad grip/shoulder transition remains imperfect and needs geometric work.
+
+Rebuilt/optimized R7 (4.47 MB). Verified side and front-oblique views with actual
+materials in /classic, controls remain seated, no console errors. Refreshed R7
+thumbnail/default poster. Diagnostic helpers are ignored output files. Logs:
+/tmp/r7-casting-smooth.log (reverted experiment), /tmp/r7-pocket-normals.log,
+/tmp/r7-pocket-normals-opt.log. Do not treat this small shading improvement as a
+photorealism sign-off or complete repair of the shoulder contour.
+
+### 2026-09-24 — Correct grip solid orientation before merging
+The loft_grip helper advanced XZ rings along +Y with inward face winding. A
+standalone Blender test of the actual helper produced signed volume -4.830147;
+after reversing the generated faces before subdivision it produces +4.830147.
+Final export's normal repair was too late for the preceding body remesh. Fixed
+this shared helper and rebuilt both owned bodies. Viewer comparison shows the
+R7 shoulder distortion persists, so this fixes a real construction defect but
+does not establish its cause as the main visible distortion. Next work should
+reshape the grip/shoulder join, not keep increasing global smoothing.
+
+R7 optimized 4.61 MB, 40D 3.44 MB. Verified both grip-side views and R7 rear in the
+actual viewer; no console errors, attached controls remain seated. Updated body
+thumbnails/default poster. Logs /tmp/body-grip-winding.log,
+/tmp/r7-grip-winding-opt.log, /tmp/40d-grip-winding-opt.log. Diagnostic
+/tmp/check-grip-winding.py. Overall photorealism remains incomplete.
+
+### 2026-09-24 — Local R7 shoulder blend
+Canon's right-side reference shows a continuous upper grip shoulder. Added a
+localized smooth blend before decimation, restricted with a smooth weight around
+x=-1.16/z=.25 and y>.28, to reduce the pinched grip/casting union. This leaves the
+lower grip and opposite shoulder unaffected; attachment ray casts run afterward.
+The initial build failed when removing a stale Blender vertex-group handle;
+resolved by looking the group up by name after modifier application. Final build
+succeeded. Verified side close-up, front-oblique and rear in /classic: less pinched
+join, shutter/strap/control seating preserved, no console errors. Updated R7
+thumbnail/default poster. R7 optimized 4.44 MB. Logs /tmp/r7-shoulder-blend.log and
+/tmp/r7-shoulder-blend-opt.log. Overall photorealism still not demonstrated.
+
+A separate GLB inventory before this local blend found ~895k triangles in the
+R7+28-135 setup (553396 + 341594). Lazy loading alone is not sufficient to settle
+the performance requirement; inspect geometry contributors and reduce redundant
+triangles without losing control markings, contours or polished normals.
+
+### 2026-09-24 — 28–135 redundant tessellation reduction
+Profiled individual generator objects before export (/tmp/profile-gear-geometry.py,
+/tmp/profile-gear-geometry.log). Distance glass, its frame, and the switch panel
+each used 31,772 triangles from uniformly subdividing every bevel edge 12 times.
+Reduced those subdivisions to 6 for 28–135 only. Reduced the shallow optical
+recess from 256 to 128 circular segments while preserving all 120 axial rows and
+the groove profile. Optical glass meshes, precise normals, text and ribs unchanged.
+
+Final GLB: 341,594→243,194 triangles (28.8% fewer); 1,873,804→1,551,324 bytes
+(17.2% smaller). Verified close front-oblique, switch-side and raised top views in
+/classic; no obvious new faceting or lost marks, no console errors. Refreshed lens
+thumbnail/default poster. Logs /tmp/28-mesh-budget.log and
+/tmp/28-mesh-budget-opt.log. This is geometry reduction, not an FPS benchmark;
+body triangle costs and other lenses still need optimization and fidelity work.
+
+### 2026-09-24 — Small camera-control tessellation
+Small sphere-based controls used 64×32 tessellation (~3968 triangles each).
+For R7/40D only and maximum local radius <=.16, use 32×16 with smooth normals.
+Larger shapes, other assets, glass, printed legends and recessed seats unchanged.
+Rebuilt both and checked R7 rear buttons at extreme close zoom, R7 top/shutter,
+40D rear and top/shutter in /classic. No obvious silhouette/highlight regression
+or lost legend detail; no console errors. Refreshed body thumbnails and poster.
+
+R7: 549868→390444 triangles (-29.0%), 4443440→3672352 bytes (-17.4%).
+40D: 388849→325681 triangles (-16.2%), 3438472→3177852 bytes (-7.6%).
+Logs /tmp/body-control-budget.log, /tmp/r7-control-budget-opt.log,
+/tmp/40d-control-budget-opt.log. This reduces geometry work; not a measured FPS
+claim or proof that visitor-performance and photorealism goals are complete.
+
+### 2026-09-24 — Other owned lens panel tessellation
+Extended the verified 12→6 subdivision reduction to Tamron distance/switch panels
+and f/4 distance/switch panels. Kept optical elements and normals, engraved/printed
+markings, barrel profiles and ribs intact. F/2.8 remains unchanged. Verified each
+owned lens in /classic at close switch-side and raised top angles, no obvious new
+faceting or detached panel edges; no console errors. F/4 still has no collar.
+Refreshed both thumbnails.
+
+35: 244347→154107 triangles (-36.9%), 1267764→970152 bytes (-23.5%).
+f/4: 373140→289092 triangles (-22.5%), 2280972→1983880 bytes (-13.0%).
+Logs /tmp/owned-panel-budget.log, /tmp/35-panel-budget-opt.log,
+/tmp/70-200-f4-panel-budget-opt.log. Performance reductions are measured geometry
+and bytes, not FPS. Photorealism and end-to-end visitor performance remain open.
+
+### 2026-09-24 — R7 shutter finish
+Compared r7-top.png with the actual viewer; shutter looked too much like a dark
+empty recess. Checked seating with a BVH ray along the button's principal short
+axis: button hit distance .48857, shell/pocket floor .52729 from the same outside
+origin, confirming the face is above the pocket. Removing AO in an isolated
+viewer did not resolve the dim face. Replaced the R7 shutter's Anodized black
+(.55 metalness) with existing Satin control plastic (nonmetal). Geometry and
+seating unchanged. Top-view button face now reads distinctly from its dark pocket.
+
+Rebuilt/optimized and verified top/default front-oblique in /classic, no console
+errors; refreshed thumbnail/poster. No new material class/draw pass. Diagnostics
+/tmp/check-shutter-seat.py and .log; builds /tmp/r7-shutter-finish{,-opt}.log.
+This is a small material correction; overall photorealism remains incomplete.
+
+### 2026-09-24 — Viewer lifecycle measurement
+Built an ignored diagnostic page around a copy of current classic scene.ts with
+one instrumentation wrapper around renderer.render. Production renderer logic and
+model loader unchanged. Test files: output/gear-modeling/performance-check.html,
+performance-check.ts, performance-scene.ts. Page displays resource entries,
+render-call counts, and canvas count; UI actions performed through browser tools.
+
+Observed:
+- Before Start: no GLB requests, no canvas, 0 render calls.
+- Ready R7/28: requests only r7, adapter, 28-135; 37 calls then 0/second idle.
+- Switch 40D/f4: adds only 40d and 70-200-f4; 60 calls then 0/second.
+- Return R7/28: same five request entries (cache reuse), 84 calls then idle.
+- Move host off-screen: calls remain 84, 0/second.
+- Show + ArrowLeft: calls advance to 85, proving interaction resumes.
+- Dispose: canvas count 0, calls remain 85, no browser errors.
+
+Source audit confirms production loadout.ts imports scene only in startStudio,
+triggered by Explore or an equipment-selection click; navigation disposal calls
+studio.dispose. This test verifies the scene lifecycle and selected-asset cache,
+not actual production-network throttling, GPU frame time or low-end mobile FPS.
+Those limits remain separate from incomplete photographic fidelity.
+
+### 2026-09-24 — R7 front sensor details
+Front-only inspection exposed a missing circular remote-control sensor on the
+grip. Canon's parts list identifies it as (9), distinct from the (12) preview
+button integrated with the focus-mode control:
+https://cam.start.canon/en/C005/manual/html/UG-00_Before_0090.html
+Diagram: https://cam.start.canon/en/C005/manual/html/screens/UG-00_i0170.svg
+Compared the existing r7.jpg front photo for size and finish. Added a small dark
+receiver face and rim, tangent to the actual overmold via BVH ray cast; subsequent
+body deformation carries it with the grip. Replaced only the R7 AF-assist lamp's
+dark LCD material with a pale frosted indicator finish matching the photo.
+Rebuilt/optimized to 3.68 MB. Verified body-only front and actual /classic assembled
+front-oblique/side views; receiver stays seated, no console errors. Refreshed body
+thumbnail/default poster. Logs /tmp/r7-front-sensors.log and
+/tmp/r7-front-sensors-opt.log. Full photographic fidelity remains incomplete.
+
+### 2026-09-24 — R7 mount alignment stripe
+Body-only front inspection prompted a mount check. Kept flange dimensions: the
+apparent width alone was not sufficient evidence to justify changing its geometry.
+The existing r7.jpg front reference does clearly show a short vertical red stripe
+on the top of the metal flange, rather than the generic round dot above it. In
+mount(rf=True), replaced the dot with a .014×.042×.002 stripe centered y=.601,
+z=flange face +.001. EF/C200 paths retain their existing marks. Reference part
+identification is RF lens mount index (20) in Canon's previously cited R7 manual.
+Verified stripe in the exposed-front diagnostic and assembled /classic scene;
+no console errors. Refreshed body thumbnail/poster. Logs /tmp/r7-mount-index.log
+and /tmp/r7-mount-index-opt.log. This is one reference-detail correction, not
+proof of overall photorealism or a change to the mount's physical specification.
+
+### 2026-09-24 — Body finish hypothesis check
+Compared the current R7 against a diagnostic-only 1.25x roughness factor on
+Crinkle painted metal, with identical camera and lighting in body-surface-study.
+The visible change was too small to establish a useful fidelity improvement.
+Kept production materials unchanged. Broad shoulder contours and surface quality
+remain unresolved; increasing roughness alone did not convincingly address them.
+No production asset rebuild or shipment in this comparison.
+
+### 2026-09-24 — Continuous R7 shutter-seat transition
+Geometry-only browser inspection isolated a vertical surface break immediately
+below the shutter. The planar seating adjustment had an abrupt y=.59 cutoff,
+so adjacent vertices could receive different displacements across that boundary.
+Replaced the cutoff with a smoothstep fade from y=.50 to .62, retaining the
+elliptical radial fade and the button/pocket dimensions. Rebuilt and optimized
+R7 (3.66 MB). The geometry-only comparison shows a smoother descending highlight;
+the assembled /classic viewer confirms the shutter remains seated from the top
+and front-oblique views. No browser console errors. Refreshed R7 thumbnail and
+default setup poster. Logs: /tmp/r7-seat-transition.log and
+/tmp/r7-seat-transition-opt.log. Body geometry and materials still require broader
+reference matching; this local repair does not establish photorealism.
+
+### 2026-09-24 — Rounded molded grip grain for owned bodies
+Inspected the source Leather037 normal map: its angular intersecting creases
+explain why earlier scale changes alternated between cracked leather and a
+nearly featureless grip. Compared an existing rounded-pebble normal against
+r7.jpg and Canon's right-side reference in body-surface-study. The rounded
+pattern retains visible grain without leather creases at normal viewer size.
+Created a distinct Molded grip rubber material for R7/40D (roughness .66, normal
+strength 1.4, runtime .6 multiplier and 3x texture repeat). Uses the existing
+512px pebble map with normalized UV density and matching roughness-map repeat.
+C200 keeps its existing finish. This is a reference-guided procedural material,
+not a scan of Canon rubber or a claim of measured surface properties.
+Rebuilt both and checked front-oblique, grip-side and rear in /classic, including
+rear thumb pads/joystick. No console errors. Optimized R7 3.44 MB, 40D 2.96 MB;
+reusing the pebble map removes the owned bodies' separate leather normal texture.
+Refreshed thumbnails/default poster. Production build passed (15 pages, 23.80s).
+Logs: /tmp/owned-molded-grips.log, /tmp/{r7,40d}-molded-grip-opt.log,
+/tmp/molded-grips-build.log. Broader geometry and optical fidelity remain open.
+
+### 2026-09-24 — 40D depth-preview location and self-timer lamp
+The four-view 40d.jpg reference clearly places the preview button on the terminal
+side, below lens release. The model instead had a round button on the front grip.
+Canon nomenclature identifies the control as depth-of-field preview:
+https://gdlp01.c-wss.com/gds/6/0900008236/01/EOS40D_HG_EN.pdf
+Removed the grip button and seated a rounded button/bezel on the side using the
+casting BVH normal. Initial z=.13 placement overlapped the terminal flap in the
+actual viewer; moved forward to z=.26, verified clear on the casting's rounded
+front edge. y=-.46. Changed the 40D front lamp from dark display glass to the
+pale frosted indicator finish seen in the photo, and named it Self-timer lamp.
+Rebuilt/optimized 40D, checked default front and terminal side in /classic,
+no console errors, refreshed its thumbnail. Source-only/model change; runtime
+and other assets unchanged. Logs /tmp/40d-preview-control-clearance.log and
+/tmp/40d-preview-control-opt.log. Full body fidelity remains unfinished.
+
+### 2026-09-24 — 40D lens-release silhouette
+Compared the terminal-side/front views in 40d.jpg. The existing generic circular
+release was undersized and front-facing, unlike the tall rounded control on the
+40D's front corner. Split the owned-body release branches: R7 retains its existing
+control, while 40D now uses a .325x.425 bezel and rounded .280x.358 button face,
+fitted to the casting's diagonal corner via BVH. Initial narrower face was
+visibly too thin in side view and was widened. Verified terminal-side and
+front-oblique views in /classic; control is seated and clears the terminal flap
+and the depth-preview button below. No console errors. Refreshed 40D preview.
+Logs /tmp/40d-lens-release-width.log and /tmp/40d-lens-release-opt.log. Dimensions
+are visual estimates from reference, not manufacturing measurements. Overall
+photorealism remains unfinished.
+
+### 2026-09-24 — 40D seated shutter button
+The 40d.jpg front/side reference shows a shallow shutter face in the sloping
+shoulder, while the model used overlapping raised ellipsoids. Reused the R7's
+continuous seating/pocket construction with 40D-specific location and circular
+footprint: ray at x=-1.2,z=.389, pocket radius .120, face radius .105 and
+face half-depth .013. Seat fade is relative to the sampled casting height.
+R7 parameters are unchanged by the shared construction. Both body castings now
+split steep pocket edges after their final Boolean operations to avoid pulling
+exterior smooth normals toward pocket walls. Rebuilt/optimized 40D; front, top
+and grip-side viewer checks show the button follows the shoulder, without the
+old raised pedestal. No console errors. Refreshed 40D thumbnail. Logs
+/tmp/40d-shutter-seat.log and /tmp/40d-shutter-seat-opt.log. Broader shoulder
+contours and overall photographic fidelity remain unresolved.
+
+### 2026-09-24 — 40D shoulder join and exposed command wheel
+Compared 40d-top.jpg and the geometry-only browser study. Removed the old
+Grip molding seam curve: it floated across the front of the grip, while the
+overlapping rubber edge already provides the physical seam. Extended the
+existing local shoulder-blend vertex weighting/smoothing to the 40D, before
+control fitting and Boolean cuts. The grip-to-deck transition is less pinched.
+The check exposed the old fixed-position main wheel as partly buried. Replaced
+that generic dial with an axle fitted from two shoulder BVH hits at z=.16,
+.12-radius rubber core, .23 width, 64 axial knurls and a narrow casting slot.
+Verified final top/grip-side views in /classic; shutter/status display remain
+seated, wheel now shows its knurled edge, no console errors. Refreshed thumbnail.
+Logs /tmp/40d-shoulder-blend.log, /tmp/40d-command-wheel.log and
+/tmp/40d-command-wheel-opt.log. Geometry estimates still require broader
+reference matching; this does not establish overall photographic fidelity.
+
+### 2026-09-24 — 40D CF door molded details
+The 40d.jpg grip-side reference shows dotted finger purchase, a narrow release
+area and a vertical OPEN legend missing from the model. Added eight small
+rounded dots, a dark finger-slot representation and the label, projected onto
+the actual side casting. Initial flat text was not visibly readable. A Blender
+check showed vertices .003 outside the shell and outward normals in raw export
+(/tmp/check-cf-legend.log); no claim that incorrect normals caused that failure.
+Enlarged label .041 to .055 and added .002 raised relief with explicit outward
+orientation. Bright diagnostic material now clearly shows complete OPEN text
+in the intended direction. The actual /classic dark finish remains difficult
+to read under current lighting; label readability is still unresolved. Dots and
+slot are visible and seated in side/oblique views. No console errors, refreshed
+40D thumbnail. Logs /tmp/40d-cf-door-relief.log and
+/tmp/40d-cf-door-details-opt.log. Overall photorealism remains unfinished.
+
+### 2026-09-24 — Correct previously skipped R7 badge fitting
+Auditing exact object-name guards found that register() prefixes every object
+with "r7 / ", but the badge fitting loop compared unprefixed names. It therefore
+skipped the badge and both text objects. Corrected both the selection guard and
+backplate depth branch using the local name after removing the body prefix.
+Earlier notes describing badge projection should not be read as evidence that
+the projection actually executed before this fix. Rebuilt/optimized R7 and
+checked badge/text against the shoulder in front-oblique and near-side views
+in /classic; no console errors. Refreshed R7 thumbnail and default setup poster.
+Logs /tmp/r7-badge-name-fix.log and /tmp/r7-badge-name-fix-opt.log. Overall
+photographic fidelity and other model details remain incomplete.
+
+### 2026-09-24 — R7 low-profile lens release
+The exposed-front r7.jpg reference shows a tall, low release control to the
+right of the RF mount. Replaced the generic circular cylinder and deep pedestal
+with a .190x.365 rounded bezel and .150x.300 button, placed just above the front
+leatherette. Final body deformation retains the existing release position rule.
+Verified exposed-front silhouette against the reference and front-oblique
+assembly in /classic with Control Ring adapter and 28–135 attached: control is
+seated, with no visible intersection against the adapter. No console errors.
+Refreshed R7 thumbnail/default poster. Logs /tmp/r7-release-profile.log and
+/tmp/r7-release-profile-opt.log. Further mismatch visible in the exposed-front
+view: the shutter face appears nearly edge-on compared with the reference's
+sloped grip crown. That requires geometry/seat-angle investigation; overall
+photorealism remains unfinished.
+
+### 2026-09-24 — R7 shutter slope and crown seating
+The exposed-front check showed a nearly edge-on shutter face compared with
+r7.jpg. Measured pre-seat crown normals using /tmp/check-r7-crown.py: z=.754
+normal Y=.951/Z=.303 (~18 degrees from +Y); z=.800 gives Y=.710/Z=.701
+(~45 degrees before final body deformation). Sampled the latter slope, expanded
+button depth radius .074 to .092, pocket radius .087 to .105, and seating blend
+radius .145 to .160. The first tangent-plane trial raised a peak behind the
+button; rejected that placement and inset the seat by .035 along its normal.
+Retained the earlier continuous height fade (.50 floor/.12 range). Final
+exposed-front, actual /classic grip-side and top views show a visible front
+button face, a seated pocket, and no trial peak. No console errors. Refreshed
+R7 thumbnail/default poster. Logs /tmp/check-r7-crown.log,
+/tmp/r7-shutter-inset.log and /tmp/r7-shutter-inset-opt.log. Angles describe
+the authored mesh, not measurements of Canon's part. Overall photorealism
+remains incomplete; the R7 main command wheel still appears too deeply seated
+in the top-view slot and should be checked against r7-top.png.
+
+### 2026-09-24 — R7 command wheel center-surface fitting
+The top-view reference r7-top.png shows the diamond grip across the main wheel,
+while the model showed a largely empty black slot. Measured the casting before
+fitting: axle-end mean y=.66301, midpoint surface y=.70165; the convex crown
+rises .03791 along wheel-up above the endpoint chord. Anchoring to that chord
+therefore buried the wheel centrally. Kept axle direction, radius, width, diamond
+mesh and slot dimensions; anchor now uses the actual midpoint surface ray hit,
+then the same .097 axle offset. Final /classic top view shows the textured edge,
+and side view confirms it remains seated. No console errors. Refreshed R7
+thumbnail/default poster. Logs /tmp/check-r7-wheel.log, /tmp/r7-wheel-center.log,
+/tmp/r7-wheel-center-opt.log. Broader geometry/material fidelity remains open.
+
+### 2026-09-24 — Low side bounce for molded controls
+An identical-camera A/B using the actual scene showed the 40D card-door OPEN
+relief was present but lost in the shadow-side lighting. Added a 3x4 environment
+card at (-5,0,1), intensity 2, to the existing static PMREM environment. The door
+seam and dark lettering now appear in the side view without whitening their
+materials. This adds no dynamic light, shadow map or per-frame rendering pass.
+Checked the actual /classic R7+28–135, 40D card-door view, 40D+f4 and C200+f2.8;
+no obvious new clipping or blown white lens surfaces and no console errors.
+Refreshed the default poster to match. Production build passed (15 pages,
+28.36s), log /tmp/gear-side-bounce-build.log. These are desktop visual checks,
+not evidence of low-end frame rate or completed photorealism.
+
+### 2026-09-24 — 28–135 internal coating reflection balance
+Rechecked output/gear-reference/28-135-front.jpg: amber reflections are real,
+so removing the tint would misrepresent the reference. The runtime's additive
+inner layer was opacity 1 (rear .4), overwhelming the dark chamber in the
+default studio view. Reduced only this lens's inner coating weights to .35
+and rear .25. Retained the dielectric IOR, coating thickness/color response,
+curved geometry, transmission and environment. This is a reference-guided
+visual approximation, not measured Canon coating reflectance.
+Compared front and oblique views in /classic and the separate RoomEnvironment
+preview. The amber reflection remains, with more visible dark chamber. Checked
+the 40D body switch and side view; no console errors. Regenerated 28–135
+thumbnail and default poster. Build passed, /tmp/gear-zoom-coating-build.log.
+No additional geometry, textures or rendering passes. Broad body-contour and
+optical fidelity remain incomplete; this change alone does not prove realism.
+
+### 2026-09-24 — 40D closed-flash hood taper
+Compared the actual viewer's high front view with 40d-top.jpg and the four-view
+40d.jpg reference. The hood was too parallel-sided. Increased its longitudinal
+width taper from .20 to .32 (front/rear width ratio .80 to .68), keeping the rear
+seat, length, crown and underside relief. The Boolean seating pocket derives
+from the modified hood; updated the front seam's width factor to .68 as well.
+The Canon mark remains contained in the front face without resizing. Checked
+front in the exposed-body diagnostic, top/side/rear in the actual /classic
+viewer, and refreshed the 40D thumbnail. No new visible intersections or console
+errors. Rebuilt and Meshopt-compressed to 2.96 MB; logs
+/tmp/40d-hood-taper.log and /tmp/40d-hood-taper-opt.log. The taper is visually
+estimated, not a physical measurement. Rear control shapes and rubber texture
+remain visibly approximate and require further reference matching.
+
+### 2026-09-24 — 40D rear multi-controller profile
+The rear view in 40d.jpg shows a distinct concentric bezel around a relatively
+flat center pad. Replaced the model's two overlapping domes with a separate
+annular bezel, low rubber seat and bevelled cylindrical thumb pad. Retained
+the control center and socket envelope. Rebuilt and Meshopt-compressed the
+40D, checked straight rear and oblique rear in the actual /classic viewer,
+and refreshed its thumbnail. The bezel and pad remain distinct and seated;
+no console errors. Logs /tmp/40d-joystick-profile.log and
+/tmp/40d-joystick-profile-opt.log. No runtime change. The rear wheel and
+rubber finish still need broader matching; this is not a complete body audit.
+
+### 2026-09-24 — 40D SET collar and wheel center
+Revisited 40d.jpg's rear wheel. The earlier continuous bowl removed a false
+broad step, but also omitted the narrow raised collar immediately around SET.
+Kept the continuous molded face, shortened its inner radius to .114 and
+reduced its concavity from .034 to .021; added a .116/.087 radius collar,
+.012 deep. These are visual estimates. Rear and oblique checks in /classic
+show a distinct collar seated into the face without a visible gap. No console
+errors. Rebuilt/optimized and refreshed the 40D thumbnail; logs
+/tmp/40d-set-collar.log and /tmp/40d-set-collar-opt.log. No runtime or loading
+changes. This supersedes the earlier implication that the smooth bowl alone
+fully matched the center profile; broader realism remains incomplete.
+
+### 2026-09-24 — Molded rubber relief correction
+The rear 40D comparison still showed exaggerated grain relief. Traced the
+mapping: 48 seed cells per texture, 3 repeats and UV area normalization of
+1.4 scene units imply an average pitch of 55*1.4/(48*3), about .53 mm.
+Kept this spacing and reduced only Molded grip rubber's runtime normal-scale
+multiplier from .6 to .3 (authored strength 1.4, effective .84 to .42).
+This retains the current rounded procedural grain rather than returning to
+the earlier cracked leather scan. Checked front/oblique and rear R7/40D in
+/classic; grain remains visible with less pronounced highlights. No console
+errors. Refreshed both body thumbnails and the default poster. Build passed:
+/tmp/gear-rubber-relief-build.log. Relief remains visually estimated, not a
+measured surface scan. No new textures, geometry or rendering passes; overall
+photorealism remains incomplete.
+
+### 2026-09-24 — 28–135 distinct AF and stabilizer controls
+Compared output/gear-reference/28-135-controls.jpg with the assembled viewer.
+The curved panel was seated, but both switches still used the same generic
+shape. Authored a smaller ribbed AF slider and a larger smooth IS slider,
+lowered their protrusion, and added separate white position marks. Matched
+the staggered AF/MF and OFF/ON text layout and added the two position ticks.
+The initial label pass remained undersized; enlarged the legends after the
+viewer comparison. Side/oblique close views in /classic show the distinct
+sliders, legible principal legends, and retained curved panel seating. No
+console errors. Rebuilt/optimized the lens and refreshed its thumbnail and
+default poster. Logs /tmp/zoom-switch-legends.log and
+/tmp/zoom-switch-legends-opt.log. Sizes are visually estimated. This does not
+establish complete lens fidelity or readability at every zoom level.
+
+### 2026-09-24 — 28–135 rounded zoom-grip lands
+Matched the rounded ends and short center grooves in 28-135-controls.jpg.
+The former thin boxes could not obtain the required end radius because cube
+bevels were clamped by thickness. A capsule-plus-Boolean trial introduced
+diagonal shading, including in a plain-material diagnostic; recomputing normals
+did not resolve it. Replaced that trial with explicit outer/inner capsule rings,
+a planar annular face, recessed groove walls and floor. Flat faces now shade
+cleanly in the diagnostic and actual /classic oblique/default views. Refreshed
+the lens thumbnail and default poster. No console errors. The explicit bevel
+angle limit did not further reduce the export: final lens is 1.99 MB Meshopt,
+up from about 1.55 MB before this detail. No new runtime passes or loading
+changes. Logs /tmp/zoom-grip-topology.log and
+/tmp/zoom-grip-edge-budget-opt.log. Overall realism remains incomplete.
+
+### 2026-09-24 — Zoom-grip detail density
+Reduced capsule contours from 32 to 24 samples and the .001 edge bevel from
+two segments to one. Retained all 40 rounded lands and recessed center grooves.
+Actual glTF inspection: rubber mesh 52,256 to 36,896 triangles; 74,460 to
+44,928 vertices, crossing from u32 to u16 indices. Total compressed lens
+1.99 to 1.73 MB. Close oblique and default /classic views retain clean rounded
+ends and grooves, with no console errors. Refreshed lens/default previews.
+Logs /tmp/zoom-grip-density.log, /tmp/zoom-grip-density-opt.log; before/after
+inspection /tmp/zoom-grip-inspect.txt and /tmp/zoom-grip-density-inspect.txt.
+These are asset-size/geometry measurements, not an FPS benchmark.
+
+### 2026-09-24 — Control-ring adapter RF stripe
+Compared control-ring-adapter.jpg. The RF stripe was an ellipsoid centered
+at z=.075, crossing from the silver rear trim into the control ring. Replaced
+it with a flat rounded .012 x .045 mark centered at z=.042, tangent to the
+trim at its existing angular position. The mark now lies within the silver
+trim in the isolated rear-side diagnostic and remains visible on that trim
+in the actual R7 assembly's upper side view. No console errors. Rebuilt and
+Meshopt-compressed adapter.glb and refreshed the default setup poster. Logs
+/tmp/adapter-rf-stripe.log and /tmp/adapter-rf-stripe-opt.log. This verifies
+the stripe placement, not the adapter's complete mechanical accuracy.
+
+### 2026-09-26 — 70–200 f/4 switch-panel checkpoint
+Rounded the switch recesses and sliders and enlarged/repositioned their legends
+against 70-200-f4-side.jpg. Boolean cuts left large faces that formed diagonal
+shading creases when bent around the barrel. Triangulated and subdivided the
+panel before bending, then rebuilt its mesh normals. The prior close side
+viewer check showed the crease removed. The owned lens retains no tripod
+collar or foot. Exported with Meshopt compression (2,127,344 bytes) and refreshed
+the lens thumbnail from the current browser renderer. Production build passed
+(15 pages). This is a progress checkpoint, not a claim of complete photorealism.
