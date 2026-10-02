@@ -2348,3 +2348,162 @@ the barrel curvature; at normal framing it is intentionally small and not fully
 legible. No console errors. Refreshed the 35mm thumbnail. Export logs:
 /tmp/tamron-markings.log and /tmp/tamron-markings-opt.log. Prior turn was progress
 (rounded AF/MF panel, inset distance window and corrected cylinder normals).
+
+### 2026-10-02 — R7 recessed joystick cup
+Compared the actual rear viewer with output/gear-reference/r7-rear.webp.
+The previous convex rubber surround and thumb pad protruded beyond the wheel
+face, reading as a raised dome instead of the reference's recessed joystick.
+Replaced the ellipsoid surround with a smooth concave annular cup, lowered the
+socket and thumb pad below the wheel rim, and moved its molded dots with it.
+Verified rear and rear-oblique views in the actual /classic interactive viewer:
+the pad now sits inside the wheel and the cup remains continuous. No browser
+errors. Front-facing selector/poster previews do not expose this rear control.
+Export logs: /tmp/r7-joystick-cup.log and /tmp/r7-joystick-cup-opt.log.
+Prior turn was progress (committed and pushed the existing verified checkpoint).
+This local correction does not prove full body contour or photorealism completion.
+
+### 2026-10-02 — R7 lower rocker curvature
+The rear product reference r7-rear.webp shows a shallow dished four-way rocker
+around a flat Q/SET key. Replaced the convex ellipsoid with a concave annular
+surface, a beveled flat key, and direction marks following the dish slope.
+Added an outer return into the bezel to keep the rocker a seated part rather
+than an exposed open sheet in oblique views. Rear and oblique comparisons in
+the interactive viewer show the corrected curvature and readable Q/SET marking;
+no browser errors. This does not establish overall photorealism. The prior goal
+turn made progress by correcting the upper joystick cup. Export/build logs use
+/tmp/r7-rocker-dish*. Front previews do not show either changed rear control.
+
+### 2026-10-02 — R7 speaker grille placement audit
+Official rear reference:
+https://personal.canon.jp/product/camera/eos/r7/feature/face-design
+Saved its rear image as output/gear-reference/r7-back-canon.jpg.
+It confirms the R7 screen bezel has no Canon wordmark; do not add one.
+The six speaker perforations were centered at y=.405, below the LCD bezel top
+at y=.45, hiding them. Moved their center to y=.505 so the lowest hole clears
+the bezel. Verified the actual viewer in rear close-up and rear-oblique views:
+the grille is now exposed rather than buried. Its bright edge shading remains
+stronger than the reference and needs further comparison; this is a placement
+correction, not a photorealism sign-off. No browser errors. Export logs:
+/tmp/r7-speaker-position.log and /tmp/r7-speaker-position-opt.log.
+Prior turn was progress (dished lower rocker and flat Q/SET key).
+
+### 2026-10-02 — R7 speaker perforation shading
+The formed R7 rear cover rebuilt all faces with smooth normals but did not
+separate the Boolean hole walls from the exterior. Applied the same hard-edge
+normal separation used on the main casting to the R7 rear cover after its mesh
+rebuild. This preserves smooth body contours while keeping the hole rims sharp.
+Compared identical rear macro views in the actual /classic viewer before and
+after: swollen bright highlights disappeared and the grille reads as dark
+perforations. Also verified the wider rear-oblique view with no console errors.
+The prior turn made progress by exposing the grille above the screen bezel;
+this resolves the specific edge-shading issue recorded in that audit. It does
+not verify the remaining body/material/optical fidelity requirements.
+Logs: /tmp/r7-speaker-normals.log, /tmp/r7-speaker-normals-opt.log,
+/tmp/r7-speaker-normals-build.log. Changes remain local after 0a4896b.
+
+### 2026-10-02 — R7 material grain calibration
+Compared r7-top.png and r7-rear.webp against actual viewer top, side, and rear
+views. The modeled rubber and shell showed excessive coarse relief. Generator
+UV normalization was compounded by runtime repeat/normal-strength multipliers.
+R7-only material copies now author the final strengths (.30 rubber, .18 shell)
+and grain spacing (approximately .4 mm rubber, .2 mm shell) in the asset, with
+runtime repeat and strength multipliers of one for these named finishes.
+These are reference-guided visual estimates, not physical surface measurements.
+The other bodies, lenses and scanned front-grip material remain unchanged.
+Verified rear close-up: finer shell, visibly coarser rubber, less raised grain;
+also checked top and grip-side angles, with no console errors. Refreshed R7
+thumbnail and setup poster. Top shell contour accuracy remains a separate open
+requirement; improved material response does not establish photorealism.
+Prior turn was progress (corrected speaker perforation normals).
+Logs: /tmp/r7-finish-grain.log, /tmp/r7-finish-grain-opt.log,
+/tmp/r7-finish-grain-build.log.
+
+### 2026-10-02 — R7 shutter seat geometry
+Compared top and grip-side viewer views with r7-top.png and
+r7-right-canon.jpg. The shutter region showed an exaggerated recessed surround.
+Locally subdivided the reduced casting before its nonlinear seat deformation;
+that alone did not remove the broad ring, establishing that the seat shape was
+also responsible. Reduced the R7 seat's normal inset from .035 to .012 units
+(about 1.9 to .66 mm before the final body deformation). The resulting button
+remains seated in the grip-side view and the recess is shallower. The broader
+top shoulder still appears too rounded against the reference; this is a partial
+contour correction, not a body-fidelity sign-off. No viewer console errors.
+Updated R7 thumbnail and setup poster. Prior turn made progress by calibrating
+R7 shell/rubber grain. Logs: /tmp/r7-shutter-surface.log,
+/tmp/r7-shutter-surface-opt.log, /tmp/r7-shutter-surface-build.log.
+
+### 2026-10-02 — R7 casting-to-grip trough correction
+Probed the pre-shutter casting with BVH rays (ignored diagnostic script
+output/gear-modeling/probe-r7-crown.py). At x=-1.2, the upper surface dipped
+from y=.7162 at z=.1 to .6703 at z=.3, then returned to .7162 at z=.5.
+That roughly 2.5 mm trough at the casting/grip join matched the uneven top
+highlight and was inconsistent with the smoother shoulder in r7-top.png.
+Added a localized upper-surface bridge between z=.08 and .58, fading into
+the sides and original end sections before mesh reduction and control placement.
+The same probe now reads .7193 at the center section; forward shutter crown
+and rear sections retain their sampled heights. Before/after probe logs:
+/tmp/r7-crown-probe.log and /tmp/r7-crown-probe-after.log.
+Verified actual viewer top, grip side, and front with both 28-135 and shorter
+50mm setup. Controls remain seated; no browser errors. Refreshed body/setup
+previews. This is a local contour improvement, not a complete body comparison.
+Prior turn made progress on shutter seat depth. Export/build logs:
+/tmp/r7-shoulder-bridge.log, /tmp/r7-shoulder-bridge-opt.log,
+/tmp/r7-shoulder-bridge-build.log.
+
+### 2026-10-02 — 40D shell and grip finish
+Compared the actual rear viewer with the rear panel in 40d.jpg. The rubber
+finish was excessively coarse at the normal camera framing. Extended the
+asset-authored finish calibration to independent 40D material copies: approximately
+.46 mm rubber cells with normal strength .36, and .2 mm shell cells with strength
+.18. These are visual estimates; 40D rubber remains coarser than the R7 setting.
+The viewer preserves these authored values instead of compounding texture repeat
+and normal strength. Verified rear, terminal side, and front three-quarter views
+with no browser errors; refreshed the 40D thumbnail. Geometry is unchanged.
+The terminal-side check also highlights rear screen surround depth as an item
+for further reference comparison; this material pass does not settle it.
+Prior turn made progress correcting the R7 shoulder trough. Logs:
+/tmp/40d-finish-grain.log, /tmp/40d-finish-grain-opt.log,
+/tmp/40d-finish-grain-build.log.
+
+### 2026-10-02 — 40D screen stack seating
+Compared rear-oblique viewer with the side view in 40d.jpg. The glass stood
+roughly .6 mm above its frame, and the stack projected about 3 mm from the
+rear cover. Reduced frame offset from rz-.057 to rz-.045, and glass stack
+reference from rz-.088 to rz-.071, retaining a visible perimeter gasket.
+Moved the rear Canon wordmark from rz-.087 to rz-.074 to follow the frame.
+Verified matching oblique views and rear view in the interactive viewer:
+smaller screen step, continuous visible frame, readable Canon wordmark, no
+buried glass or console errors. Refreshed 40D thumbnail. The larger rear-cover
+to casting seam still warrants comparison; this is a screen-stack correction.
+Prior turn made progress calibrating 40D materials. Logs:
+/tmp/40d-screen-seating.log, /tmp/40d-screen-seating-opt.log,
+/tmp/40d-screen-seating-build.log.
+
+### 2026-10-02 — 40D rear cover/casting overlap
+The rear-oblique viewer showed a deep double-bevel seam making the rear cover
+read as a separate slab. The cover extended only .012 units into a casting
+with a .055-unit back bevel. Increased the DSLR cover's embedded front extent
+to back+.065 and matched its bevel to .055, retaining its rear face and all
+control locations. Compared identical terminal-side rear-oblique views before
+and after: the deep notch is reduced and the join reads more continuously.
+Verified rear controls and opposite rear corner, with no new visible
+intersections or console errors. Updated 40D thumbnail. This is an overlap
+correction, not a claim that the entire housing matches the reference.
+Prior turn made progress seating the 40D screen stack. Logs:
+/tmp/40d-cover-overlap.log, /tmp/40d-cover-overlap-opt.log,
+/tmp/40d-cover-overlap-build.log.
+
+### 2026-10-02 — 40D focal-plane mark
+The grip-side view in 40d.jpg clearly shows a focal-plane symbol ahead of the
+diopter wheel. Added its ring and stem at the modeled sensor plane (z=-.36),
+projecting the strokes onto the casting with BVH rays so they follow its curve.
+Verified readability in two close-up side/rear-oblique viewer angles and normal
+framing; no console errors. Updated 40D thumbnail.
+Investigated diopter +/- markings but did not establish their exact layout
+well enough to add them. Saved Canon's manufacturer brochure and rendered its
+nomenclature page for further reference (output/gear-reference/40d-brochure.pdf,
+40d-brochure-controls.png). Source:
+https://downloads.canon.com/cpr/software/camera/40D_BC_0113W833.pdf
+Prior turn made progress correcting rear-cover overlap. Logs:
+/tmp/40d-focal-mark.log, /tmp/40d-focal-mark-opt.log,
+/tmp/40d-focal-mark-build.log. Overall photorealism remains unproven.

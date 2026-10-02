@@ -615,6 +615,26 @@ def body(which):
     blend=shell.modifiers.new('Rounded grip shoulder transition','SMOOTH')
     blend.vertex_group=blend_group.name;blend.factor=.8;blend.iterations=180
     apply(shell,blend);shell.vertex_groups.remove(shell.vertex_groups['Grip shoulder blend'])
+    if not dslr:
+        # The union's shoulder blend left a trough where the casting ends.
+        # Bridge its top heights between neighboring sections while retaining
+        # the grip sides and the forward shutter crown.
+        from mathutils.bvhtree import BVHTree
+        bpy.context.view_layer.update()
+        shoulder_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        for v in shell.data.vertices:
+            x,y,z=v.co
+            if not (-1.46<x<-.94 and .08<z<.58 and y>.45):continue
+            ends=[shoulder_surface.ray_cast(Vector((x,2,zz)),Vector((0,-1,0)),4)[0] for zz in [.08,.58]]
+            top=shoulder_surface.ray_cast(Vector((x,2,z)),Vector((0,-1,0)),4)[0]
+            if top is None or any(hit is None for hit in ends):continue
+            t=(z-.08)/.50
+            bridge=ends[0].y*(1-t)+ends[1].y*t
+            lift=max(0,bridge-top.y)
+            upper=max(0,min(1,(y-.45)/max(.01,top.y-.45)))
+            width=math.exp(-((x+1.20)/.24)**8)
+            v.co.y+=lift*sin(pi*t)**2*upper*upper*(3-2*upper)*width
+        shell.data.update()
     reduce=shell.modifiers.new('Web mesh reduction','DECIMATE');reduce.ratio=.22;apply(shell,reduce)
     sleeve=[(y,cx,cz,rx+.004,rz+.004) for y,cx,cz,rx,rz in rows[1:5]]+[(.34,-1.15,.14,.34,.47),(.37,-1.16,.13,.331,.457)]
     if not dslr:
@@ -644,11 +664,25 @@ def body(which):
     if seat is None:raise RuntimeError(which+' shutter seat missed grip')
     # Sink the angled R7 seat into the convex crown rather than lifting its
     # rear edge into a peak above the original silhouette.
-    if not dslr:seat-=normal*.035
+    if not dslr:seat-=normal*.012
     seat_floor=seat.y-.14 if dslr else .50
     seat_fade=.14 if dslr else .12
     seat_radius_z=.180 if dslr else .160
     pocket_radius_z=.120 if dslr else .105
+    if not dslr:
+        # Sample the nonlinear seat fade before bending the reduced casting.
+        # Long triangles otherwise turn its smooth falloff into highlight bands.
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(shell.data)
+        bmesh.ops.triangulate(bm,faces=list(bm.faces))
+        for _ in range(5):
+            edges=[edge for edge in bm.edges if edge.calc_length()>.022 and
+                   any(v.co.y>seat_floor and abs(v.co.x-seat.x)<.25 and
+                       abs(v.co.z-seat.z)<.22 for v in edge.verts)]
+            if not edges:break
+            bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
+            bmesh.ops.triangulate(bm,faces=list(bm.faces))
+        bm.to_mesh(shell.data);bm.free()
     for v in shell.data.vertices:
         x,y,z=v.co
         rho=math.sqrt(((x-seat.x)/.185)**2+((z-seat.z)/seat_radius_z)**2)
@@ -955,7 +989,9 @@ def body(which):
     rz=back-.042;screenX=.30 if dslr else .18;screenW=1.30 if dslr else 1.73;screenH=1.02 if dslr else 1.25;screenY=-.12 if dslr else -.175
     # Rear controls are seated in a separate rear cover. Their bezels were
     # previously suspended in front of the main casting's flat back plane.
-    rear_cover=profile('Rear control cover',outline,back-.083,back+.012,'Crinkle painted metal',.030)
+    # The DSLR cover must overlap the casting's rounded back edge. A shallow
+    # overlap exposed both bevels as a separate slab along the body sides.
+    rear_cover=profile('Rear control cover',outline,back-.083,back+(.065 if dslr else .012),'Crinkle painted metal',.055 if dslr else .030)
     bpy.ops.mesh.primitive_cube_add(size=1,location=(screenX,screenY,back-.06))
     opening=bpy.context.object;opening.scale=(screenW-.06,screenH-.08,.30)
     active(opening);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
@@ -967,10 +1003,10 @@ def body(which):
         box('LCD hinge center joint',(.99,screenY,rz-.016),(.145,.016,.142),'Deep black',.006)
     # The 40D's old bezel rear face lay inside the cover, leaving a razor-thin
     # edge. Seat the frame outside the cover and the glass just in front of it.
-    bezel_z=rz-.057 if dslr else rz
+    bezel_z=rz-.045 if dslr else rz
     if dslr:rounded_panel('LCD bezel',(screenX,screenY,bezel_z),(screenW,screenH,.055),.075,'Deep black')
     else:rounded_panel('LCD bezel',(screenX,screenY,bezel_z),(screenW,screenH,.115),.065,'Deep black')
-    glass_z=rz-.088 if dslr else rz-.066
+    glass_z=rz-.071 if dslr else rz-.066
     glass_w=screenW-.12;glass_h=screenH-.15
     if dslr:
         rounded_panel('LCD perimeter gasket',(screenX,screenY+.015,glass_z+.003),(glass_w+.024,glass_h+.024,.010),.060,'Graphite polymer')
@@ -983,13 +1019,30 @@ def body(which):
         for loop in face.loop_indices:
             v=display.data.vertices[display.data.loops[loop].vertex_index].co
             uv.data[loop].uv=((v.x-screenX)/glass_w+.5,(v.y-screenY-.015)/glass_h+.5)
-    if dslr:text('Rear Canon logo','Canon',(screenX,screenY-screenH/2+.047,rz-.087),.058,rotation=(0,pi,0),font='Canon')
+    if dslr:text('Rear Canon logo','Canon',(screenX,screenY-screenH/2+.047,rz-.074),.058,rotation=(0,pi,0),font='Canon')
     eyecup(.04,.69,rz,which)
+    if dslr:
+        # The grip-side reference places the focal-plane symbol ahead of
+        # the diopter wheel. Its stem is aligned with the modeled sensor plane.
+        from mathutils.bvhtree import BVHTree
+        bpy.context.view_layer.update()
+        marking_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        def focal_mark(points):
+            projected=[]
+            for yy,zz in points:
+                hit,_,_,_=marking_surface.ray_cast(Vector((-3,yy,zz)),Vector((1,0,0)),4)
+                if hit is None:raise RuntimeError('40D focal-plane mark missed casting')
+                projected.append((hit.x-.0015,yy,zz))
+            return projected
+        cy,cz=.75,-.36
+        line('40D focal plane ring',focal_mark([(cy+.016*cos(i*2*pi/48),cz+.016*sin(i*2*pi/48)) for i in range(49)]),.0016,'White ink')
+        line('40D focal plane stem',focal_mark([(cy-.027+i*.054/12,cz) for i in range(13)]),.0016,'White ink')
     if not dslr:
         # Six recessed speaker perforations between the finder and rear dial.
+        # Keep the lowest hole above the LCD bezel top (y=.45).
         cutters=[]
         for dx,dy in [(0,0),(-.022,0),(.022,0),(-.011,.022),(.011,.022),(0,-.022)]:
-            x,y=-.355+dx,.405+dy
+            x,y=-.355+dx,.505+dy
             bpy.ops.mesh.primitive_cylinder_add(vertices=16,radius=.0075,depth=.12,location=(x,y,rz+.002))
             cutters.append(bpy.context.object)
             cyl('Rear speaker darkness',(x,y,rz+.006),.0074,.002,'Deep black',vertices=16,bevel=0)
@@ -1062,22 +1115,61 @@ def body(which):
         face_ribs=bpy.data.objects.new('Rear wheel face knurl',mesh);scene.collection.objects.link(face_ribs)
         register(face_ribs,'Rear wheel radial face grips','Focus rubber');finish(face_ribs,.0012,2)
 
-        cyl('Joystick socket',(x,y,rz-.070),.141,.021,'Deep black')
-        sphere('Joystick rubber cup',(x,y,rz-.094),(.100,.100,.021),'Focus rubber')
-        sphere('Joystick thumb tip',(x,y,rz-.118),(.064,.064,.015),'Molded grip rubber')
+        cyl('Joystick socket',(x,y,rz-.054),.145,.021,'Deep black')
+        # The joystick sits inside a concave cup, below the wheel's face.
+        # A convex ellipsoid here made the entire control read as a dome.
+        segments=96;rows=12;verts=[];faces=[]
+        for row in range(rows+1):
+            t=row/rows;radius=.147-(.147-.064)*t
+            depth=rz-.107+.032*(2*t-t*t)
+            verts.extend((x+radius*cos(i*2*pi/segments),y+radius*sin(i*2*pi/segments),depth) for i in range(segments))
+        for row in range(rows):
+            for i in range(segments):
+                j=(i+1)%segments;a=row*segments;b=(row+1)*segments
+                faces.append((a+i,b+i,b+j,a+j))
+        mesh=bpy.data.meshes.new('Joystick concave cup');mesh.from_pydata(verts,[],faces);mesh.update()
+        cup=bpy.data.objects.new('Joystick concave cup',mesh);scene.collection.objects.link(cup)
+        register(cup,'Joystick concave cup','Focus rubber')
+        for face in mesh.polygons:face.use_smooth=True
+        sphere('Joystick thumb tip',(x,y,rz-.086),(.060,.060,.010),'Molded grip rubber')
         for ix in range(-3,4):
             for iy in range(-3,4):
-                if ix*ix+iy*iy<12:sphere('Joystick molded dots',(x+ix*.014,y+iy*.014,rz-.134),(.003,.003,.002),'Graphite polymer')
+                if ix*ix+iy*iy<12:sphere('Joystick molded dots',(x+ix*.014,y+iy*.014,rz-.097),(.003,.003,.002),'Graphite polymer')
         profile('Rear thumb rubber',[(-1.27,-.66),(-1.28,.27),(-1.28,.53),(-1.23,.54),(-1.16,.38),(-.89,.32),(-.86,.17),(-1.02,.03),(-1.08,-.17),(-1.12,-.42),(-1.17,-.66)],rz-.068,rz-.037,'Molded grip rubber',.012)
         x,y=-.90,-.35
         cyl('Four way pad recessed bezel',(x,y,rz-.047),.211,.025,'Deep black')
         ring('Four way pad rim',rz-.069,.201,.181,.021,'Graphite polymer',center=(x,y))
-        sphere('Four way rocker',(x,y,rz-.073),(.178,.178,.025),'Graphite polymer')
-        cyl('SET button recess',(x,y,rz-.095),.079,.012,'Deep black')
-        sphere('SET button',(x,y,rz-.108),(.064,.064,.013),'Anodized black')
-        text('Q SET','Q\nSET',(x,y,rz-.124),.043,rotation=(0,pi,0))
+        # A shallow dished rocker surrounds a flat SET key in the rear
+        # product reference; a sphere reverses that surface curvature.
+        segments=96;rows=10;verts=[];faces=[]
+        for row in range(rows+1):
+            t=row/rows;radius=.181-(.181-.079)*t
+            depth=rz-.092+.018*(2*t-t*t)
+            verts.extend((x+radius*cos(i*2*pi/segments),y+radius*sin(i*2*pi/segments),depth) for i in range(segments))
+        for row in range(rows):
+            for i in range(segments):
+                j=(i+1)%segments;a=row*segments;b=(row+1)*segments
+                faces.append((a+i,b+i,b+j,a+j))
+        # Return the raised outer edge into the bezel instead of leaving an
+        # open sheet visible when orbiting along the camera's rear cover.
+        skirt=len(verts)
+        verts.extend((x+.181*cos(i*2*pi/segments),y+.181*sin(i*2*pi/segments),rz-.060) for i in range(segments))
+        for i in range(segments):
+            j=(i+1)%segments;faces.append((i,j,skirt+j,skirt+i))
+        mesh=bpy.data.meshes.new('Four way rocker dish');mesh.from_pydata(verts,[],faces);mesh.update()
+        rocker=bpy.data.objects.new('Four way rocker dish',mesh);scene.collection.objects.link(rocker)
+        register(rocker,'Four way rocker dish','Graphite polymer')
+        for face in mesh.polygons:face.use_smooth=True
+        cyl('SET button recess',(x,y,rz-.069),.079,.012,'Deep black')
+        cyl('SET button',(x,y,rz-.085),.064,.018,'Satin control plastic',vertices=64,bevel=.005)
+        text('Q SET','Q\nSET',(x,y,rz-.096),.043,rotation=(0,pi,0))
         for a in [0,pi/2,pi,3*pi/2]:
-            notch=box('Rocker direction notch',(x+cos(a)*.150,y+sin(a)*.150,rz-.096),(.042,.008,.005),'Deep black',.002);notch.rotation_euler.z=a
+            # Follow the dish slope so each printed direction notch stays flush.
+            points=[]
+            for i in range(6):
+                radius=.130+i*.007;t=(.181-radius)/(.181-.079)
+                points.append((x+cos(a)*radius,y+sin(a)*radius,rz-.093+.018*(2*t-t*t)))
+            line('Rocker direction notch',points,.002,'Deep black')
     def rear_ink(name,x,y,points,mat='Blue ink',filled=False,width=.003):
         # Coordinates read left-to-right from the rear reference. Thin planar
         # polygons follow the cover below; these are printed ink, not hardware.
@@ -1536,8 +1628,11 @@ def body(which):
         bpy.ops.mesh.primitive_cylinder_add(vertices=128,radius=.436,depth=.80,location=(0,0,.15));bore=bpy.context.object
         cut=shell.modifiers.new('Open RF sensor chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
     # Boolean pocket walls must not pull the exterior's smooth normals inward.
-    edge=shell.modifiers.new('Separate hard pocket edges','EDGE_SPLIT')
-    edge.split_angle=pi/3;edge.use_edge_angle=True;apply(shell,edge)
+    for casting in ([shell] if dslr else [shell,rear_cover]):
+        # The R7 rear cover also has Boolean perforations. Preserve their
+        # wall normals separately after rebuilding the deformed cover mesh.
+        edge=casting.modifiers.new('Separate hard pocket edges','EDGE_SPLIT')
+        edge.split_angle=pi/3;edge.use_edge_angle=True;apply(casting,edge)
     return OBJECTS[start:]
 
 def fifty_prime():
@@ -2474,6 +2569,20 @@ def bake_occlusion(name,objects):
 
 def export_asset(name,objects):
     import bmesh
+    # Author each camera finish independently of the lenses.
+    if name in ['r7','40d']:
+        calibrated={}
+        for o in objects:
+            if o.type!='MESH' or not o.data.materials:continue
+            source=o.data.materials[0]
+            strengths={'Molded grip rubber':.30 if name=='r7' else .36,'Crinkle painted metal':.18}
+            if source.name not in strengths:continue
+            if source.name not in calibrated:
+                finish=source.copy();finish.name=('R7 ' if name=='r7' else '40D ')+source.name
+                for node in finish.node_tree.nodes:
+                    if node.type=='NORMAL_MAP':node.inputs['Strength'].default_value=strengths[source.name]
+                calibrated[source.name]=finish
+            o.data.materials[0]=calibrated[source.name]
     # Smart UVs provide real material-space grain; normals are corrected before export.
     for o in objects:
         if o.type!='MESH':continue
@@ -2498,7 +2607,13 @@ def export_asset(name,objects):
                 points=[uv[i].uv for i in face.loop_indices]
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             if uv_area<1e-9:raise RuntimeError('Textured finish has no usable surface UVs: '+o.name)
-            density=math.sqrt(world_area/uv_area)/1.4
+            # Calibrated camera grain is authored here without viewer tiling:
+            # about .4-.46 mm rubber cells and .2 mm painted-shell cells.
+            tile_span=1.4
+            if name in ['r7','40d']:
+                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.35 if name=='r7' else .40
+                elif 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.18
+            density=math.sqrt(world_area/uv_area)/tile_span
             for loop in uv:loop.uv*=density
     # Merge by material so detailed geometry remains inexpensive to draw in WebGL.
     grouped={}

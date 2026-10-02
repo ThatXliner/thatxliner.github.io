@@ -91,7 +91,9 @@ export async function loadModelLibrary(initialIds: string[]) {
                             .metalnessMap))
                   ) {
                     value.wrapS = value.wrapT = THREE.RepeatWrapping;
-                    const grain = material.name.includes("Scanned grip rubber")
+                    const grain = /^(R7|40D) /.test(material.name)
+                      ? 1
+                      : material.name.includes("Scanned grip rubber")
                       ? (id === "r7" || id === "40d")
                         ? 1.6
                         : 1.25
@@ -109,7 +111,9 @@ export async function loadModelLibrary(initialIds: string[]) {
                 material.normalMap
               )
                 material.normalScale.multiplyScalar(
-                  material.name.includes("Molded grip rubber")
+                  /^(R7|40D) /.test(material.name)
+                    ? 1
+                    : material.name.includes("Molded grip rubber")
                     ? 0.3
                     : /Pebbled rubber|Scanned grip rubber/.test(material.name)
                     ? (id === "r7" || id === "40d")
