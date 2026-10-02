@@ -306,13 +306,20 @@ def eyecup(x,y,z,body='c200',housing=()):
         cutter=rounded_panel('Finder channel cutter',(x,y,z+.015),(.312,.222,.40),.025,None)
         for carrier in [*housing,*carriers]:
             cut=carrier.modifiers.new('Open finder optical channel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(carrier,cut)
-            if carrier in carriers:finish(carrier)
+            if carrier in carriers:
+                # Boolean openings split the planar front into large polygons.
+                # Keep those faces flat instead of interpolating bevel normals
+                # across their export triangles.
+                for face in carrier.data.polygons:
+                    if abs(face.normal.z)>.999:face.use_smooth=False
+                finish(carrier,smooth=False)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
         for depth,w,h in [(-.040,.285,.200),(.075,.250,.170)]:
             baffle=rounded_panel('Finder internal baffle',(x,y,z+depth),(.35,.26,.012),.025,'Optical barrel flocking')
             cutter=rounded_panel('Finder baffle aperture',(x,y,z+depth),(w,h,.06),.021,None)
             cut=baffle.modifiers.new('Optical pupil opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(baffle,cut)
-            finish(baffle)
+            for face in baffle.data.polygons:
+                if abs(face.normal.z)>.999:face.use_smooth=False
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
         rounded_panel('Recessed finder field',(x,y,z+.145),(.29,.21,.003),.018,'40D finder field')
     if body=='c200':
@@ -613,7 +620,7 @@ def body(which):
     # Full-depth ergonomic grip and a separate pebbled overmold follow the same contour.
     rows=[(-.85,-1.09,.11,.25,.32),(-.80,-1.12,.11,.33,.43),(-.65,-1.14,.12,.35,.46),(-.25,-1.15,.15,.355,.47),(.12,-1.14,.16,.345,.49),(.4,-1.16,.12,.33,.46),(.57,-1.19,.04,.29,.36),(.64,-1.21,-.02,.20,.24)]
     if not dslr:
-        rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.19,.46,.28,.39),(.69,-1.20,.59,.20,.23),(.73,-1.20,.63,.12,.11)]
+        rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.19,.46,.30,.39),(.69,-1.20,.59,.26,.23),(.73,-1.20,.63,.17,.11)]
         # Canon's grip-side view shows the finger grip recessed below the
         # shutter ledge. Retreat the front ~6 mm while keeping each section's
         # rear edge, the shutter crown and the bottom return in place.
@@ -683,7 +690,20 @@ def body(which):
     if not dslr:
         sleeve=[(y,cx,cz,rx+.004,rz+.004) for y,cx,cz,rx,rz in rows[1:5]]+[(.34,-1.15,.34,.333,.551),(.39,-1.16,.34,.323,.545)]
     if not dslr:sleeve=[r7_grip_section(row) for row in sleeve]
-    grip_rubber=loft_grip('Textured grip overmold',sleeve,'Molded grip rubber',closed=dslr)
+    grip_rubber=loft_grip('Textured grip overmold',sleeve,'Molded grip rubber',closed=False)
+    if dslr:
+        # Resolve sub-millimeter casting protrusions between the sleeve rows.
+        # Fit outer and inner surfaces separately to preserve rubber thickness.
+        from mathutils.bvhtree import BVHTree
+        detail=grip_rubber.modifiers.new('Lower grip contact resolution','SUBSURF');detail.levels=1;apply(grip_rubber,detail)
+        bpy.context.view_layer.update()
+        grip_casting=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        for vertex in grip_rubber.data.vertices:
+            if vertex.co.y>=-.50 or vertex.co.x>=-.90 or vertex.co.z<=.08:continue
+            hit,normal,_,_=grip_casting.find_nearest(vertex.co)
+            clearance=.006 if vertex.normal.dot(normal)>0 else .002
+            if (vertex.co-hit).dot(normal)<clearance:vertex.co=hit+normal*clearance
+        grip_rubber.data.update()
     if not dslr:
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
@@ -703,7 +723,7 @@ def body(which):
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
     shutter_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.389) if dslr else (-1.25,2,.800)),Vector((0,-1,0)),4)
+    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.389) if dslr else (-1.25,2,.770)),Vector((0,-1,0)),4)
     if seat is None:raise RuntimeError(which+' shutter seat missed grip')
     # Sink the angled R7 seat into the convex crown rather than lifting its
     # rear edge into a peak above the original silhouette.
@@ -799,7 +819,7 @@ def body(which):
         cyl('Flash release',(1.073,.37,.12),.05,.027,'Graphite polymer','x',48)
     text('Canon wordmark','Canon',(0,.896 if dslr else .840,.561 if dslr else front+.006),.12,font='Canon')
     text('EOS badge','EOS',(.84 if dslr else .78,.35 if dslr else .490,front+(.043 if dslr else .035)),.075 if dslr else .110)
-    text('Model badge','40D' if dslr else 'R7',(.84 if dslr else .78,.245 if dslr else .355,front+(.044 if dslr else .035)),.084 if dslr else .130)
+    text('Model badge','40D' if dslr else 'R7',(.84 if dslr else .78,.245 if dslr else .355,front+(.044 if dslr else .035)),.100 if dslr else .130,font='Bold' if dslr else 'Arial')
     if not dslr:
         rounded_panel('Raised R7 badge',(.78,.415,front+.026),(.270,.280,.015),.030,'Graphite polymer')
         from mathutils.bvhtree import BVHTree
@@ -814,7 +834,11 @@ def body(which):
                 if hit is None:raise RuntimeError('R7 badge extends outside housing')
                 v.co.z=hit.z+(.002 if part_name=='Raised R7 badge' else .0175)+(v.co.z-backmost)
             o.data.update()
-    if dslr:box('Raised model badge',(.84,.295,front+.027),(.245,.26,.027),'Anodized black',.038)
+    if dslr:
+        # The thin badge has rounded outline corners and a narrow molded rim;
+        # a cube bevel clamps those corners to half the plate thickness.
+        rounded_panel('Raised model badge',(.84,.295,front+.023),(.245,.26,.020),.038,'Graphite polymer')
+        rounded_panel('Model badge inset',(.84,.295,front+.034),(.221,.236,.008),.030,'Anodized black')
     if not dslr:
         # R7 front reference: a low, tall release beside the RF flange.
         rounded_panel('Lens release bezel',(.71,-.025,front+.025),(.190,.365,.018),.060,'Deep black')
@@ -823,12 +847,13 @@ def body(which):
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         release_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-        hit,normal,_,_=release_surface.ray_cast(Vector((2,-.08,1.22)),Vector((-1,0,-1)).normalized(),4)
+        hit,normal,_,_=release_surface.ray_cast(Vector((.80,-.08,2)),Vector((0,0,-1)),4)
         if hit is None:raise RuntimeError('40D lens release missed casting')
         pose=Matrix.Translation(hit)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
-        bezel=rounded_panel('Lens release bezel',(0,0,.003),(.325,.425,.014),.130,'Deep black')
+        # Reference front and side views show a narrow oval with a shallow face.
+        bezel=rounded_panel('Lens release bezel',(0,0,.003),(.255,.405,.014),.100,'Deep black')
         bezel.matrix_world=pose@bezel.matrix_world
-        button=sphere('Lens release button',(0,0,.016),(.140,.179,.035),'Graphite polymer')
+        button=sphere('Lens release button',(0,0,.014),(.1125,.1775,.018),'Graphite polymer')
         button.matrix_world=pose@button.matrix_world
         # The 40D preview control is on the terminal side below lens release,
         # not on the front of the hand grip (Canon manual, nomenclature).
@@ -919,17 +944,22 @@ def body(which):
         if wheel_center is None:raise RuntimeError('R7 command wheel center missed grip surface')
         wheel=wheel_center-wheel_up*.097
         wheel_start=len(OBJECTS)
-        cyl('Main command wheel core',(0,0,0),.106,.265,'Satin control plastic',vertices=96,bevel=.004)
+        cyl('Main command wheel core',(0,0,0),.106,.265,'Focus rubber',vertices=96,bevel=.004)
         verts=[];faces=[];columns=32;rows=12;step=2*pi/columns
         for row in range(rows):
             zz=-.121+row*.022
             for i in range(columns):
                 aa=(i+(row%2)*.5)*step;k=len(verts)
-                for angle,dz,rr in [(aa-step*.45,0,.106),(aa,-.010,.106),(aa+step*.45,0,.106),(aa,.010,.106),(aa,0,.109)]:
-                    verts.append((rr*cos(angle),rr*sin(angle),zz+dz))
-                faces.extend((k+j,k+(j+1)%4,k+4) for j in range(4))
+                # Molded knurl lands have small flat tops. Pointed pyramids
+                # produce sharp, sparkling highlights unlike the reference.
+                for scale,rr in [(1,.106),(.28,.109)]:
+                    for da,dz in [(-step*.45,0),(0,-.010),(step*.45,0),(0,.010)]:
+                        angle=aa+da*scale
+                        verts.append((rr*cos(angle),rr*sin(angle),zz+dz*scale))
+                faces.extend((k+j,k+(j+1)%4,k+4+(j+1)%4,k+4+j) for j in range(4))
+                faces.append((k+4,k+5,k+6,k+7))
         mesh=bpy.data.meshes.new('Main command wheel diamonds');mesh.from_pydata(verts,[],faces);mesh.update()
-        obj=bpy.data.objects.new('Main command wheel diamonds',mesh);scene.collection.objects.link(obj);register(obj,'Main command wheel diamonds','Satin control plastic')
+        obj=bpy.data.objects.new('Main command wheel diamonds',mesh);scene.collection.objects.link(obj);register(obj,'Main command wheel diamonds','Focus rubber')
         pose=Matrix.Translation(wheel)@Matrix((Vector((0,0,-1)),wheel_up,wheel_axis)).transposed().to_4x4()
         for obj in OBJECTS[wheel_start:]:obj.matrix_world=pose@obj.matrix_world
         # Open the grip above the wheel. The convex casting otherwise buries

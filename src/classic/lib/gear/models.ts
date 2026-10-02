@@ -45,7 +45,14 @@ export async function loadModelLibrary(initialIds: string[]) {
             if (opticalNormal) {
               // Keep polished reflections smooth without enlarging every normal
               // buffer or the environment map. Reuse the decoded attribute.
-              object.geometry.setAttribute("normal", opticalNormal);
+              // Blender's joined body also carries zero-filled copies of this
+              // attribute on non-optical primitives. Keep their authored normals.
+              const meshMaterials = Array.isArray(object.material)
+                ? object.material
+                : [object.material];
+              if (meshMaterials.every((material) =>
+                /^(Optical glass|Inner optical glass|40D ocular glass)/.test(material.name),
+              )) object.geometry.setAttribute("normal", opticalNormal);
               object.geometry.deleteAttribute("_optical_normal");
             }
             object.castShadow = true;

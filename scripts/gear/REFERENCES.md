@@ -2642,3 +2642,129 @@ build passed. Refreshed R7 thumbnail and setup poster. Overall fidelity remains
 incomplete; the previous turn established the R7 visible LCD's aspect ratio.
 Logs: /tmp/r7-card-door-outline.log, /tmp/r7-card-door-outline-opt.log,
 /tmp/r7-card-door-outline-build.log.
+
+### 2026-10-02 — 40D optical channel and normal-attribute regression
+The recessed finder field and two aperture baffles now produce an occluded
+off-axis view, unlike the rejected flat field immediately behind the ocular.
+This is an optical-pupil approximation, not an image traced through the lens.
+Actual viewer verification after commit 649b6f6 exposed a black-body regression:
+joining the ocular to the body propagates its custom optical-normal attribute
+to other primitives with zero values. The runtime had replaced their proper
+normals with those zero vectors. Restrict promotion to optical materials and
+discard the unused custom attribute on other primitives. Front, rear and
+rear-oblique checks now show restored body lighting, with no console errors.
+The carrier still has triangular shading artifacts around the Boolean opening;
+the preceding weighted-normal pass did not resolve those. Further geometry work
+is required. Refreshed the 40D thumbnail; production build passed, logged at
+/tmp/40d-optical-normal-scope-build.log. Overall photorealism remains incomplete.
+
+### 2026-10-02 — 40D finder carrier planar shading
+Compared the rear finder carrier with the saved four-view 40d.jpg reference.
+The Boolean opening left smooth-shaded planar polygons interpolating bevel
+normals across their export triangles. A further weighted-normal pass did not
+fix this. Set only the Z-facing planar carrier and baffle faces to flat shading;
+retain smooth rounded edges. Rebuilt and meshopt-compressed the 40D (3.04 MB).
+Actual viewer rear and rear-oblique checks no longer show the triangular
+patches; the recessed optical pupil still occludes off axis. Default front
+lighting remains intact and there were no console errors. Refreshed thumbnail.
+This verifies the local shading repair, not overall body or optical fidelity.
+Logs: /tmp/40d-finder-flat-face.log, /tmp/40d-finder-flat-face-opt.log.
+
+### 2026-10-02 — rejected 40D grip-rim trial
+Compared the grip side with 40d.jpg in the actual viewer using the short 50mm
+lens. The lower covering has a scalloped termination. A nearest-surface probe
+found 67/202 sampled lower vertices inside the casting (up to 0.406 mm), but
+those samples include the closed cap and do not by themselves locate visible
+intersections. Tested an open loft with a thin inward rim, then lower-surface
+projection, then rim-only geometry without an inner shell. The rim was cleaner,
+but a dark oval appeared near its lower side in all three trials. A no-AO
+diagnostic removed the oval, implicating the baked occlusion rather than proving
+an exposed hole. Removing the inner shell did not fix it, so its source is still
+unresolved. Reverted all grip trials; retained the prior finder shading fixes.
+Next investigation should isolate occluders contributing to the lower-grip bake.
+Evidence: /tmp/40d-grip-clearance.log, /tmp/40d-grip-rim*.log,
+/tmp/40d-grip-trial-revert.log and corresponding optimization log.
+
+### 2026-10-02 — 40D lower-grip contact resolved
+Continued the rejected rim trial with explicit diagnostics. Initial sampled
+outward hemisphere rays missed the local protrusion. Wider samples found the
+casting behind the side covering, but trimming that buried wrap did not remove
+the spot. Explicit UV padding trials also failed and were reverted. Mapping a
+dark atlas texel back to its outer mesh face showed no UV overlap; casting rays
+from that exact face hit the painted housing in all 96 directions, at ~.0017
+model units (~0.094 mm). The covering's coarse faces crossed the finer casting
+between vertices. This supersedes the earlier texture-bleeding hypothesis.
+Kept the open covering rim, added one subdivision level, and fitted lower
+outer/inner vertices to .006/.002-unit clearance respectively. No atlas packing
+or AO-intensity changes remain. Actual front, grip-side and rear-oblique viewer
+checks show a continuous lower edge without the dark oval; no console errors.
+Refreshed thumbnail. Compressed 40D is 3.6 MB; overall fidelity remains unproven.
+Diagnostics: /tmp/40d-grip-occluders.log, /tmp/40d-grip-occluders-wide.log,
+/tmp/40d-dark-outer.log, /tmp/40d-uv-overlap.log, /tmp/40d-bake-rays.log.
+Build/export logs: /tmp/40d-grip-contact-final.log and its optimization log.
+
+### 2026-10-02 — 40D front identification badge
+The four-view 40d.jpg reference shows a rounded badge with a narrow rim and
+heavier, larger model lettering below EOS. The old beveled cube's thin depth
+clamped its corner radius, leaving almost square corners. Replaced it with
+rounded-outline panels for the rim and inset; increased 40D lettering from
+.084 to .100 units and used the existing bold font. Verified readable front
+and terminal-side oblique views in the actual viewer, with the badge seated
+against the body and no console errors. Refreshed thumbnail. The model remains
+an approximation; this does not establish overall photorealism. The oblique
+view also warrants a closer reference check of the lens-release button's size.
+Logs: /tmp/40d-model-badge.log and /tmp/40d-model-badge-opt.log.
+
+### 2026-10-02 — 40D lens release proportions and seat
+Compared 40d.jpg and 40d-mount.jpg with actual front and terminal-oblique views.
+The old bezel was ~17.9 mm wide and its domed face projected outside the front
+body silhouette. Reduced bezel width to ~14 mm and button width to ~12.4 mm,
+keeping ~19.5 mm button height (photo estimates). A flat rounded-panel trial
+looked too rectangular and was replaced with a shallow oval (depth radius
+.018 instead of .035 units). More importantly, replaced the diagonal mounting
+ray that hit the body's outer corner with a forward ray at x=.80: the release
+now sits beside the mount, slightly inward of the badge, as in the front
+reference. Checked front and oblique seating in the actual viewer; no console
+errors. Refreshed thumbnail. Full body fidelity is still incomplete.
+Final logs: /tmp/40d-release-seat.log and /tmp/40d-release-seat-opt.log.
+
+### 2026-10-02 — R7 upper grip width
+Compared the actual viewer's top and grip-side views with r7-top.png and
+r7-right-canon.jpg. The shutter end tapered more sharply than the reference.
+Broadened the three upper loft rows (X radii .28/.20/.12 to .30/.26/.17),
+preserving their height/depth and the lower finger-grip section. These are
+photo-estimated contour adjustments, not measured product dimensions.
+Verified top, grip-side and default front-oblique views with the 50mm lens and
+control-ring adapter: the crown is slightly broader and attached controls
+remain seated, with no console errors. The shoulder transition still looks
+too uneven and needs further work; this is not a completed silhouette match.
+Updated R7 thumbnail and setup poster. Optimized R7 is 3.72 MB.
+Logs: /tmp/r7-grip-crown-width.log and /tmp/r7-grip-crown-width-opt.log.
+
+### 2026-10-02 — R7 shutter-seat shoulder peak
+Surface measurements showed the middle shoulder was already nearly level;
+the shutter-seat tangent plane was creating the local high point. At x=-1.2,
+z=.7 it raised the crown to y=.7885, versus the pre-seat surface near .7247.
+The former seat used a steep tip normal (Y=.658, Z=.736). Moved the R7 seat's
+sampling position from z=.800 to .770. A .750 trial was too flat; final normal
+is Y=.885, Z=.458 and the sampled crown point is y=.7343, about 3 mm below the
+old peak. The diagnostic's initial version overwrote the local normal variable
+after printing its results; corrected it before final measurements and reran
+successfully. Kept the existing middle-shoulder bridge unchanged.
+Verified default front-oblique, grip-side and top views in the actual viewer:
+reduced peak, forward-tilted button, no new visible control intersections or
+console errors. Refreshed R7 thumbnail and setup poster. Full contour and
+photorealism verification remains incomplete.
+Logs: /tmp/r7-crown-before.log, /tmp/r7-shutter-crown-before.log,
+/tmp/r7-shutter-crown-final.log, /tmp/r7-shutter-seat-final.log and opt log.
+
+### 2026-10-02 — R7 main-wheel knurl finish
+Compared the main command wheel with r7-top.png. Pointed pyramids using the
+glossy satin-control finish produced bright sparkling tips in the live viewer.
+Replaced each tip with a small flat diamond land (28% footprint) and used the
+existing matte Focus rubber material for both core and grip lands. Preserved
+the wheel dimensions, pitch, position and slot. Verified top and elevated
+rear-oblique actual viewer views: visible diamond pattern with softer highlights,
+unchanged seating and no console errors. Refreshed thumbnail and setup poster.
+Compressed R7 is 3.75 MB. Overall photorealism remains incomplete.
+Logs: /tmp/r7-wheel-knurl.log and /tmp/r7-wheel-knurl-opt.log.
