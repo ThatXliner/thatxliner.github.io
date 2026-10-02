@@ -65,6 +65,7 @@ def material(name,color,rough=.4,metal=0,normal=None,normal_strength=.45,transmi
 material('Graphite polymer',(.013,.014,.016),.52,0,FINE,.4)
 material('Satin control plastic',(.008,.009,.010),.24,0)
 material('Frosted indicator lens',(.30,.32,.30),.32,0)
+material('Unlit amber indicator',(.32,.135,.062),.28,0)
 material('Magnesium shell',(.018,.019,.021),.55,0,FINE,.35)
 material('Pebbled rubber',(.009,.0095,.01),.66,0,LEATHER,3.0)
 M['Pebbled rubber'].name='Scanned grip rubber'
@@ -183,7 +184,7 @@ def sphere(name,p,size,mat='Graphite polymer'):
     for poly in o.data.polygons:poly.use_smooth=True
     return o
 
-def optical_element(name,z,r,sag=.025,thickness=.035,mat='Optical glass',back_sag=None):
+def optical_element(name,z,r,sag=.025,thickness=.035,mat='Optical glass',back_sag=None,spherical=False):
     # Closed surfaces with independent curvature. A positive back_sag gives
     # a meniscus; the default retains the symmetric biconvex profile.
     if back_sag is None:back_sag=-sag
@@ -194,7 +195,12 @@ def optical_element(name,z,r,sag=.025,thickness=.035,mat='Optical glass',back_sa
         center=len(verts);verts.append((0,0,z+side*thickness/2+curve))
         rings=[]
         for j in range(1,rows+1):
-            t=j/rows;rr=r*t;zz=z+side*thickness/2+curve*(1-t*t);start=len(verts);rings.append(start)
+            t=j/rows;rr=r*t
+            if spherical and curve:
+                radius=(r*r+curve*curve)/(2*abs(curve))
+                rise=math.copysign(math.sqrt(max(0,radius*radius-rr*rr))-(radius-abs(curve)),curve)
+            else:rise=curve*(1-t*t)
+            zz=z+side*thickness/2+rise;start=len(verts);rings.append(start)
             verts.extend((rr*cos(i*2*pi/segments),rr*sin(i*2*pi/segments),zz) for i in range(segments))
             for i in range(segments):
                 nxt=(i+1)%segments
@@ -290,13 +296,18 @@ def eyecup(x,y,z,body='c200'):
         rounded_panel('Viewfinder proximity sensor window',(x-.237,y,z-.076),(.063,.110,.006),.013,'Sensor coating')
     else:
         box('Eyecup retaining lower rail',(x,y-.207,z-.060),(.47,.034,.030),'Anodized black',.006)
-    # Diopter wheel sits on the right side of the finder when viewed from behind.
-    dx=x-.405;dy=y+.145;dz=z+.025
-    cyl('Diopter axle',(dx,dy,dz),.104,.079,'Deep black','x',64,.004)
-    cyl('Diopter adjustment wheel',(dx-.017,dy,dz),.093,.088,'Graphite polymer','x',64,.004)
+    # R7 terminal-side/top references place its thin diopter wheel on the
+    # left of the eyecup, below the crown; the DSLR uses the opposite side.
+    dx=x+.405 if body=='r7' else x-.405
+    dy=y-.09 if body=='r7' else y+.145
+    dz=z+.055 if body=='r7' else z+.025
+    wheel_x=dx+.005 if body=='r7' else dx-.017
+    wheel_width=.035 if body=='r7' else .088
+    cyl('Diopter axle',(dx,dy,dz),.104,.035 if body=='r7' else .079,'Deep black','x',64,.004)
+    cyl('Diopter adjustment wheel',(wheel_x,dy,dz),.093,wheel_width,'Graphite polymer','x',64,.004)
     for i in range(36):
         a=2*pi*i/36
-        tooth=box('Diopter wheel knurl',(dx-.017,dy+.093*cos(a),dz+.093*sin(a)),(.086,.010,.010),'Focus rubber',.002)
+        tooth=box('Diopter wheel knurl',(wheel_x,dy+.093*cos(a),dz+.093*sin(a)),(wheel_width-.002,.010,.010),'Focus rubber',.002)
         tooth.rotation_euler.x=a
 
 def text(name,words,p,size=.08,mat='White ink',rotation=(0,0,0),font='Arial',align='CENTER'):
@@ -572,7 +583,14 @@ def body(which):
         rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.19,.46,.28,.39),(.69,-1.20,.59,.20,.23),(.73,-1.20,.63,.12,.11)]
     # Keep the outside silhouette while narrowing the front grip into the
     # finger channel beside the mount, as seen in the R7 front reference.
-    grip_rows=[(y,cx-rx*.20,cz,rx*.80,rz) for y,cx,cz,rx,rz in rows] if not dslr else rows
+    def r7_grip_section(row):
+        y,cx,cz,rx,rz=row
+        t=max(0,min(1,(y-.28)/.31));t=t*t*(3-2*t)
+        # The finger channel is narrow below the shutter deck, but the upper
+        # crown broadens inward to carry the M-Fn button beside the wheel.
+        width=.80+.20*t
+        return y,cx-rx*(1-width),cz,rx*width,rz
+    grip_rows=[r7_grip_section(row) for row in rows] if not dslr else rows
     grip_core=loft_grip('Sculpted grip core',grip_rows,'Crinkle painted metal')
     # Fuse both bodies' casting and grip; intersecting shells produce a hard
     # seam and unstable highlights across the 40D shutter shoulder.
@@ -601,7 +619,7 @@ def body(which):
     sleeve=[(y,cx,cz,rx+.004,rz+.004) for y,cx,cz,rx,rz in rows[1:5]]+[(.34,-1.15,.14,.34,.47),(.37,-1.16,.13,.331,.457)]
     if not dslr:
         sleeve=[(y,cx,cz,rx+.004,rz+.004) for y,cx,cz,rx,rz in rows[1:5]]+[(.34,-1.15,.34,.333,.551),(.39,-1.16,.34,.323,.545)]
-    if not dslr:sleeve=[(y,cx-rx*.20,cz,rx*.80,rz) for y,cx,cz,rx,rz in sleeve]
+    if not dslr:sleeve=[r7_grip_section(row) for row in sleeve]
     grip_rubber=loft_grip('Textured grip overmold',sleeve,'Molded grip rubber')
     if not dslr:
         from mathutils.bvhtree import BVHTree
@@ -894,25 +912,37 @@ def body(which):
             [(.010,-.007),(.019,-.007)],
         ])
     else:
+        from mathutils.bvhtree import BVHTree
+        bpy.context.view_layer.update()
+        surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         for name,x,y,z in [('M-Fn',-1.015,.677,.575),('ISO',-1.25,.735,.185),('LOCK',-.97,.751,-.095),('Record',-1.015,.745,.200)]:
-            cyl('Top '+name+' bezel',(x,y-.006,z),.060,.016,'Deep black','y',48)
-            sphere('Top '+name+' button',(x,y+.008,z),(.043,.015,.043),'Graphite polymer')
-            if name=='Record':cyl('Record button red dot',(x,y+.024,z),.019,.002,'Red lacquer','y',32,.001)
-            else:
+            hit,normal,_,_=surface.ray_cast(Vector((x,2,z)),Vector((0,-1,0)),4)
+            if hit is None:raise RuntimeError('R7 top button missed casting: '+name)
+            pose=Matrix.Translation(hit-normal*.002)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
+            button_start=len(OBJECTS)
+            cyl('Top '+name+' bezel',(0,0,0),.060,.016,'Deep black',vertices=48)
+            sphere('Top '+name+' button',(0,0,.012),(.043,.043,.015),'Graphite polymer')
+            if name=='Record':cyl('Record button red dot',(0,0,.028),.019,.002,'Red lacquer',vertices=32,bevel=.001)
+            for o in OBJECTS[button_start:]:o.matrix_world=pose@o.matrix_world
+            if name!='Record':
                 label=text('Top '+name+' marking',name,(x,y+.01,z-.095) if name=='LOCK' else (x-.105,y+.01,z) if name=='M-Fn' else (x+.105,y+.01,z),.043)
                 label.matrix_world=Matrix.Translation(label.location)@Matrix.Rotation(-pi/2,4,'X')@Matrix.Rotation(pi,4,'Z')
+        power_start=len(OBJECTS)
         cyl('Power selector bezel',(-1.225,.718,-.242),.123,.022,'Deep black','y',64)
         cyl('Power selector',(-1.225,.734,-.242),.106,.021,'Graphite polymer','y',64)
         box('Power lever',(-1.225,.754,-.305),(.026,.021,.125),'Focus rubber',.010)
         label=text('Power legend','ON OFF',(-1.255,.759,-.08),.044)
         label.matrix_world=Matrix.Translation(label.location)@Matrix.Rotation(-pi/2,4,'X')@Matrix.Rotation(pi,4,'Z')
         box('Power selector white index',(-1.225,.746,-.192),(.008,.002,.058),'White ink',.001)
+        hit,normal,_,_=surface.ray_cast(Vector((-1.225,2,-.242)),Vector((0,-1,0)),4)
+        if hit is None:raise RuntimeError('R7 power selector missed casting')
+        power_pose=Matrix.Translation(hit-normal*.003)@Vector((0,1,0)).rotation_difference(normal).to_matrix().to_4x4()@Matrix.Translation(Vector((1.225,-.707,.242)))
+        for o in OBJECTS[power_start:]:
+            if 'Power legend' not in o.name:o.matrix_world=power_pose@o.matrix_world
         # Movie pictogram sits before ON and OFF on the three-position switch.
         line('Power legend movie frame',[(-1.065,.759,-.062),(-1.107,.759,-.062),(-1.107,.759,-.092),(-1.065,.759,-.092),(-1.065,.759,-.062)],.0018,'White ink')
         line('Power legend movie lens',[(-1.107,.759,-.069),(-1.120,.759,-.062),(-1.120,.759,-.092),(-1.107,.759,-.085)],.0018,'White ink')
         # Printed legends follow the curved casting, including the sloped grip.
-        from mathutils.bvhtree import BVHTree
-        surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         for o in OBJECTS[start:]:
             if ('Top ' in o.name and ' marking' in o.name) or 'Power legend' in o.name:
                 active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -939,15 +969,15 @@ def body(which):
     # edge. Seat the frame outside the cover and the glass just in front of it.
     bezel_z=rz-.057 if dslr else rz
     if dslr:rounded_panel('LCD bezel',(screenX,screenY,bezel_z),(screenW,screenH,.055),.075,'Deep black')
-    else:box('LCD bezel',(screenX,screenY,bezel_z),(screenW,screenH,.115),'Deep black',.045)
+    else:rounded_panel('LCD bezel',(screenX,screenY,bezel_z),(screenW,screenH,.115),.065,'Deep black')
     glass_z=rz-.088 if dslr else rz-.066
     glass_w=screenW-.12;glass_h=screenH-.15
     if dslr:
         rounded_panel('LCD perimeter gasket',(screenX,screenY+.015,glass_z+.003),(glass_w+.024,glass_h+.024,.010),.060,'Graphite polymer')
         display=rounded_panel('LCD cover glass',(screenX,screenY+.015,glass_z-.003),(glass_w,glass_h,.010),.050,'40D display glass')
     else:
-        rounded_panel('LCD perimeter gasket',(screenX,screenY+.015,glass_z+.003),(glass_w+.024,glass_h+.024,.010),.032,'Graphite polymer')
-        display=rounded_panel('LCD cover glass',(screenX,screenY+.015,glass_z-.003),(glass_w,glass_h,.010),.026,'R7 display glass')
+        rounded_panel('LCD perimeter gasket',(screenX,screenY+.015,glass_z+.003),(glass_w+.024,glass_h+.024,.010),.050,'Graphite polymer')
+        display=rounded_panel('LCD cover glass',(screenX,screenY+.015,glass_z-.003),(glass_w,glass_h,.010),.040,'R7 display glass')
     uv=display.data.uv_layers.new(name='UVMap');display['preserve_uv']=True
     for face in display.data.polygons:
         for loop in face.loop_indices:
@@ -994,6 +1024,14 @@ def body(which):
         cyl('SET button socket',(-.73,-.32,rz-.068),.095,.017,'Deep black')
         sphere('SET button',(-.73,-.32,rz-.084),(.080,.080,.016),'Graphite polymer')
         text('SET legend','SET',(-.73,-.32,rz-.102),.037,rotation=(0,pi,0))
+        # The unlit card-access window sits outside the quick-control wheel
+        # at its lower right in the rear product reference (negative model X).
+        access_socket=rounded_panel('Card access lamp socket',(0,0,0),(.038,.078,.009),.015,'Deep black')
+        access_lens=rounded_panel('Card access lamp window',(0,0,0),(.026,.059,.005),.011,'Unlit amber indicator')
+        access_socket.location=(-1.025,-.508,rz-.071)
+        access_lens.location=(-1.025,-.508,rz-.077)
+        access_socket.rotation_euler.z=.56
+        access_lens.rotation_euler.z=.56
         cyl('Multi controller socket',(-.52,.24,rz-.038),.119,.035,'Deep black')
         ring('Multi controller bezel',rz-.064,.116,.088,.020,'Satin control plastic',center=(-.52,.24),segments=96)
         sphere('Multi controller rubber seat',(-.52,.24,rz-.066),(.085,.085,.025),'Focus rubber')
@@ -1477,7 +1515,31 @@ def fifty_prime():
     global current;current='50';start=len(OBJECTS)
     ring('Plastic EF bayonet',.044,.535,.36,.088,'Graphite polymer')
     ring('Mount shoulder',.14,.59,.36,.16,'Graphite polymer')
-    ring('Smooth fixed barrel',.405,.62,.48,.43,'Graphite polymer')
+    ring('Fixed barrel core',.405,.610,.48,.43,'Graphite polymer')
+    ring('Smooth fixed barrel',.475,.62,.610,.29,'Graphite polymer')
+    # Canon C21-6241, YA2-0425: short axial grooves in the rear outer
+    # barrel. These belong to the lens, independently of its ribbed dust cap.
+    segments=384;verts=[];faces=[]
+    stations=[.190,.202,.209,.216,.228,.280,.292,.299,.306,.330]
+    for z in stations:
+        ramp=min(1,max(0,(z-.202)/.014),max(0,(.306-z)/.014))
+        ramp=ramp*ramp*(3-2*ramp)
+        for i in range(segments):
+            a=i*2*pi/segments
+            # Smooth-rooted narrow slots retain broad, flat molded lands.
+            slot=max(0,(cos(a*48)-.15)/.85)
+            slot=slot*slot*(3-2*slot)
+            # The switch insert interrupts the rear grip band.
+            switch_clearance=abs(math.atan2(sin(a-pi),cos(a-pi)))<.23
+            radius=.62-.008*ramp*slot*(not switch_clearance)
+            verts.append((radius*cos(a),radius*sin(a),z))
+    for row in range(len(stations)-1):
+        for i in range(segments):
+            j=(i+1)%segments;k=row*segments
+            faces.append((k+i,k+j,k+segments+j,k+segments+i))
+    mesh=bpy.data.meshes.new('Rear fixed barrel grip');mesh.from_pydata(verts,[],faces);mesh.update()
+    grip=bpy.data.objects.new('Rear fixed barrel grip',mesh);scene.collection.objects.link(grip);register(grip,'Rear fixed barrel grip','Graphite polymer')
+    for face in mesh.polygons:face.use_smooth=True
     ring('Rear barrel joint',.205,.622,.605,.009,'Deep black')
     ring('Focus ring separation',.635,.622,.60,.014,'Deep black')
     ring('Narrow manual focus rim',.684,.62,.563,.083,'Graphite polymer')
@@ -1511,7 +1573,7 @@ def fifty_prime():
     ring('Front element retaining lip',.542,.302,.278,.025,'Anodized black')
     # Canon's section shows a strongly convex front and nearly planar rear.
     # Match its approximate sag/radius ratio; this is not an optical prescription.
-    optical_element('Optical front element',.5395,.278,.079,.006,back_sag=0)
+    optical_element('Optical front element',.5395,.278,.079,.006,back_sag=0,spherical=True)
     optical_element('Optical inner element',.375,.257,.017,.022,'Inner optical glass')
     # Block sightlines from the optical aperture onto the outer barrel's
     # unlined interior, which otherwise appears as a bright crescent.
@@ -1527,17 +1589,32 @@ def fifty_prime():
     arc_text('CANON INC.   Ø52mm',.751,.578,.060,start=-pi*.73)
     # Bend both printed legends and the compact AF/MF recess onto the shell.
     detail_start=len(OBJECTS)
-    box('AF MF recess',(0,0,0),(.235,.23,.012),'Deep black',.018)
-    text('AF MF legend','AF  MF',(0,.060,.012),.039)
-    box('Focus mode track',(0,-.037,.013),(.145,.055,.011),'Deep black',.009)
-    box('Focus mode slider',(-.033,-.037,.026),(.066,.053,.025),'Graphite polymer',.012)
+    rounded_panel('AF MF recess',(0,0,-.001),(.235,.23,.006),.025,'Satin control plastic')
+    text('AF MF legend','AF  MF',(0,.060,.004),.039)
+    rounded_panel('Focus mode track',(0,-.037,.004),(.145,.061,.008),.023,'Deep black')
+    rounded_panel('Focus mode slider',(-.033,-.037,.013),(.066,.053,.013),.021,'Graphite polymer')
     for o in OBJECTS[detail_start:]:
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        # Sample the panel interior before cylindrical projection. Its old
+        # corner-only quads became chords and disappeared inside the barrel.
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(o.data)
+        for _ in range(5):
+            bmesh.ops.triangulate(bm,faces=list(bm.faces))
+            edges=[e for e in bm.edges if e.calc_length()>.018]
+            if not edges:break
+            bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
+        bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,depth=v.co;angle=vv/.62;rad=.62+depth
             v.co=(-rad*cos(angle),rad*sin(angle),.39+u)
+        # Discard normals authored for the flat panel before its deformation.
+        old=o.data;mesh=bpy.data.meshes.new(old.name+' curved')
+        mesh.from_pydata([tuple(v.co) for v in old.vertices],[],[tuple(p.vertices) for p in old.polygons])
+        for mat in old.materials:mesh.materials.append(mat)
+        mesh.update();o.data=mesh;bpy.data.meshes.remove(old);finish(o)
     text('Fixed focal length','50mm',(0,.624,.41),.078,rotation=(-pi/2,0,0))
-    text('Minimum focusing distance','0.45m / 1.5ft',(0,.624,.30),.031,'Gold engraving',rotation=(-pi/2,0,0))
+    text('Minimum focusing distance','0.45m / 1.5ft',(0,.624,.35),.031,'Gold engraving',rotation=(-pi/2,0,0))
     sphere('Mount alignment pip',(-.622,-.16,.245),(.014,.018,.018),'Red lacquer')
     for i in range(8):
         a=pi*1.15+i*.075;cyl('Lens electrical contact',(cos(a)*.468,sin(a)*.468,.012),.013,.012,'Gold engraving',vertices=16)

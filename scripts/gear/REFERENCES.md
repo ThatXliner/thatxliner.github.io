@@ -2095,3 +2095,103 @@ viewer check showed the crease removed. The owned lens retains no tripod
 collar or foot. Exported with Meshopt compression (2,127,344 bytes) and refreshed
 the lens thumbnail from the current browser renderer. Production build passed
 (15 pages). This is a progress checkpoint, not a claim of complete photorealism.
+
+### 2026-10-02 — 40D rear access-light window
+The rear view in 40d.jpg shows a small amber access-light window beside the
+lower-right edge of the quick-control dial, absent from the exported model.
+Added a rounded dark socket and a non-emissive amber inset, seated against the
+raised rubber surround. The first rear check caught the tilt mirrored relative
+to the reference; corrected it to follow the dial circumference. Rechecked the
+compressed model in /classic with the 28–135 attached, at rear and oblique rear
+angles: the window remains visible and seated without a floating gap. Final
+40d.glb is 2,982,664 bytes, 6,384 bytes larger than the prior checkpoint. No
+runtime passes or loading changes. Logs: /tmp/40d-access-lamp.log and
+/tmp/40d-access-opt.log. Shape, position and color remain visually estimated;
+this detail does not prove overall photorealism. The prior turn was progress:
+it committed and pushed the existing model/rendering checkpoint.
+
+### 2026-10-02 — R7 finder-side control and LCD outline
+The current rear viewer showed an exposed diopter cylinder above/right of the
+eyecup. Comparing r7-top.png and r7-terminals.webp established that the R7
+adjuster belongs on the terminal side, to the left when viewed from behind.
+The shared eyecup builder had incorrectly applied the DSLR location to the R7.
+Added R7-specific placement below the finder crown and reduced wheel/axle width
+from .088/.079 to .035. The first side check still exposed too much of the
+wheel; advanced it .057 into the housing. Actual /classic rear, terminal-side,
+and oblique views now show its thin edge beside the left eyecup, without the
+former right-side protrusion. The DSLR placement remains unchanged.
+
+Also replaced the R7 LCD bezel cube with a rounded-outline extrusion and
+increased gasket/glass corner radii to .050/.040 using r7-rear.webp. The frame
+now has continuous rounded corners rather than thickness-limited cube bevels.
+Rebuilt and Meshopt-compressed R7: 3,525,020 bytes. Refreshed body thumbnail and
+default setup poster. Logs: /tmp/r7-finder-frame.log and
+/tmp/r7-finder-frame-opt.log. Prior goal turn was progress (40D access-light
+geometry and actual-viewer checks). These corrections do not establish full
+body-contour, material or optical fidelity; those requirements remain open.
+Production build passed on retry (15 pages, 29.75 seconds). The first attempt
+failed while parsing an HTML response from the GitHub GraphQL data request;
+no feature change was required. Retry log: /tmp/r7-finder-frame-build-retry.log.
+
+### 2026-10-02 — R7 upper grip and top-control seating
+Compared r7-top.png and r7.jpg with the current interactive R7/50mm assembly.
+The M-Fn control stood above the grip because all four top buttons used fixed
+heights. Replaced these with shell ray casts and local surface-normal alignment
+for each bezel, button and recording dot. Applied the same rigid surface seating
+to the power selector assembly while retaining independently projected legends.
+The first seated pass exposed an underlying contour problem: uniform 20%
+shrinkage of the grip cross-section extended up through the shutter crown,
+placing M-Fn on a steep inner wall. The grip now transitions from 80% width below
+y=.28 to full width at y=.59, preserving its outer edge and widening inward.
+Applied the same section transform to the rubber overmold. The rebuilt model
+shows M-Fn seated on the upper crown in the actual viewer's elevated front and
+overhead views; front inspection preserves the outside grip silhouette.
+
+Exported and Meshopt compressed R7 is 3,531,848 bytes; no renderer/loading changes.
+Refreshed body/default previews. Logs /tmp/r7-top-seating.log and
+/tmp/r7-top-seating-opt.log. Previous goal turn was progress (finder placement,
+LCD outlines and live comparison). Exact contour/material fidelity remains
+unproven; the shoulder finish and optical appearance need further comparison.
+
+### 2026-10-02 — EF 50mm II rear barrel and focus switch
+Checked 50ii.jpg and Canon's C21-6241 exploded parts drawing, page 2:
+https://cfargo.com/pdf/Canon/EF%2050%201.8%20II.pdf
+Local reference: output/gear-reference/50ii-parts.pdf and 50ii-parts.png.
+The YA2-0425 outer barrel has short axial rear grip grooves, separate from the
+ribbed dust cap. Added a 48-slot sampled outer surface from z=.190 to .330 with
+.008 maximum recess depth; the AF/MF insert interrupts the band. Slot count and
+dimensions are visual estimates. Moved the minimum-distance legend onto the
+smooth band immediately ahead of the grooves.
+
+The live R7 side inspection also exposed a broken AF/MF surround: bending only
+the old box corners made its flat faces form chords inside the barrel. Replaced
+it with a rounded panel, tessellated its interior before cylindrical projection,
+and rebuilt normals after deformation. Lowered/rounded the track and slider.
+Actual /classic side and oblique close views now retain a continuous seated
+panel and readable AF/MF lettering; no browser console errors. Switched to the
+40D and verified the native EF assembly. Refreshed the 50mm thumbnail.
+Compressed asset: 883,784 bytes. Export logs /tmp/50-barrel-grip.log and
+/tmp/50-barrel-grip-opt.log. The optics were observed but not changed or accepted
+as photorealistic. Prior turn was progress (R7 crown/control seating and checks).
+
+### 2026-10-02 — 50mm front-element profile consistency
+The front element generator used a parabolic sag interpolation. Added an opt-in
+spherical-cap surface and applied it only to the EF 50mm II front element,
+retaining radius .278, center thickness .085, edge thickness .006 and planar
+rear face. The runtime thickness map now samples the same sphere rather than
+interpolating thickness quadratically. This improves internal geometry/render
+consistency; the existing visually estimated dimensions are not Canon's optical
+prescription, and the section reference alone cannot establish exact curvature.
+
+Decoded the raw GLB POSITION accessor and checked all 4,362 front-element
+vertices against spherical front/planar rear equations. Maximum residual was
+2.9541e-8 scene units. Thickness at normalized radii 0/.25/.5/.75/1 is
+.085/.080412/.066398/.042146/.006. Actual /classic front and oblique R7 views show
+continuous glass reflections, with no console errors; also checked the 40D
+assembly. Refreshed lens thumbnail. Compressed lens is 883,552 bytes. Logs:
+/tmp/50-spherical-glass.log and /tmp/50-spherical-glass-opt.log.
+
+The fast renderer still approximates stacked internal reflections. The large
+bright reflection in the 40D setup remains; this change does not establish
+complete optical fidelity or photorealism. Prior goal turn was progress (rear
+barrel grooves and curved AF/MF panel, verified on both owned bodies).

@@ -162,11 +162,18 @@ export async function loadModelLibrary(initialIds: string[]) {
                   geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
                   const size = 64;
                   const pixels = new Uint8Array(size * size * 4);
+                  const sag = centerThickness - edgeThickness;
+                  const sphereRadius = (0.278 ** 2 + sag ** 2) / (2 * sag);
                   for (let y = 0; y < size; y++) {
                     for (let x = 0; x < size; x++) {
                       const r2 = Math.min(1, ((x + 0.5) / size * 2 - 1) ** 2 + ((y + 0.5) / size * 2 - 1) ** 2);
                       const offset = (y * size + x) * 4;
-                      pixels[offset + 1] = Math.round((centerThickness + (edgeThickness - centerThickness) * r2) / maxThickness * 255);
+                      // The 50mm's spherical front cap has a planar rear face.
+                      // Use its actual sag instead of a parabolic interpolation.
+                      const thickness = id === "50"
+                        ? edgeThickness + Math.sqrt(sphereRadius ** 2 - 0.278 ** 2 * r2) - (sphereRadius - sag)
+                        : centerThickness + (edgeThickness - centerThickness) * r2;
+                      pixels[offset + 1] = Math.round(thickness / maxThickness * 255);
                       pixels[offset + 3] = 255;
                     }
                   }
@@ -196,6 +203,10 @@ export async function loadModelLibrary(initialIds: string[]) {
                     material.ior = material.name.includes("rear") ? 1.60 : 1.52;
                     material.opacity = id === "28-135"
                       ? material.name.includes("rear") ? 0.25 : 0.35
+                      : id === "50"
+                      // Attenuate the additive internal layers without changing
+                      // coating IOR (which also shifts their interference color).
+                      ? material.name.includes("rear") ? 0.1 : 0.25
                       : id === "35"
                       ? 0.35
                       : id === "70-200-f4" ? 0.6
