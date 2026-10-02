@@ -2507,3 +2507,138 @@ https://downloads.canon.com/cpr/software/camera/40D_BC_0113W833.pdf
 Prior turn made progress correcting rear-cover overlap. Logs:
 /tmp/40d-focal-mark.log, /tmp/40d-focal-mark-opt.log,
 /tmp/40d-focal-mark-build.log. Overall photorealism remains unproven.
+
+### 2026-10-02 — f/4 switch recess floor curvature
+The default viewer's apparent distorted markings were the switch controls,
+not the focal scale. Compared the side view with 70-200-f4-side.jpg: the
+stabilizer recess was partly filled by white housing. Its broad floor n-gon
+was bent only at its perimeter, leaving interior triangles as chords below
+the cylindrical barrel. Extended the existing pre-bend interior subdivision
+to the four recess floors. The matching actual viewer side angle now shows
+continuous dark recesses around the sliders, including the taller IS pad.
+Also checked default assembled view and console (no errors), and refreshed
+the lens thumbnail. No collar was added. This fixes an intersection; it does
+not establish overall photorealism. Previous turn committed and pushed the
+body refinements as f75a208. This correction remains local.
+Logs: /tmp/f4-recess-floor.log, /tmp/f4-recess-floor-opt.log,
+/tmp/f4-recess-floor-build.log.
+
+### 2026-10-02 — R7 finger-grip undercut
+Compared the actual viewer's grip-side silhouette to Canon's annotated
+r7-right-canon.jpg. The reference's shutter ledge projects beyond the finger
+grip; the model's forward edge was nearly straight. Retreated the lower grip
+loft fronts by up to .11 scene units (~6 mm), tapering below the shutter deck
+and at the bottom return. This is a photo-based estimate, not a measured
+dimension. Kept each section's rear edge and shutter crown in place; the
+overmold and ray-seated remote receiver follow the shaped grip.
+Verified matching side, front and rear-oblique views in the actual R7+50mm
+viewer. The undercut is visible; receiver remains seated and rear joins are
+continuous, with no console errors. Refreshed R7 thumbnail and setup poster.
+Overall contour matching and photorealism remain incomplete. Prior turn
+fixed f/4 recess-floor intersections. Logs: /tmp/r7-grip-undercut.log,
+/tmp/r7-grip-undercut-opt.log, /tmp/r7-grip-undercut-build.log.
+
+### 2026-10-02 — 40D mode dial location and seating
+Compared actual rear/top viewer angles with 40d.jpg and 40d-top.jpg. The
+fixed-height mode dial sat level with the shoe center in top view, whereas
+the reference places it behind the shoe. Moved its center from z=-.10 to
+-.26 and ray-seated its underside on the casting, using the hit normal for
+its tilt. Its radius and mode markings remain unchanged. Verified top view
+now places the center aft of the shoe, rear view exposes the knurled edge,
+and terminal-side oblique view shows a seated dial without a visible gap.
+No console errors; build passed. Refreshed 40D thumbnail. This is a placement
+correction, not proof of full body fidelity. Previous turn reshaped the R7
+finger grip. Logs: /tmp/40d-mode-seat.log, /tmp/40d-mode-seat-opt.log,
+/tmp/40d-mode-seat-build.log.
+
+### 2026-10-02 — replacement-mesh search and rejected finder trial
+Rechecked R7/40D model availability. Results included the already known R7
+Sketchfab model and commercial TurboSquid assets; no new verified downloadable
+pair suitable for the public GLB repository was identified. No assets bought
+or extracted. Current listing references:
+https://www.turbosquid.com/3d-models/3d-model-canon-eos-r7-camera-2327213
+https://www.turbosquid.com/3d-models/canon-mirrorless-cameras-eos-r7-model-2339818
+
+The 40D rear reference shows a lit optical aperture, unlike the dark electronic
+finder appearance of the current model. Tested a dedicated transmissive ocular
+with a recessed diffuse focusing-screen rectangle. Actual rear and oblique
+viewer inspection rejected it: the rectangle read as a flat gray tile and did
+not convincingly reproduce the optical pupil. Reverted both generator and
+runtime trial changes and regenerated the 40D. Retained the preceding mode-dial
+correction. A future finder pass needs a view-dependent optical pupil/image
+representation, not merely a brighter rectangle behind thin glass. No claim
+of progress in final finder fidelity; this experiment rules out that shortcut.
+Logs: /tmp/40d-finder-transmission.log, /tmp/40d-finder-transmission-opt.log,
+/tmp/40d-finder-revert.log, /tmp/40d-finder-revert-opt.log.
+
+### 2026-10-02 — R7 molded grip cell structure
+The grip normal map used isolated bell-shaped bumps. Tested adjoining rounded
+cells with fine creases (nearest/second-nearest Voronoi distance difference)
+and correlated roughness, limited to R7 molded rubber. Kept the established
+physical grain scale and normal strength; painted-shell grain is unchanged.
+Actual viewer grip-side macro shows a continuous irregular molded texture;
+front three-quarter and rear views retain readable controls and distinct
+rubber/paint finishes. No console errors; build passed. Refreshed R7 thumbnail
+and setup poster. Optimized R7 is 3.55 MB; no added runtime rendering passes.
+This is a material refinement, not proof of full photorealism. The preceding
+finder trial was rejected after visual inspection, not left in the asset.
+Logs: /tmp/r7-cell-grain.log, /tmp/r7-cell-grain-opt.log,
+/tmp/r7-cell-grain-build.log.
+
+### 2026-10-02 — R7 rear thumb-pad outline
+Compared r7-back-canon.jpg and the unobstructed r7-rear.webp with the viewer.
+The old pad cut inward too early beneath the joystick and left excess bare
+housing beside INFO. Traced the wider upper shelf and the return around INFO
+and Q/SET using the control positions as anchors. Reduced its exposed depth
+by .010 units (~.55 mm), keeping the back embedded in the rear cover.
+Verified actual rear and grip-side rear-oblique views: pad extends beneath
+the joystick, controls remain clear, and the thinner edge stays seated.
+No console errors; build passed. Updated R7 thumbnail. This is a rear contour
+correction; overall fidelity remains incomplete. Previous turn changed the
+R7 rubber grain. Logs: /tmp/r7-thumb-outline.log,
+/tmp/r7-thumb-outline-opt.log, /tmp/r7-thumb-outline-build.log.
+
+### 2026-10-02 — R7 covering end-rim geometry
+Untextured and normal-only diagnostics exposed a scalloped lower grip seam.
+A nearest-surface probe confirmed that the rounded overmold end cap sinks
+into the casting; its visible boundary was the intersection of two surfaces.
+Changed only the R7 overmold from a capped subdivided solid to an open loft
+with a .004-unit inward solidified skin. Its end rings now define the seam.
+The untextured comparison removes the scalloping. Verified front, grip-side
+and rear-oblique actual viewer views: continuous lower rim, seated receiver,
+and no newly exposed gap in those views. Refreshed thumbnail and setup poster.
+No console errors; build passed. Broader shoulder shape remains under review.
+Previous turn corrected the rear thumb-pad contour. Diagnostic script is
+output/gear-modeling/probe-grip-clearance.py; its samples include cap interior
+vertices, so negative clearances are not all visible defects by themselves.
+Logs: /tmp/r7-grip-clearance.log, /tmp/r7-grip-rim.log,
+/tmp/r7-grip-rim-opt.log, /tmp/r7-grip-rim-build.log.
+
+### 2026-10-02 — R7 visible LCD aspect ratio
+Canon specifies a roughly 3-inch, 3:2 screen:
+https://cam.start.canon/en/C005/manual/html/UG-10_Reference_0100.html
+The old texture mask occupied 346/384 of the glass height and produced an
+approximately 4:3 active area after the body deformation. Adjusted only the
+R7 mask's vertical bounds to 39..345. Measured UV boundary points on the saved
+mesh (barycentric interpolation over its triangles), rather than trusting
+undeformed dimensions: 62.8374 x 41.9436 mm, aspect 1.49814, diagonal 2.9744 in.
+The first trial was 1.47881 and was corrected using that measured mapping.
+Verified final rear view in the actual viewer, with no console errors;
+refreshed R7 thumbnail. Build passed during this pass. The diagnostic lives
+at output/gear-modeling/probe-screen-size.py. Overall photorealism is unproven;
+this establishes only the visible LCD proportions. Previous turn repaired
+the grip's lower seam. Logs: /tmp/r7-screen-ratio-final.log,
+/tmp/r7-screen-ratio-final-opt.log, /tmp/r7-screen-size-final.log,
+/tmp/r7-screen-ratio-build.log.
+
+### 2026-10-02 — R7 card-door corner and seam agreement
+Compared the current grip-side view with r7-right-canon.jpg. The door inherited
+profile()'s .10-unit corner rounding (~5.5 mm), making its corners too broad.
+Set its rounding to .018 (~1 mm, estimated from the photo), and generated its
+seam from that same rounded outline instead of the original sharp polygon.
+Checked matching side and rear-oblique actual viewer views: tighter corners,
+aligned seam, and no newly visible gap at the door edge. No console errors;
+build passed. Refreshed R7 thumbnail and setup poster. Overall fidelity remains
+incomplete; the previous turn established the R7 visible LCD's aspect ratio.
+Logs: /tmp/r7-card-door-outline.log, /tmp/r7-card-door-outline-opt.log,
+/tmp/r7-card-door-outline-build.log.

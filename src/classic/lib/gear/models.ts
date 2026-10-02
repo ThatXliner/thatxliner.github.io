@@ -123,7 +123,8 @@ export async function loadModelLibrary(initialIds: string[]) {
                 );
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
-                material.transmission > 0
+                material.transmission > 0 &&
+                !material.name.includes("40D ocular glass")
               ) {
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
@@ -221,6 +222,20 @@ export async function loadModelLibrary(initialIds: string[]) {
                   }
                   material.blending = THREE.AdditiveBlending;
                 } else material.color.setRGB(0.96, 0.98, 0.97);
+                object.castShadow = false;
+              }
+              if (
+                material instanceof THREE.MeshPhysicalMaterial &&
+                material.name.includes("40D ocular glass")
+              ) {
+                object.updateWorldMatrix(true, false);
+                material.thickness = 0.024 / object.getWorldScale(new THREE.Vector3()).x;
+                material.ior = 1.52;
+                material.clearcoat = 0;
+                material.iridescence = 1;
+                material.iridescenceIOR = 1.38;
+                material.iridescenceThicknessRange = [110, 125];
+                material.side = THREE.FrontSide;
                 object.castShadow = false;
               }
             }

@@ -22,12 +22,14 @@ def image(name,data):
 def surface_maps():
     n=512;rng=np.random.default_rng(2026)
     yy,xx=np.mgrid[:n,:n].astype(float);gx=xx/n*48;gy=yy/n*48
-    seeds=rng.random((48,48,2));dist=np.ones((n,n))*100
+    seeds=rng.random((48,48,2));dist=np.ones((n,n))*100;second=dist.copy()
     for dx in [-1,0,1]:
         for dy in [-1,0,1]:
             ix=np.floor(gx).astype(int)+dx;iy=np.floor(gy).astype(int)+dy
             sx=ix+seeds[iy%48,ix%48,0];sy=iy+seeds[iy%48,ix%48,1]
-            dist=np.minimum(dist,(gx-sx)**2+(gy-sy)**2)
+            candidate=(gx-sx)**2+(gy-sy)**2
+            second=np.minimum(second,np.maximum(dist,candidate))
+            dist=np.minimum(dist,candidate)
     height=np.exp(-dist*3.8)*.7+rng.random((n,n))*.09
     def normal(h,strength):
         nx=(np.roll(h,-1,axis=1)-np.roll(h,1,axis=1))*strength
@@ -35,8 +37,13 @@ def surface_maps():
         nz=np.ones_like(nx);vec=np.stack([-nx,-ny,nz],axis=-1);vec/=np.linalg.norm(vec,axis=-1)[...,None];return vec*.5+.5
     pebble=image('rubber-pebble-normal',normal(height,2.8))
     fine=image('magnesium-normal',normal(rng.random((n,n))*.17,1.3))
-    return pebble,fine
-PEBBLE,FINE=surface_maps()
+    # Molded leatherette has adjoining rounded cells separated by creases,
+    # rather than isolated bell-shaped bumps. F2-F1 gives their boundaries.
+    cell=1-np.exp(-(np.sqrt(second)-np.sqrt(dist))*10)
+    grip=image('molded-grip-cell-normal',normal(cell,2.8))
+    grip_rough=image('molded-grip-cell-roughness',np.repeat((.64+.055*(1-cell))[:,:,None],3,axis=2))
+    return pebble,fine,grip,grip_rough
+PEBBLE,FINE,GRIP_CELL,GRIP_ROUGH=surface_maps()
 LEATHER=bpy.data.images.load(os.path.join(ROOT,'scripts/gear/textures/Leather037_NormalGL.png'));LEATHER.colorspace_settings.name='Non-Color';LEATHER.pack()
 leather_rough_source=bpy.data.images.load(os.path.join(ROOT,'scripts/gear/textures/Leather037_Roughness.png'));leather_rough_source.colorspace_settings.name='Non-Color'
 leather_values=np.array(leather_rough_source.pixels[:],dtype=np.float32).reshape(leather_rough_source.size[1],leather_rough_source.size[0],4)[:,:,:3]
@@ -76,6 +83,8 @@ material('Telephoto grip rubber',(.009,.009,.010),.68,0,FINE,.20)
 M['Telephoto grip rubber'].node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value=.30
 material('Blackened aperture steel',(.006,.007,.008),.42,.35)
 material('Eyepiece optical glass',(.008,.007,.012),.028,0)
+material('40D ocular glass',(.96,.98,.97),.028,0,transmission=1)
+material('40D finder field',(.45,.46,.42),.8,0)
 material('Anodized black',(.009,.01,.011),.28,.55)
 material('Deep black',(.002,.0024,.003),.55,0)
 material('Optical barrel flocking',(.003,.0035,.004),.84,0)
@@ -105,7 +114,9 @@ material('LCD glass',(.009,.017,.02),.1,.22)
 material('Inactive display glass',(.0025,.003,.0032),.075,0)
 # Rear camera displays have a darker perimeter around the inactive pixel area.
 # Bake that subtle distinction into one base-color map under the glass response.
-for display_name,rect in [('R7 display glass',(19,365,51,461)),('40D display glass',(10,374,17,495))]:
+# Measured through the final R7 mesh UVs, this mask is ~62.8 x 41.9 mm (3:2).
+# The old 346-pixel height made the visible screen close to 4:3.
+for display_name,rect in [('R7 display glass',(39,345,51,461)),('40D display glass',(10,374,17,495))]:
     face=np.empty((384,512,3));face[:]=(.007,.009,.010)
     top,bottom,left,right=rect;face[top:bottom,left:right]=(.016,.020,.022)
     face=np.where(face<=.0031308,12.92*face,1.055*face**(1/2.4)-.055)
@@ -217,9 +228,10 @@ def optical_element(name,z,r,sag=.025,thickness=.035,mat='Optical glass',back_sa
     split.split_angle=pi/4;split.use_edge_angle=True;apply(o,split)
     return o
 
-def eyecup(x,y,z,body='c200'):
+def eyecup(x,y,z,body='c200',housing=()):
     # Four rounded rectangular loops form a hollow rubber hood. The glass sits
     # behind its opening, rather than on top of a solid block.
+    eyecup_start=len(OBJECTS)
     box('Eyecup mounting seat',(x,y,z+.035),(.77,.43,.05),'Graphite polymer',.045)
     verts=[];faces=[];steps=12;n=4*(steps+1)
     loops=[(.76,.43,.12,.02),(.84,.48,.14,-.145),(.49,.31,.065,-.151),(.40,.26,.045,.015)]
@@ -285,8 +297,24 @@ def eyecup(x,y,z,body='c200'):
             if row==1:polygons.append((0,start_index+j,start_index+i))
             else:polygons.append((start_index-count+i,start_index-count+j,start_index+j,start_index+i))
     mesh=bpy.data.meshes.new('Rectangular curved eyepiece optic');mesh.from_pydata(vertices,[],polygons);mesh.update()
-    optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','LCD glass' if body=='c200' else 'Eyepiece optical glass')
+    optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','LCD glass' if body=='c200' else '40D ocular glass' if body=='40d' else 'Eyepiece optical glass')
     for face in mesh.polygons:face.use_smooth=True
+    if body=='40d':
+        # Give the optical finder real depth and an occluded off-axis view.
+        # A field directly behind the ocular reads as an electronic display.
+        carriers=[o for o in OBJECTS[eyecup_start:] if any(part in o.name for part in ['Eyecup mounting seat','Eyepiece inner carrier','Eyepiece optical recess'])]
+        cutter=rounded_panel('Finder channel cutter',(x,y,z+.015),(.312,.222,.40),.025,None)
+        for carrier in [*housing,*carriers]:
+            cut=carrier.modifiers.new('Open finder optical channel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(carrier,cut)
+            if carrier in carriers:finish(carrier)
+        OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        for depth,w,h in [(-.040,.285,.200),(.075,.250,.170)]:
+            baffle=rounded_panel('Finder internal baffle',(x,y,z+depth),(.35,.26,.012),.025,'Optical barrel flocking')
+            cutter=rounded_panel('Finder baffle aperture',(x,y,z+depth),(w,h,.06),.021,None)
+            cut=baffle.modifiers.new('Optical pupil opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(baffle,cut)
+            finish(baffle)
+            OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        rounded_panel('Recessed finder field',(x,y,z+.145),(.29,.21,.003),.018,'40D finder field')
     if body=='c200':
         box('C200 eye sensor bezel',(x+.244,y,z-.067),(.074,.169,.018),'Deep black',.013)
         box('C200 eye sensor window',(x+.244,y,z-.079),(.046,.136,.006),'Sensor coating',.009)
@@ -380,19 +408,24 @@ def profile(name,points,back,front,mat='Magnesium shell',bevel=.035,rounding=.10
     faces.extend([(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)])
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o);register(o,name,mat);return finish(o,bevel,4)
 
-def loft_grip(name,rows,mat):
+def loft_grip(name,rows,mat,closed=True):
     n=64;verts=[];faces=[]
     for y,cx,cz,rx,rz in rows:
         verts.extend([(cx+cos(i*2*pi/n)*rx,y,cz+sin(i*2*pi/n)*rz) for i in range(n)])
     for row in range(len(rows)-1):
         for i in range(n):j=(i+1)%n;faces.append((row*n+i,row*n+j,(row+1)*n+j,(row+1)*n+i))
-    faces.extend([tuple(reversed(range(n))),tuple(range((len(rows)-1)*n,len(rows)*n))])
+    if closed:faces.extend([tuple(reversed(range(n))),tuple(range((len(rows)-1)*n,len(rows)*n))])
     # Rings advance along +Y, so XZ winding above faces inward. Correct the
     # solid before subdivision/remeshing, not just at final GLB export.
     faces=[tuple(reversed(face)) for face in faces]
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o);register(o,name,mat)
     mod=o.modifiers.new('Sculpted continuous grip','SUBSURF');mod.levels=2;apply(o,mod)
     for p in o.data.polygons:p.use_smooth=True
+    if not closed:
+        # A molded covering ends at a defined rim. Rounded solid caps fade
+        # into the casting and expose a scalloped intersection as its seam.
+        skin=o.modifiers.new('Rubber covering thickness','SOLIDIFY')
+        skin.thickness=.004;skin.offset=-1;apply(o,skin)
     return o
 
 def radial_ribs(name,z,r,length,count=120,mat='Focus rubber',segments=1):
@@ -581,6 +614,16 @@ def body(which):
     rows=[(-.85,-1.09,.11,.25,.32),(-.80,-1.12,.11,.33,.43),(-.65,-1.14,.12,.35,.46),(-.25,-1.15,.15,.355,.47),(.12,-1.14,.16,.345,.49),(.4,-1.16,.12,.33,.46),(.57,-1.19,.04,.29,.36),(.64,-1.21,-.02,.20,.24)]
     if not dslr:
         rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.19,.46,.28,.39),(.69,-1.20,.59,.20,.23),(.73,-1.20,.63,.12,.11)]
+        # Canon's grip-side view shows the finger grip recessed below the
+        # shutter ledge. Retreat the front ~6 mm while keeping each section's
+        # rear edge, the shutter crown and the bottom return in place.
+        shaped=[]
+        for y,cx,cz,rx,rz in rows:
+            below=max(0,min(1,(.40-y)/.28))
+            bottom=max(0,min(1,(y+.85)/.20))
+            retreat=.11*below*below*(3-2*below)*bottom
+            shaped.append((y,cx,cz-retreat/2,rx,rz-retreat/2))
+        rows=shaped
     # Keep the outside silhouette while narrowing the front grip into the
     # finger channel beside the mount, as seen in the R7 front reference.
     def r7_grip_section(row):
@@ -640,7 +683,7 @@ def body(which):
     if not dslr:
         sleeve=[(y,cx,cz,rx+.004,rz+.004) for y,cx,cz,rx,rz in rows[1:5]]+[(.34,-1.15,.34,.333,.551),(.39,-1.16,.34,.323,.545)]
     if not dslr:sleeve=[r7_grip_section(row) for row in sleeve]
-    grip_rubber=loft_grip('Textured grip overmold',sleeve,'Molded grip rubber')
+    grip_rubber=loft_grip('Textured grip overmold',sleeve,'Molded grip rubber',closed=dslr)
     if not dslr:
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
@@ -830,10 +873,18 @@ def body(which):
         for i in range(21):box('Hot shoe accessory contact',((i-10)*.0118,shoeY+.040,.066),(.006,.003,.012),'Gold engraving',.001)
 
     if dslr:
-        dial((.76,.615,-.10),.23,'y','40d')
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         wheel_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        # The reference dial is behind the shoe center, resting on the
+        # sloping rear shoulder. Seat its underside on the casting instead
+        # of burying a horizontal dial at a fixed height.
+        mode_hit,mode_normal,_,_=wheel_surface.ray_cast(Vector((.76,2,-.26)),Vector((0,-1,0)),4)
+        if mode_hit is None:raise RuntimeError('40D mode dial missed shoulder')
+        mode_pose=Matrix.Translation(mode_hit+mode_normal*.040)@Vector((0,0,1)).rotation_difference(mode_normal).to_matrix().to_4x4()
+        mode_start=len(OBJECTS)
+        dial((0,0,0),.23,'z','40d')
+        for obj in OBJECTS[mode_start:]:obj.matrix_world=mode_pose@obj.matrix_world
         hits=[wheel_surface.ray_cast(Vector((x,2,.16)),Vector((0,-1,0)),4)[0] for x in [-1.315,-1.085]]
         if any(hit is None for hit in hits):raise RuntimeError('40D main wheel missed shoulder')
         axle=(hits[1]-hits[0]).normalized();up=Vector((-axle.y,axle.x,0)).normalized()
@@ -1020,7 +1071,7 @@ def body(which):
             v=display.data.vertices[display.data.loops[loop].vertex_index].co
             uv.data[loop].uv=((v.x-screenX)/glass_w+.5,(v.y-screenY-.015)/glass_h+.5)
     if dslr:text('Rear Canon logo','Canon',(screenX,screenY-screenH/2+.047,rz-.074),.058,rotation=(0,pi,0),font='Canon')
-    eyecup(.04,.69,rz,which)
+    eyecup(.04,.69,rz,which,housing=(shell,rear_cover) if dslr else ())
     if dslr:
         # The grip-side reference places the focal-plane symbol ahead of
         # the diopter wheel. Its stem is aligned with the modeled sensor plane.
@@ -1135,7 +1186,10 @@ def body(which):
         for ix in range(-3,4):
             for iy in range(-3,4):
                 if ix*ix+iy*iy<12:sphere('Joystick molded dots',(x+ix*.014,y+iy*.014,rz-.097),(.003,.003,.002),'Graphite polymer')
-        profile('Rear thumb rubber',[(-1.27,-.66),(-1.28,.27),(-1.28,.53),(-1.23,.54),(-1.16,.38),(-.89,.32),(-.86,.17),(-1.02,.03),(-1.08,-.17),(-1.12,-.42),(-1.17,-.66)],rz-.068,rz-.037,'Molded grip rubber',.012)
+        # Trace the rear reference's shelf beneath the joystick and the
+        # narrow return around INFO and the four-way pad. The old outline
+        # pinched inward too early, leaving a large bare patch beside INFO.
+        profile('Rear thumb rubber',[(-1.257,.480),(-1.229,.539),(-1.16,.553),(-1.109,.52),(-1.086,.454),(-1.029,.395),(-.943,.382),(-.743,.336),(-.737,.217),(-.880,.145),(-.92,-.092),(-1.034,-.164),(-1.091,-.295),(-1.120,-.441),(-1.166,-.737),(-1.246,-.684),(-1.263,-.526)],rz-.058,rz-.037,'Molded grip rubber',.009)
         x,y=-.90,-.35
         cyl('Four way pad recessed bezel',(x,y,rz-.047),.211,.025,'Deep black')
         ring('Four way pad rim',rz-.069,.201,.181,.021,'Graphite polymer',center=(x,y))
@@ -1496,7 +1550,7 @@ def body(which):
         card_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         card_start=len(OBJECTS)
         card_outline=[(-.35,.20),(.15,.20),(.15,-.60),(.10,-.64),(-.32,-.64),(-.35,-.58)]
-        panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.012)
+        panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.012,rounding=.018)
         panel.rotation_euler.y=-pi/2
         # Small molded finger grip near the forward edge, with transverse ribs.
         latch=box('SD door finger grip',(.055,-.18,.011),(.13,.29,.018),'Focus rubber',.020)
@@ -1528,9 +1582,11 @@ def body(which):
             for face in formed.polygons:face.use_smooth=True
             formed.update();o.data=formed;bpy.data.meshes.remove(old)
         points=[]
-        for a,b in zip(card_outline,card_outline[1:]+card_outline[:1]):
-            for j in range(12):
-                t=j/12;zz=a[0]*(1-t)+b[0]*t;yy=a[1]*(1-t)+b[1]*t
+        rim_outline=smooth_outline(card_outline,radius=.018)
+        for a,b in zip(rim_outline,rim_outline[1:]+rim_outline[:1]):
+            steps=max(1,int(np.ceil(np.linalg.norm(b-a)/.035)))
+            for j in range(steps):
+                t=j/steps;zz=a[0]*(1-t)+b[0]*t;yy=a[1]*(1-t)+b[1]*t
                 hit,_,_,_=card_surface.ray_cast(Vector((-3,yy,zz)),Vector((1,0,0)),4)
                 if hit is None:raise RuntimeError('SD door seam missed casting')
                 points.append((hit.x-.009,yy,zz))
@@ -2079,12 +2135,13 @@ def lens(which):
         # Subdivide long panel edges before bending, so the inset follows the
         # cylinder at its center as well as at all four corners.
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        if 'panel' in o.name:
+        if 'panel' in o.name or (f4 and 'Switch recess floor' in o.name):
             import bmesh
             bm=bmesh.new();bm.from_mesh(o.data)
             if f4:
-                # Boolean openings leave long n-gons; sample their interiors
-                # before bending rather than only subdividing their borders.
+                # Panel openings and recess floors contain broad n-gons.
+                # Sample their interiors before bending: an unsampled floor
+                # becomes a chord that sinks through the cylindrical housing.
                 for _ in range(6):
                     bmesh.ops.triangulate(bm,faces=list(bm.faces))
                     edges=[e for e in bm.edges if e.calc_length()>.035]
@@ -2581,6 +2638,9 @@ def export_asset(name,objects):
                 finish=source.copy();finish.name=('R7 ' if name=='r7' else '40D ')+source.name
                 for node in finish.node_tree.nodes:
                     if node.type=='NORMAL_MAP':node.inputs['Strength'].default_value=strengths[source.name]
+                    if name=='r7' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE':
+                        node.image=GRIP_CELL if node.image==PEBBLE else GRIP_ROUGH
+                        node.image.colorspace_settings.name='Non-Color'
                 calibrated[source.name]=finish
             o.data.materials[0]=calibrated[source.name]
     # Smart UVs provide real material-space grain; normals are corrected before export.
@@ -2589,7 +2649,7 @@ def export_asset(name,objects):
         active(o)
         if not o.get('preserve_face_orientation'):
             bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
-        if o.data.materials and o.data.materials[0].name in ['Optical glass','Inner optical glass','Inner optical glass rear']:
+        if o.data.materials and o.data.materials[0].name in ['Optical glass','Inner optical glass','Inner optical glass rear','40D ocular glass']:
             # Meshopt's high preset filters NORMAL down to 8-bit octahedral
             # values. Preserve polished-face normals as a custom attribute;
             # the viewer promotes it back to NORMAL after decoding.
