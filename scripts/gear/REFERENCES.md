@@ -2195,3 +2195,156 @@ The fast renderer still approximates stacked internal reflections. The large
 bright reflection in the 40D setup remains; this change does not establish
 complete optical fidelity or photorealism. Prior goal turn was progress (rear
 barrel grooves and curved AF/MF panel, verified on both owned bodies).
+
+### 2026-10-02 — Internal reflection isolation and R7 rear keys
+Isolated the 50mm reflection layers in copies of the current studio scene.
+Disabling the reflex mirror did not remove the oversized bright patch; disabling
+the inner optical layers did. Reducing specular intensity shifted the coating
+color toward blue, so that trial was rejected. Quartering the additive inner
+opacity preserved the warm hue while reducing the patch (front internal .25,
+rear internal .10). Checked the actual R7 and 40D assemblies. These remain
+visually calibrated approximations, not measured coating parameters. Refreshed
+the 50mm thumbnail to match the material change after the checkpoint push.
+
+Compared the R7 rear in the actual viewer with output/gear-reference/r7-rear.webp.
+The seven small rear keys were visibly domed, unlike the shallow, flatter
+reference faces. Replaced their ellipsoid caps with beveled cylinders and satin
+control plastic, retaining the front face plane beneath their existing legends.
+Verified rear and grip-side oblique views: key faces remain seated, the asterisk,
+AF-point and playback/erase markings remain visible, and no console errors were
+reported. This does not establish overall photorealism; contours, screen/optical
+response and all-kit comparison still require further work. Export logs:
+/tmp/r7-rear-buttons.log and /tmp/r7-rear-buttons-opt.log. Previous turn was
+progress: committed, pushed and verified the checkpoint against origin/main.
+
+### 2026-10-02 — R7 grip depth against dimensional reference
+Canon's manual specifies 132.0 × 90.4 × 91.7 mm:
+https://cam.start.canon/en/C005/manual/html/UG-10_Reference_0100.html
+Measured exported geometry at 55 mm/unit: the current R7 was approximately
+130.53 × 92.45 × 81.05 mm. Its depth was substantially short. The official
+right-side reference (r7-right-canon.jpg) also shows the deeper grip silhouette.
+Extended the forward grip by 10.65 mm with smooth spatial fades, carrying its
+overmold, receiver and shutter together. The deformation stops before the RF
+mount and rear controls; the mounting register is unchanged.
+
+Measured all exported POSITION vertices with node transforms applied using
+output/gear-modeling/measure-glb-bounds.py: 130.526 × 92.453 × 91.696 mm.
+The remaining width/height difference is not declared solved. The 40D measured
+147.126 × 109.187 × 77.300 mm against Canon's 145.5 × 107.8 × 73.5 mm
+(https://global.canon/en/c-museum/product/dslr795.html); investigate its reference
+silhouette before changing it. Bounding dimensions alone do not prove contours.
+
+Checked R7 with 50mm in the actual /classic viewer from the grip side, default
+front oblique and rear. Grip covering and shutter remain seated; the lens and
+Control Ring adapter have clearance; rear controls remain intact. No console
+errors. Refreshed R7 thumbnail and default 28–135 assembly poster. Logs:
+/tmp/r7-depth.log and /tmp/r7-depth-opt.log. Prior turn was progress (flatter
+R7 rear keys, current 50mm thumbnail and actual viewer checks). Overall material,
+optical and contour fidelity across all equipment remains unproven.
+
+### 2026-10-02 — 40D recessed strap fittings
+Compared the actual viewer's 40D side with the four-view reference 40d.jpg.
+The generic round strap ring was buried in the grip shoulder; the photographed
+camera has a rectangular webbing opening inside a broad recessed pocket there.
+Replaced both round rings with rounded rectangular open fittings. Ray-cast the
+actual shoulder to place and orient each fitting; cut a true grip-side cavity
+and added a dark lining behind its inset eye. The terminal-side eye sits close
+to the outer surface below the mode dial. Dimensions and pocket outline remain
+visual estimates from the reference, not manufacturing measurements.
+
+Rebuilt and compressed the 40D, then checked grip side, terminal side, front
+oblique, elevated front and rear in the actual /classic viewer. Both openings
+are visible and seated; adjacent terminal covers, top controls and rear controls
+remain intact. No console errors. Refreshed the 40D thumbnail. Logs:
+/tmp/40d-strap-pocket.log and /tmp/40d-strap-pocket-opt.log.
+Did not rescale the entire body to force the bounding box: the reference's depth
+arrow and the asset's protruding fittings need a closer comparison first.
+Previous turn was progress (corrected R7 grip depth and verified actual views).
+
+### 2026-10-02 — f/4 stabilizer thumb switch
+Compared 70-200-f4-side.jpg with the actual R7/f4 side view. The four generated
+sliders shared one flat shape, but the IS on/off switch in the reference has a
+taller pocket and raised thumb pad with ridges concentrated at one end. Gave
+that switch a .275 × .175 opening, .175 × .145 pad with .020 depth, four raised
+right-side grip ridges and the black indicator toward the left. Other three
+switches retain their shallower profiles. Dimensions are visually estimated.
+
+Verified side and oblique actual viewer views: the IS pad remains seated and
+distinct from the other switches; the panel follows the barrel. Also inspected
+the front optics and switched to the 40D native-EF assembly. The f/4 remains
+without a collar or foot. Refreshed its lens thumbnail. Logs:
+/tmp/f4-is-slider.log and /tmp/f4-is-slider-opt.log. Front optics still show an
+internal bright arc and are not accepted as physically faithful by this check.
+Previous turn was progress (40D strap pockets and fittings, verified in viewer).
+
+### 2026-10-02 — f/4 internal white seam leak
+Isolated the visible bright internal arc using an ignored copy of the current
+production scene (f4-isolation-scene.ts). Removing inner glass, machined metal,
+or anodized surfaces did not remove it. Removing the aperture blades exposed
+more of the ring; removing the black barrel lining exposed broad white surfaces
+behind it. Removing the front glass made the arc thinner but did not eliminate
+it. This separates the opaque seam leak from the warm coating reflections.
+
+The lining ended at radius outer and z=aperture_z+.025, ahead of the aperture
+carrier, leaving a slit into the white barrel at oblique sightlines. Extended
+the f/4 lining to radius outer*.96 and z=aperture_z-.010 so it overlaps the
+carrier. Identical diagnostic front view now has no white arc; warm glass
+reflections remain. No lighting, glass opacity, draw passes or surface counts
+were increased. Checked actual /classic R7 front and 40D front/oblique views;
+the seam stays closed. The 40D still shows a central mirror reflection, which
+is distinct from this removed arc and is not accepted as final optical fidelity.
+No console errors; refreshed f/4 thumbnail. Logs /tmp/f4-lining-seam.log and
+/tmp/f4-lining-seam-opt.log. Prior turn was progress (distinct IS thumb slider).
+
+### 2026-10-02 — Enclosed 40D mirror and studio IBL
+The actual 40D/f4 front view still showed a bright central semicircle after the
+lining leak was fixed. The reflex mirror was inheriting global studio cards,
+whose environment lighting has no geometric occlusion from the camera housing.
+Setting only material.envMapIntensity=0 did not change the actual viewer:
+Three's WebGLRenderer uses scene.environmentIntensity for implicit environment
+maps. Confirmed in the installed WebGLRenderer.js uniform update.
+
+In scene.prepare, explicitly assign the studio environment to the reflex mirror
+and set its intensity to zero, retaining shadowed direct lighting. Match optional
+Blender numeric suffixes (the current asset names it Reflex mirror.001). Keep
+the rule together in the scene rather than splitting it across loader and scene.
+Actual 40D/f4 front view now has no bright central studio-card semicircle; lens
+coating reflections remain. Also checked the 40D/50 oblique view with no console
+errors. This suppresses an incorrect exterior reflection; it does NOT implement
+the missing focusing-screen/interior reflection or prove optical fidelity.
+No new texture, render pass, loading dependency or animation loop was added.
+Prior turn was progress (closed f/4 lining seam, actual viewer verification).
+
+### 2026-10-02 — Tamron switch panel and inset distance window
+Compared the actual side and oblique viewer views with 35-side.jpg and 35-top.jpg.
+The AF/MF surround was short with clamped box bevels and faceted-looking edges.
+Replaced it with a .30 × .64 rounded panel, thinner inset and shallow pill key;
+subdivided panel interiors before cylindrical projection and rebuilt normals.
+The side/oblique viewer now shows a seated rounded surround rather than a slab.
+
+The distance window was raised above an uninterrupted barrel. Cut a curved
+pocket, lowered its surround/glass/internal legends .023 units and replaced its
+box corners with explicit radii. An initial export exposed shading streaks from
+the Boolean boundary. Restored analytic radial normals on the outer cylinder,
+preserving pocket-wall face normals; actual elevated view then showed smooth
+continuous barrel shading. These are visual-reference dimensions, not measured
+manufacturing specifications. Checked R7 side, elevated top and front oblique,
+then the native-EF 40D assembly, with no console errors. Refreshed 35mm thumbnail.
+Logs /tmp/tamron-switch-panel.log, /tmp/tamron-window.log and corresponding
+-opt.log files. Prior turn was progress (removed unoccluded mirror studio IBL).
+This verifies these control surfaces, not complete lens or body photorealism.
+
+### 2026-10-02 — Tamron distance-scale layout and origin legend
+The top product reference 35-top.jpg shows one shared infinity symbol centered
+over the focus index, with 3 feet / 1 metre to its left. Replaced the two offset
+infinity glyphs with that layout and replaced the index letter with a thin line.
+Added the small MADE IN JAPAN inscription visible below the AF/MF panel in
+35-side.jpg, conforming its letters to the same cylindrical surface.
+
+Verified the actual interactive viewer with keyboard orbit, pan and zoom: the
+single infinity symbol aligns over the index and the 3/1 values and ft/m units
+are readable in the top close-up. The side origin legend remains attached around
+the barrel curvature; at normal framing it is intentionally small and not fully
+legible. No console errors. Refreshed the 35mm thumbnail. Export logs:
+/tmp/tamron-markings.log and /tmp/tamron-markings-opt.log. Prior turn was progress
+(rounded AF/MF panel, inset distance window and corrected cylinder normals).

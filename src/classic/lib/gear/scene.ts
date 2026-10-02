@@ -76,6 +76,17 @@ export async function createStudio(
         ? object.material
         : [object.material]) {
         if (
+          material instanceof THREE.MeshStandardMaterial &&
+          /^Reflex mirror(?:\.\d+)?$/.test(material.name)
+        ) {
+          // The mirror box blocks the studio cards, but IBL has no geometric
+          // occlusion. Keep shadowed direct light until interior reflections
+          // exist. Explicit assignment is required: implicit IBL instead uses
+          // scene.environmentIntensity, ignoring the material's intensity.
+          material.envMap = env.texture;
+          material.envMapIntensity = 0;
+        }
+        if (
           material instanceof THREE.MeshPhysicalMaterial &&
           /Optical glass|Inner optical glass/.test(material.name)
         )
