@@ -50,6 +50,7 @@ export async function createStudio(
     [3, -2, 5, 2, 3, 2], // Low bounce card keeps glass legible at the default angle.
     [-3, 3, -5, 3, 4.5, 5],
     [-5, 0, 1, 3, 4, 2], // Side bounce reveals molded controls on the grip side.
+    [0, 1, 6, 2, 3, 0.8], // Front fill reveals convex glass when viewed along the optical axis.
   ]) {
     const card = new THREE.Mesh(
       new THREE.PlaneGeometry(width, height),

@@ -2768,3 +2768,471 @@ rear-oblique actual viewer views: visible diamond pattern with softer highlights
 unchanged seating and no console errors. Refreshed thumbnail and setup poster.
 Compressed R7 is 3.75 MB. Overall photorealism remains incomplete.
 Logs: /tmp/r7-wheel-knurl.log and /tmp/r7-wheel-knurl-opt.log.
+
+### 2026-10-02 — 40D closed-flash seating
+Compared front and both side views with 40d.jpg in the interactive viewer.
+The cover's curved underside exposed a broad gap where the original prism
+casting narrowed below it. Added a longitudinal casting seat following that
+underside, unioned into the housing before the cover pocket is cut. The seat
+ends at z=.32 inside the existing front casting. Trials copied from the cover
+profile left the side gap or exposed an extra block beneath the Canon logo;
+a longer rectangular seat closed the gap but exposed its front end. Those
+variants were rejected. The final shorter seat closes the broad side opening
+while leaving the original front profile visible. Verified front, terminal
+side, rear and grip side in the actual viewer; no console errors. Shoulder
+transitions still need further contour work; this is not a full body-fidelity
+or photorealism pass. Compressed model remains 3.60 MB; refreshed 40D thumbnail.
+Logs: /tmp/40d-flash-seat-inset.log and /tmp/40d-flash-seat-inset-opt.log.
+
+### 2026-10-02 — On-axis optical reflection fill
+Investigated the EF 50mm's near-black straight-on view against 50ii.jpg.
+Its exported NORMAL and _OPTICAL_NORMAL attributes agree (4,362 vertices,
+mean dot approximately 1); no optical AO texture is assigned. The actual
+viewer showed reflections off-axis, confirming that the dark central studio
+environment was responsible for the empty straight-on appearance. Added one
+front reflection card at (0,1,6), size 2 by 3, intensity .8. A strength-2 trial
+was too bright. The retained weaker card reveals coated curvature on the
+50mm without changing geometry or boosting its material reflection factor.
+Checked 50mm front/oblique, 28–135 default, f/4 front/oblique, Tamron35 front,
+and C200/f2.8 default in the actual viewer; no console errors. Telephoto inner
+reflection strength and full optical fidelity remain to be evaluated further.
+The card participates only in the existing one-time PMREM generation; it adds
+no steady-state draw calls, continuous rendering, or ray tracing.
+
+### 2026-10-02 — Tamron pale mount accent finish
+Audited the blank front rim against Tamron's official F045 product image:
+https://www.tamron.com/global/consumer/pc_file/file/f045_main.webp
+The blank rim is correct; retained the existing top-barrel branding and distance
+window placement. Checked those markings against 35-top.jpg in the live viewer.
+The top view exposed a separate finish mismatch: the pale mount accent reused
+Machined metal and reflected the studio cards as sharp chrome-like spots.
+Compared 35-top.jpg, 35-side.jpg and the official product image, then assigned
+only that accent a dedicated warm satin material (linear RGB .60/.575/.51,
+roughness .48, metalness .65). Actual-viewer top and exposed front-oblique
+checks show a broad soft highlight instead of the sharp spots; side switch
+remains flush, no console errors. Refreshed 35mm thumbnail. This does not
+establish full lens fidelity; the opposite-side badge still needs a clear
+reference and inspection. Compressed asset is 1.04 MB.
+Logs: /tmp/35-satin-accent.log and /tmp/35-satin-accent-opt.log.
+
+### 2026-10-02 — 40D multi-controller casting surround
+Compared the actual rear viewer with 40d.jpg. The round controller components
+were present, but the wider asymmetric molded shoulder underneath was absent.
+Added a shallow rounded surround around (-.52,.24) and recessed the socket
+into it. An overlapping separate piece read as an applied plate; unioned it
+into the rear cover instead. That Boolean exposed diagonal shading on large
+planar rear polygons. Marked planar Z faces flat while retaining smoothing on
+the bevels, removing the diagonal bands. Verified straight rear and both rear
+oblique views in the actual viewer: wider shoulder, clean adjacent panel,
+clearance from the rubber thumb covering and no console errors. Refreshed
+40D thumbnail. Compressed model is 3.57 MB. Broader body contours and overall
+photorealism are still incomplete.
+Logs: /tmp/40d-controller-flat-face.log and /tmp/40d-controller-flat-face-opt.log.
+
+### 2026-10-02 — 70–200 f/4 slider widths
+Compared the live control-side view with 70-200-f4-side.jpg. Heights and curved
+seating were reasonable, but the keys filled only 70% of the narrow openings
+and 64% of the IS opening, leaving oversized dark gaps beside them. The photo
+shows approximately four-fifths coverage. Increased narrow keys from .175 to
+.205 and IS key from .175 to .225, moving their centers to preserve the left
+stop. Moved right-hand molded grip ridges with the extended face; retained the
+position markings, heights and pocket dimensions. Verified side, closer side
+and elevated front-oblique views in the actual viewer: smaller clear gaps,
+curved seating preserved and no visible intersections or console errors.
+Refreshed f/4 thumbnail. Compressed model remains 2.13 MB. This check does not
+establish complete lens or overall scene photorealism.
+Logs: /tmp/f4-switch-key-width.log and /tmp/f4-switch-key-width-opt.log.
+
+### 2026-10-02 — R7 shutter lateral position and inner crown
+Top-view comparison with r7-top.png identified a lateral layout error: the
+shutter was outward of the main command wheel center, whereas the reference
+places it inward. Changed the shutter's surface sampling X from -1.25 to -1.10,
+retaining Z=.770 and the existing pocket dimensions. Moving it alone exposed a
+thin edge beneath the button in the front-oblique viewer. Expanded the three
+upper crown sections inward by increasing X radius .04 and moving their
+centers +.04, preserving their outside edges. This gives the new seat enough
+casting beneath it while retaining the outer grip silhouette. Verified top,
+front-oblique and grip-side views in the actual viewer: corrected relative
+position, no exposed pocket edge, and no console errors. Refreshed R7 thumbnail
+and setup poster. Broader shoulder-surface refinement remains incomplete; this
+was a position/support correction rather than proof of photorealistic contours.
+A browser tab disappeared during verification; recreated it in the same browser
+and repeated the checks. Compressed R7 remains 3.75 MB.
+Logs: /tmp/r7-shutter-inward-crown.log and /tmp/r7-shutter-inward-crown-opt.log.
+
+### 2026-10-02 — C200 operator-side control refinement
+Compared the actual classic viewer against output/gear-reference/c200.jpg.
+Replaced the simple power-selector disk/bar with a domed selector, broad thumb
+lever, small grip beads, white index and a crescent-shaped lower/right guard.
+Added the white POWER legend field, curved selector marking and outlined 4K
+badge. Added the raised ND-filter casting, lifting its buttons and legends with
+it; placed the two playback buttons in a shared rounded recess. Verified side
+and oblique close-ups in the actual classic viewer: controls seated without
+visible intersections and no console errors. Refreshed the complete-body C200
+thumbnail; meshopt/WebP model is 3.60 MB. This is a localized control pass, not
+proof of complete photorealism: body contours, control proportions and surface
+response still need further comparison. Existing opt-in rendering is unchanged.
+Logs: /tmp/c200-operator-controls.log, /tmp/c200-operator-controls-opt.log and
+/tmp/c200-operator-build.log.
+
+### 2026-10-02 — C200 function-button proportions and finish
+The operator-side reference shows broad shallow plastic caps, whereas the
+viewer showed small metallic beads. Increased cap radius .057 to .077 and
+bezel radius .071 to .099; reduced cap depth .018 to .011 and used Graphite
+polymer instead of Anodized black. Enlarged numbers .062 to .082 and function
+labels .042 to .061 (ND .049), with vertical spacing adjusted to clear the caps.
+Power-state labels are larger and closer to the selector. Verified side and
+oblique views in the actual classic viewer: caps sit cleanly, labels clear their
+neighbors, and no console errors. Saved c200-button-proportions.jpg in ignored
+output/gear-modeling. Broader chassis contours, texture and rear/grip-side
+fidelity remain incomplete. Asset regenerated and meshopt/WebP optimized;
+no runtime changes in this pass.
+Logs: /tmp/c200-button-proportions.log and /tmp/c200-button-proportions-opt.log.
+
+### 2026-10-02 — C200 rear controls and ocular surface
+Compared c200-rear.jpg and Canon manual Names of Parts (rear): added missing
+joystick, Camera 8 and Camera 9 markings, AUDIO STATUS button, two A/M audio
+switches, and audio-cover hinges. Replaced generic raised-center audio dials
+and straight placeholder scale text with flat-faced dials and circular
+0/5/10 graduations. Verified straight rear and oblique in the classic viewer.
+The oblique check exposed a triangular/hourglass reflection on the existing
+C200 ocular: unlike the other bodies, its mesh used only eight rectangular
+iso-depth rings with unsampled straight edges. Changed it to the spherical
+surface construction with 32 rings and sampled edges, using eyepiece optical
+glass rather than LCD glass. At the same oblique angle the triangular artifact
+is gone; straight rear also checks cleanly and there are no console errors.
+The ocular still needs optical-depth/coating comparison with the photograph;
+this does not establish full C200 fidelity. Screenshot: ignored
+output/gear-modeling/c200-rear-refinement.jpg. Regenerated and optimized C200.
+Logs: /tmp/c200-rear-ocular.log and /tmp/c200-rear-ocular-opt.log.
+
+### 2026-10-02 — GR-V1 palm housing
+Compared c200-grip.jpg against the grip side in the actual classic viewer.
+Replaced the flat extruded shell with a subdivided loft of eight sections,
+forming a continuous palm swell. A first projected rubber sheet introduced
+visible diagonal intersections: resetting normals did not fix them, disproving
+the initial shading-only diagnosis. Replaced the overlay with a flush rubber
+material region on the exact shell surface, eliminating overlapping geometry.
+Verified side and rear-oblique angles: the creases are gone and the existing
+control panel sits against the shell without a visible gap. No console errors.
+Strap construction, fine grain and full grip contour matching remain unfinished.
+Updated C200 thumbnail. Compressed C200 is 3.77 MB. Evidence: ignored
+output/gear-modeling/c200-grip-refinement.jpg. Logs:
+/tmp/c200-grip-surface.log and /tmp/c200-grip-surface-opt.log.
+
+### 2026-10-02 — GR-V1 open strap buckle
+Replaced the solid adjustment-buckle block with a rounded frame containing a
+through-opening and center bar. Webbing crosses the bar and leaves open areas
+visible around it, matching the construction visible in c200-grip.jpg more
+closely. Checked close side and rear-oblique views in the actual classic
+viewer: openings remain visible, no frame/web intersections, no console errors.
+The surrounding side-panel geometry and strap materials remain incomplete.
+Evidence: output/gear-modeling/c200-buckle-refinement.jpg (ignored).
+Logs: /tmp/c200-buckle.log and /tmp/c200-buckle-opt.log.
+
+### 2026-10-02 — C200 grip-side equipment layout
+Canon manual p.13, rendered to output/gear-reference/c200-side-parts.png,
+shows staggered INPUT selectors, intake farther forward than the old model,
+a lower-rear REMOTE/HDMI cover, focal-plane mark and speaker grille. Corrected
+those features using the manual and c200-rear.jpg: moved upper INPUT selector
+forward, relocated intake/louvers and added the missing cover, mark and grille.
+Cross-checked terminal presence with Canon's technical sheet:
+https://www.canon.com.au/-/media/images/canon/products/eos-c200/c200-tech-sheet.ashx
+Verified side and rear-oblique views with the grip attached: features clear
+of grip, no visible intersections or console errors. Updated body thumbnail.
+Large side-casting contours/materials remain unfinished. Compressed C200 3.80 MB.
+Evidence: output/gear-modeling/c200-side-layout.jpg (ignored).
+Logs: /tmp/c200-side-layout.log and /tmp/c200-side-layout-opt.log.
+
+### 2026-10-02 — C200 inner front-casting shoulder
+Compared c200-front.jpg with the existing flat annular casting. Replaced the
+constant-depth ring with a ten-section revolved surface: rounded outside
+shoulder and shallow crowned face. Preserved the mounting hardware and lens
+seating plane. Verified front-oblique and side-oblique views in the actual
+classic viewer for lens clearance/seam continuity, plus a bare-body helper
+view. No console errors. The bare-body check shows coarse casting grain still
+needs calibration; overall body contours/material fidelity remains incomplete.
+Updated thumbnail. Compressed C200 remains 3.80 MB. Evidence:
+output/gear-modeling/c200-casting-shoulder.jpg (ignored).
+Logs: /tmp/c200-casting-shoulder.log and /tmp/c200-casting-shoulder-opt.log.
+
+### 2026-10-02 — C200 casting texture calibration
+The bare-body front comparison revealed coarse mottling. The C200 still used
+1.4-unit texture tiles instead of a calibrated casting scale, and the viewer
+repeated its normal map six times while leaving roughness clamped. Added a
+C200-specific copied painted-metal material (normal strength .30), .26-unit
+UV tile span, and runtime recognition of the calibrated C200 prefix. Normal
+and roughness textures now repeat together at the authored scale without extra
+runtime amplification. R7/40D calibration behavior remains unchanged.
+Checked front-oblique and operator-side in the actual classic viewer, plus the
+same bare-body front helper: broad mottling removed, no console errors. This
+is a scale/alignment fix; full material and contour matching remains unfinished.
+Build passed: 15 pages. Refreshed C200 thumbnail. Compressed asset 3.81 MB.
+Evidence: output/gear-modeling/c200-casting-grain.jpg (ignored).
+Logs: /tmp/c200-casting-grain.log, /tmp/c200-casting-grain-opt.log,
+/tmp/c200-grain-build.log.
+
+### 2026-10-02 — C200 front release control and proportion audit
+Inspected the existing bare-body 144x153x179 mm calibration and separate uniform
+XY calibration for the circular mount casting. No global scale change was
+justified from the available angled photographs. The front reference did reveal
+an omitted lens-release control: added its vertical dark seat and curved cap
+on the operator side outside the EF flange. Verified bare front in the helper
+and mounted-lens front-oblique in the actual classic viewer: control is seated,
+visible and clear of the lens; no console errors. Overall silhouette matching
+remains unproven, rather than treating dimensional calibration as proof.
+Evidence: output/gear-modeling/c200-lens-release.jpg (ignored).
+Logs: /tmp/c200-lens-release.log and /tmp/c200-lens-release-opt.log.
+
+### 2026-10-02 — f/2.8 optical shader consistency and reflection diagnosis
+The example 70-200 f/2.8 had been excluded from front-volume scale compensation
+and dielectric internal-coating treatment. Its authored symmetric front element
+has .090 center and .038 edge thickness; wired those dimensions into the
+existing thickness-map/mesh-scale correction. Internal groups now use black
+additive dielectric reflection rather than the old orange metallic treatment.
+The pale oblique disk persisted, disproving the hypothesis that these omissions
+caused it. Ignored helper probes with glass hidden and with reflection-only
+front glass showed a dark opaque chamber and the same pale reflection,
+respectively: this is the broad environment light reflection, not an opaque
+disk or exposed white barrel. Did not alter scene lighting to hide it.
+Checked oblique and head-on in actual classic viewer, no console errors.
+Head-on reveals optical depth; inner reflection-edge fidelity still needs work.
+Build passed, 15 pages. Evidence: output/gear-modeling/f28-optical-check.jpg.
+Log: /tmp/f28-optical-build.log. This does not establish complete optical realism.
+
+### C200 example lens: recessed f/2.8 switch controls
+
+Compared `output/gear-reference/70-200-f28-controls.jpg` with the generic
+raised switch keys. Replaced the tiny raised blocks with broad rounded keys,
+cut openings in the curved panel, and sampled recess floors before bending to
+avoid chord-shaped intersections with the housing. Added stacked 1.4m–∞ /
+2.5m–∞ limiter labels and the two flanking fasteners from the reference.
+The f/4 limiter labels and single fastener remain lens-specific.
+Verified the revised asset in the actual `/classic` C200 setup from the switch
+side. This is a detail correction, not a claim of full photorealism; body
+contours, lens ring geometry, and optical reflections still need refinement.
+
+### C200 operator housing: recessed control bay
+
+The operator-side product reference (`output/gear-reference/c200.jpg`) shows a
+recess with a rounded shoulder around the control casting and exhaust louvers.
+The earlier model represented this with a raised black plate on a flat fascia.
+Cut the bay into the side housing, placed its floor inside the wall, and lowered
+the control casting, buttons, labels, and vent into that bay. Kept the exterior
+CFast door, power switch, and lower record/playback controls at their existing
+positions. The first live inspection exposed interpolated shading across the
+Boolean's large upper face; planar faces now use flat normals so triangulation
+does not create a false dent. This change addresses the operator wall relief;
+it does not establish final silhouette or material fidelity for the whole body.
+Live reinspection after the normal correction confirmed removal of the triangular
+upper-panel shading patch in side and front-oblique views. No browser console
+errors were reported. Saved proof: `output/gear-modeling/c200-recessed-housing.jpg`.
+
+### f/2.8 front-element curvature
+
+Primary reference: Canon Camera Museum, EF70-200mm f/2.8L IS USM (EF365):
+https://global.canon/en/c-museum/product/ef365.html
+Optical section:
+https://global.canon/ja/c-museum/wp-content/uploads/2015/05/ef365-lens-construction.gif
+Saved locally as `output/gear-reference/70-200-f28-optics.{gif,png}`.
+The first element is biconvex with appreciable curvature. Approximating the
+section's sag-to-clear-radius ratio gives front sag .065 and rear sag -.057
+scene units, replacing the generic +/-.026 shallow element. These are visual
+section estimates, not a manufacturer optical prescription. Preserved its
+front apex, used spherical surfaces, and changed runtime center thickness from
+.090 to .160 (edge remains .038).
+Actual `/classic` comparison at 12 right orbit steps and 2 down showed the
+previous broad pale patch become a narrow curved highlight without changing
+lighting. At 5 right steps the interior remained dark with separated internal
+reflections. This improves optical shape; it does not validate every optical
+group or establish overall photorealism.
+
+### f/2.8 molded rubber rings
+
+Compared the focus/zoom rings against `output/gear-reference/70-200-f28.jpg`.
+Replaced the 144 thin uninterrupted ribs with 96 broader lands, two transverse
+breaks on the focus ring and one on the zoom ring, aligned around the barrel.
+The count is a visual approximation from the photo, not a manufacturer spec.
+Used the existing matte telephoto rubber finish. The f/4 retains its independent
+rib count, staggered breaks, and narrower gap. Initial side/oblique inspection
+showed the .007-unit breaks were too faint; widened the f/2.8 breaks to .016.
+Re-exported and compressed the final rings, reloaded them in the actual C200
+viewer, and confirmed the aligned breaks were visible in the side-oblique view.
+No console errors. Updated the selector thumbnail to match the current asset.
+Proof: `output/gear-modeling/f28-rubber-rings.jpg`.
+
+### f/2.8 inset distance window
+
+The side/top product photo `output/gear-reference/70-200-f28.jpg` shows a much
+larger window than the previous generic .42 x .19 block. Reused the curved
+.64 x .31 inset-window construction, lowered its frame/glass into the cut, and
+added the adjacent 70–200mm mark. The scale now has separate feet/metres rows,
+infinity compensation and infrared indexes. These reuse the f/4 scale layout;
+the f/2.8 photo supports the general arrangement but exact type and every scale
+position are not independently verified. Canon's current support page lists the
+first-generation manual but did not expose a usable download in the read result:
+https://www.usa.canon.com/support/p/ef-70-200mm-f-2-8l-is-usm
+Close-up viewer inspection exposed a false crease extending from the window
+into the enamel. Added radial surface normals around the f/2.8 housing cut.
+Reinspection of the final asset confirmed the false crease was removed and the
+window remained inset. No console errors. Refreshed the lens selector preview.
+Proof: `output/gear-modeling/f28-distance-window.jpg`.
+
+### f/2.8 distance-scale evidence resolved
+
+Retrieved the original first-generation Canon manual (not the IS II/III manual):
+https://gdlp01.c-wss.com/gds/3/0900001563/01/EF70-200F2.8L_IS_USM_EN.pdf
+Saved `output/gear-reference/70-200-f28-manual.pdf`, text, and a render of PDF
+page 11 / printed ENG-10 (`70-200-f28-distance-manual.png`). This supersedes the
+previous note that no manual download had been located. Its diagram confirms
+15/30 ft and 5/10 m visible at infinity, an L-shaped compensation mark, and 100/70
+infrared indexes. Reduced the glass opening to about two thirds of the panel's
+width and half its height, placing units and fixed indexes outside that opening.
+Removed the additional 10 ft / 3 m column from this infinity-position example.
+Manual line art establishes layout; precise lettering weight still relies on
+product photos rather than assuming diagram typography equals printed ink.
+
+### C200 CFast release pocket
+The operator-side product reference (`output/gear-reference/c200.jpg`) shows a
+recessed release slider below the card door, horizontal thumb ridges, a downward
+arrow and a circular inactive status lamp to its left. Replaced the raised latch
+block with a boolean pocket in the fascia, inset slider and these details. The
+positions are visually estimated from the photo, not engineering measurements.
+
+### C200 LM-V1 dimensioned monitor rebuild
+Canon CINEMA EOS SYSTEM Expansion User Guide, English p.16 (PDF page 76):
+https://gdlp01.c-wss.com/gds/2/0300037462/08/cinemaeos-seug8-8l.pdf
+Downloaded to `output/gear-reference/cinema-expansion.pdf`; dimension sheet is
+`lmv1-dimensions.png`. Width 119.90 mm, height 75.40 mm, depth 35.99 mm including
+rear terminal, bottom mount 15.25 mm from edge and 12.85 mm behind front.
+Rebuilt the monitor case, stepped rear housing and rear-facing VIDEO connector.
+The monitor keeps its physical scale while its mounting anchor follows the C200
+body calibration. The 4-inch 16:9 display is approximately 88.5 x 49.8 mm.
+C200 original manual p.17 confirms FUNC/MENU/joystick/CANCEL/DISP on the front,
+with MIRROR on the side. Corrected the previous extra front MIRROR control.
+Cable is now a smooth Bezier path with endpoints transformed consistently with
+the independently calibrated monitor and camera. Case corner radii and small
+connector details remain visual estimates rather than dimensioned measurements.
+
+### HDU-2 rail recesses and end accessory mounts
+Canon's HDU-2 product photograph:
+https://s7d1.scene7.com/is/image/canon/2421C001_primary?fmt=webp-alpha
+Local reference: `output/gear-reference/hdu2.webp`.
+C200 manual p.19 (`c200-handle-parts.png`) identifies front and rear accessory
+mounts with 1/4-inch sockets. Added split recessed channels to both handle rails
+on both sides, ribbed end plates, socket rims and casting bores. Channel and
+plate positions are visual estimates; the handle's overall dimensional
+calibration still requires work. Do not treat this detail pass as full handle
+fidelity verification.
+
+### Correct C200 handle orientation and monitor attachment
+The installation drawing on C200 manual p.28 shows the handle's paired
+through-holes beside the rear viewfinder, opposite the front accessory plate.
+It explicitly directs attaching the LA-V1 to the front accessory mount.
+`output/gear-reference/c200-handle-install.png` preserves this evidence.
+Rotated the handle assembly 180 degrees around its longitudinal midpoint and
+replaced the monitor's side-hole attachment with a front mounting base, lock
+screw and articulated pivots. The monitor and its cable endpoint follow the
+new forward mounting location. The arm's detailed proportions are still visual
+estimates. Manual p.28 also specifies 35.5 mm hole spacing; the current handle
+needs a later dimensional pass to meet this together with its overall size.
+
+### Independent HDU-2 dimensional calibration
+Resolved the size mismatch noted above. The handle now has independent overall
+bounds of 44 x 81 x 156 mm, matching the approximate specifications in Canon's
+C200 manual p.211. The generator checks the resulting world-space bounds before
+export. The camera-body calibration moves the handle's mounting anchor without
+stretching the accessory again. Transverse holes are cut after resizing at
+8.8 mm diameter and 35.5 mm center spacing, as specified on manual p.28.
+The LA-V1 arm, monitor anchor and cable endpoint follow the resized front mount.
+Other small handle fittings still inherit the shape calibration; their detailed
+measurements and the casting's contour fidelity require further reference work.
+
+### C200 recessed viewfinder optics and rolled eyecup lip
+Compared against `output/gear-reference/c200-rear.jpg`: the real eyepiece has
+visible optical depth behind a rounded rubber hood. The previous model placed
+a dark reflective face over solid carrier geometry. Opened a channel through
+the carrier and EVF housing, added two internal baffles and a recessed inactive
+display, and gave the curved outer glass a transmitting ocular material.
+Preserved its polished normals through mesh compression using the existing
+optical-normal attribute mechanism. Added intermediate eyecup loops to form a
+rolled lip. Channel depths and curvature are visual estimates, not an optical
+prescription. Browser rear and oblique checks show internal occlusion changing
+with angle; these checks do not establish full C200 photorealism.
+
+### C200 grip-side input selector housings
+Canon C200 manual p.13 (`output/gear-reference/c200-side-parts.png`) shows two
+staggered input-selector housings. Each has an AES/EBU–ANALOG selector and a
+LINE–MIC–MIC +48V selector. Replaced the raised black plaques and projecting
+keys with polymer housings containing rounded slot cutouts, inset switch tabs,
+position marks and the missing digital/phantom-power legends. Preserved the
+upper housing's forward offset. Small dimensions and letter sizing are visual
+estimates against the parts drawing and rear product photograph.
+
+### GR-V1 standard mounting pose
+Canon C200 manual p.43 (`output/gear-reference/c200-grip-install.png`) illustrates
+0, 60 and 90 degree grip positions; the standard 0-degree pose is upright with
+the REC control above the palm. The model had used the sideways extreme pose.
+Rotated the complete grip/strap/control assembly around the rosette axis to the
+upright pose, preserving its attachment point. Manual p.18's detached grip
+illustration (`c200-grip-parts.png`) also confirms this control orientation.
+The 60 x 124 x 75 mm accessory envelope was not blindly imposed on the palm
+housing: the detached assembly includes mounting hardware and a cable. A proper
+housing-only dimensional comparison is still needed.
+
+### EF 70–200mm f/2.8 tripod collar refinement
+
+Canon EF70–200mm f/2.8L IS USM manual, ENG-11 (PDF page 12), shows tripod ring B(W), a curved pedestal/forward toe, and the locking knob beside the pedestal. Rebuilt those shapes, added a recessed 1/4-inch socket and rear identification markings. Profiles remain reference estimates, not measured CAD. The owned f/4 collar remains omitted. Verified side and underside in the actual /classic C200 viewer with no console errors; proof: `output/gear-modeling/f28-collar-refinement.jpg`. Regenerated the meshopt/WebP asset and lens thumbnail.
+
+### GR-V1 rear thumb controls
+
+Canon C200 instruction manual, Names of Parts p.18:
+https://gdlp01.c-wss.com/gds/1/0300032721/05/eosc200-200b-im11-en.pdf
+The inset identifies joystick/SET and the neighboring FOCUS GUIDE / Grip 1 button. Added a rear control housing, recessed joystick boot and stem, directional marks, and the separate numbered button. Placement uses the inset and the existing housing rather than measured GR-V1 CAD; dimensions remain estimates. The first in-viewer check exposed a submerged surround, corrected by extending the housing to the rear surface.
+
+Rear/side browser verification also exposed an initially reversed grip-local orientation; corrected to face the operator. Final viewer checks show the separate button and joystick, clear of the strap, with no console errors. Proof: `output/gear-modeling/c200-grip-thumb-controls.jpg`. Housing-to-grip blending remains visibly approximate and needs refinement; this is not a photorealism completion claim. Regenerated compressed GLB and matching thumbnail.
+
+### Continuous GR-V1 thumb deck
+
+Replaced the separate box-shaped rear control housing with a deformation of the palm shell itself. Rear cross-sections flatten around the joystick/button and blend into the surrounding grip. Moved the joystick slightly inward to keep its ring on the supported surface. Side inspection revealed a jagged face-based rubber mask, so the rubber/plastic boundary now follows complete cross-section rings instead. This removes a modeling artifact; the exact GR-V1 surface still needs closer dimensional/reference matching.
+
+Verified final rear and side views in /classic, no console errors. Proof: `output/gear-modeling/c200-grip-continuous-deck.jpg`. Compressed asset and thumbnail regenerated.
+
+### C200 chassis paint separation
+
+Compared the main shell against `output/gear-reference/c200-rear.jpg`. The existing uncalibrated Magnesium shell used pixel-scale random normals and a lighter base color, which read as smooth gray plastic in the viewer. C200 now gets an independent painted-shell material copied from the painted finish, with normal strength 0.18 and a 0.22-unit texture span (about 0.25 mm cells at 55 mm/unit). This scale is a visual estimate, not a measured coating sample. Controls and other polymer parts retain their separate material.
+
+The first export exposed a missing UV-density filter entry for C200 Magnesium shell, producing oversized grain. Added that finish to the normalization filter and rebuilt. Final rear-oblique and front-oblique checks in /classic show the corrected scale, with no console errors. Proof: `output/gear-modeling/c200-shell-finish.jpg`. Updated compressed asset and thumbnail. Broader polymer finish and body contour fidelity remain incomplete.
+
+### C200 rear connector refinement
+
+Compared `output/gear-reference/c200-rear.jpg`: added recessed XLR seats, softened cap faces, bottom retaining tongues, and recessed PUSH keys. Broadened and rounded the SDI cap. Explicit planar normals keep the Boolean-cut socket housing faces flat. Verified rear and oblique views in /classic with no console errors; proof `output/gear-modeling/c200-rear-connectors.jpg`. Regenerated compressed GLB and preview. Connector profiles are photographic estimates; this does not establish full model photorealism.
+
+### C200 right-side cover structure
+
+Canon C200 instruction manual p.13 (`output/gear-reference/c200-side-parts.png`) shows a joint below the focal-plane mark, a stepped upper connector panel, microphone-terminal cover, and two microphone-holder screw sockets. Split the former single rounded service plate into upper/lower profiles, sharpened its forward shoulder, and added the closed MIC flap and mounting-socket details. Profiles follow the drawing rather than measured CAD; overall dimensional matching remains incomplete.
+
+Verified side and rear-oblique views in the actual /classic viewer; panel division and new cover remain clear of the grip and selectors, with no console errors. Proof: `output/gear-modeling/c200-side-cover.jpg`. Compressed model and matching preview regenerated.
+
+### 40D rear key profiles
+
+Inspected Ffordes' rear photograph of an EOS 40D:
+https://www.ffordes.com/p/SH-24-088409/canon/eos-40d-body-only
+Reference saved as `output/gear-reference/40d-rear-photo.jpg`.
+The bottom-row keys have shallow flat faces; the erase key has a small central depression. Replaced the modeled ellipsoidal button caps with shallow rounded cylinders, added the erase depression, and aligned the cap/bezel assemblies to the rear surface normal. This targets cap shape and seating, not the full rear body's proportions.
+
+### 2026-10-02 — C200 front cap, tally light and microphone
+
+Compared the existing front product photograph (`output/gear-reference/c200-front.jpg`, JustCanon source above) with the actual /classic viewer. Replaced the thin VIDEO terminal cap with a swept rounded shoulder and flat central face; added the upper pull tab. Added the unlit front tally diffuser and bezel, plus three Boolean microphone openings with dark backings. Canon's C200 manual page 14 identifies the tally lamp and built-in monaural microphone. Reapplied planar custom normals to the front fascia after the cuts.
+
+Regenerated the compressed C200 GLB, raw cache, editable blend and selector thumbnail. Inspected the assembled 70–200 f/2.8 setup front-on and from the grip-side front oblique, with no browser console errors. These additions address identifiable missing details; proportions remain photo-estimated, and they do not establish overall photorealistic fidelity. Proof: `output/gear-modeling/c200-front-detail-refinement.jpg`.
+
+### 2026-10-02 — C200 EVF housing contour
+
+The rear reference (`output/gear-reference/c200-rear.jpg`) shows a full rounded EVF housing tapering into the camera top. Replaced the undersized tilted beveled box with eight rounded cross-sections, matching the existing eyecup at the rear and narrowing into the chassis. Retained the optical channel cut and moved the diopter track, lever and ribs downward by .035 model units to follow the new underside. Overall calibrated body dimensions remain 144 × 153 × 179 mm.
+
+Rebuilt the compressed GLB, raw cache, editable blend and thumbnail. Inspected rear-oblique and low side views in /classic with the 70–200 f/2.8 attached, with no console errors. Eyecup/ocular fit remains intact. Proof: `output/gear-modeling/c200-tapered-evf.jpg`. Shape dimensions remain inferred from photographs, not a manufacturer CAD model; overall fidelity is incomplete.
+
+### 2026-10-02 — 40D quick-control wheel proportions
+
+Compared the Ffordes rear photograph (`40d-rear-photo.jpg`) with the live viewer. Reduced the wheel face dish depth from .021 to .008 model units, widened the central collar, and replaced the small domed SET button with a shallow beveled cylinder (radius .080 → .095). The button-to-wheel diameter ratio is now approximately .30. Verified the final compressed asset from rear and rear-oblique angles with no console errors; the collar and button remain seated. Proof: `output/gear-modeling/40d-wheel-face.jpg`. Updated the GLB, raw cache, editable blend and thumbnail. Remaining shoulder shape/material/optical issues still prevent a claim of overall photorealistic completion.

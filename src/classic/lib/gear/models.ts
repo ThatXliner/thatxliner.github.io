@@ -51,7 +51,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                 ? object.material
                 : [object.material];
               if (meshMaterials.every((material) =>
-                /^(Optical glass|Inner optical glass|40D ocular glass)/.test(material.name),
+                /^(Optical glass|Inner optical glass|40D ocular glass|C200 ocular glass)/.test(material.name),
               )) object.geometry.setAttribute("normal", opticalNormal);
               object.geometry.deleteAttribute("_optical_normal");
             }
@@ -90,7 +90,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                     value ===
                       (material as THREE.MeshStandardMaterial).normalMap ||
                     ((/Pebbled rubber|Scanned grip rubber|Molded grip rubber/.test(material.name) ||
-                      ((id === "r7" || id === "40d") && material.name.includes("Crinkle painted metal"))) &&
+                      ((id === "r7" || id === "40d" || id === "c200") && material.name.includes("Crinkle painted metal"))) &&
                       (value ===
                         (material as THREE.MeshStandardMaterial).roughnessMap ||
                         value ===
@@ -98,7 +98,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                             .metalnessMap))
                   ) {
                     value.wrapS = value.wrapT = THREE.RepeatWrapping;
-                    const grain = /^(R7|40D) /.test(material.name)
+                    const grain = /^(R7|40D|C200) /.test(material.name)
                       ? 1
                       : material.name.includes("Scanned grip rubber")
                       ? (id === "r7" || id === "40d")
@@ -118,7 +118,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                 material.normalMap
               )
                 material.normalScale.multiplyScalar(
-                  /^(R7|40D) /.test(material.name)
+                  /^(R7|40D|C200) /.test(material.name)
                     ? 1
                     : material.name.includes("Molded grip rubber")
                     ? 0.3
@@ -131,7 +131,7 @@ export async function loadModelLibrary(initialIds: string[]) {
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
                 material.transmission > 0 &&
-                !material.name.includes("40D ocular glass")
+                !/^(40D|C200) ocular glass/.test(material.name)
               ) {
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
@@ -151,15 +151,15 @@ export async function loadModelLibrary(initialIds: string[]) {
                     : id === "35"
                       ? 0.12
                       : 0.06;
-                if (!inner && (id === "28-135" || id === "50" || id === "70-200-f4" || id === "35")) {
+                if (!inner && (id === "28-135" || id === "50" || id === "70-200-f4" || id === "70-200-f28" || id === "35")) {
                   // Match each modeled front element's center/edge thickness.
                   // glTF mesh quantization moves a
                   // uniform scale onto the node; compensate because Three
                   // multiplies volume thickness by that scale in the shader.
                   object.updateWorldMatrix(true, false);
                   const scale = object.getWorldScale(new THREE.Vector3()).x;
-                  const centerThickness = id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.040;
-                  const edgeThickness = id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.075;
+                  const centerThickness = id === "70-200-f28" ? 0.160 : id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.040;
+                  const edgeThickness = id === "70-200-f28" ? 0.038 : id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.075;
                   const maxThickness = Math.max(centerThickness, edgeThickness);
                   material.thickness = maxThickness / scale;
                   const geometry = object.geometry;
@@ -206,7 +206,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                 if (inner) {
                   material.color.setRGB(0.75, 0.34, 0.12);
                   material.iridescence = 0.35;
-                  if (id === "28-135" || id === "70-200-f4" || id === "50" || id === "35") {
+                  if (id === "28-135" || id === "70-200-f4" || id === "70-200-f28" || id === "50" || id === "35") {
                     // Add only the dielectric coating reflection. Black removes
                     // diffuse shading; the opaque optical chamber stays visible.
                     material.color.setRGB(0, 0, 0);
@@ -221,6 +221,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                       ? material.name.includes("rear") ? 0.1 : 0.25
                       : id === "35"
                       ? 0.35
+                      : id === "70-200-f28" ? 0.35
                       : id === "70-200-f4" ? 0.6
                       : material.name.includes("rear") ? 0.4 : 1;
                     material.iridescenceThicknessRange = material.name.includes("rear")
@@ -233,7 +234,7 @@ export async function loadModelLibrary(initialIds: string[]) {
               }
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
-                material.name.includes("40D ocular glass")
+                /^(40D|C200) ocular glass/.test(material.name)
               ) {
                 object.updateWorldMatrix(true, false);
                 material.thickness = 0.024 / object.getWorldScale(new THREE.Vector3()).x;
