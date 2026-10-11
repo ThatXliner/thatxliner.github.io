@@ -3284,3 +3284,27 @@ Applied the preceding Canon C200/C200B specifications as independent core/full-e
 ### EF 70–200mm f/2.8 switch close-up — 2026-10-11
 
 Compared the saved control photograph with a closer actual-viewer inspection after removing the assembled-bounds-dependent near zoom limit. White slider faces and surrounding dark slots remain intact at close range, with readable markings. Triangle-centroid visibility probes found no switch lettering buried in the surrounding meshes. This is evidence against the suspected intersection, not a full fidelity sign-off.
+
+### C200 casting reflectance — 2026-10-11
+
+Re-inspected the saved operator-side product photo (output/gear-reference/c200.jpg). Its raised casting has sharper broken highlights than the surrounding housing. Retained a C200-only normal-strength/roughness refinement after side, front and rear interactive-viewer checks. Texture pitch is unchanged; the parameter fit is visual, not a measured BRDF or scanned surface. See FIDELITY_AUDIT.md for evidence and limitations.
+
+### EF 70–200mm f/2.8L IS USM barrel inscription — 2026-10-11
+
+Canon Camera Museum EF365: https://global.canon/en/c-museum/product/ef365.html and its product image https://global.canon/ja/c-museum/wp-content/uploads/2015/08/ef365_b.jpg. The saved side reference output/gear-reference/70-200-f28.jpg shows the name on the narrow white band between the front black rim and red ring. Corrected the modeled name placement and retained the 77 mm filter marking. Verified generated text clearances and the actual interactive viewer.
+
+### R7 rear control diameter and aspect — 2026-10-11
+
+Reused Canon's saved rear parts photograph (r7-back-canon.jpg) and the larger r7-rear.webp, comparing dial/pad sizes relative to the display rather than whole-image dimensions. Corrected oversized dials and the unwanted ovalization from the body-height deformation. Confirmed actual generated circle axes and rear/side/front interactive views. These component diameters remain reference estimates, not exact manufacturer CAD.
+
+### R7 small rear-button shape — 2026-10-11
+
+Continued comparison with r7-back-canon.jpg and r7-rear.webp. Preserved circular caps/bezels for all seven small rear keys through the global housing fit, including MENU on the compressed shoulder. Verified generated dimensions and actual rear/oblique/front viewer appearance. This addresses deformation, without claiming exact manufacturer-measured key diameters.
+
+### R7 molded terminal labels — 2026-10-11
+
+Reused r7-terminals.webp to fit MIC/HDMI lettering relative to the existing traced flap outlines. Added shallow molded geometry and corrected letter-face shading after an actual-viewer close-up. Glyph footprints and relief are visual estimates; HDMI uses approximate typography rather than a traced logo. Surface finish remains an open fidelity item.
+
+### EF365 internal menisci and reflection visibility — 2026-10-11
+
+Reused Canon's optical section from https://global.canon/en/c-museum/product/ef365.html (saved 70-200-f28-optics.png). Fitted the second element and next front group's approximate profile/spacing instead of a generic shallow internal disk. Actual-viewer testing exposed impossible internal environment reflections from directions blocked by the barrel; added a straight-ray front-opening visibility approximation. This is neither a complete optical prescription nor full multi-interface ray tracing. See FIDELITY_AUDIT.md for checks and limitations.

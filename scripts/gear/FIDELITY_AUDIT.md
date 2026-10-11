@@ -224,3 +224,97 @@ This improves inspectability/readability and rules out two suspected geometric f
 ### 2026-10-11 — Requested release snapshot
 
 Prepared the verified C200 controls/core/EVF refinements, refreshed C200 thumbnail and closer inspection zoom for the user-requested release. Earlier local/unpushed notes describe their verification-time state. Set aside the unfinished HDR environment trial in ignored output; production retains the previously verified lighting and lazy viewer loading. Full photographic fidelity remains incomplete.
+
+### 2026-10-11 — Photographed studio environment trial
+
+Previous turn made progress by committing/pushing the verified snapshot (59ec198). Tested the set-aside Poly Haven Studio Small 08 1k HDR in the actual classic viewer, with existing exposure, environment intensity and direct lights unchanged. Compared the same R7 + 50mm view before/after, a head-on 50mm view, 40D rear and matched C200 front-oblique views. Saved evidence in ignored output/gear-modeling: lighting-baseline-r7.jpg, lighting-hdri-r7.jpg, lighting-hdri-40d-rear.jpg, lighting-hdri-c200.jpg and lighting-baseline-c200.jpg. No browser console errors during the trial.
+
+The HDR gave smoother, broader body illumination, but flattened the dark control/fascia contrast and made the 50mm outer glass almost visually absent at the default view. Head-on, the sensor remained plainly visible through the simplified optical system. The actual Canon 50mm and C200 reference photographs were re-inspected: lighting alone does not fix the model's surface character or optical depth. Neither environment establishes photographic fidelity. Do not hide optical shortcomings by merely lowering glass transmission or coloring an opaque disk.
+
+Rejected this environment as the production default: the comparison did not justify an extra 1,508,872-byte request. Restored scene.ts byte-for-byte to the shipped version and removed the public trial HDR, retaining both the source trial and identical HDR under ignored output. No model, thumbnail or renderer change remains from this experiment.
+
+Next material investigation: the C200 reference shows a distinct coarse crinkle finish on the raised operator casting versus the fine housing finish. Inspect the exported normal/roughness scale and its appearance at matched close-up framing before altering shared materials. Optical multi-surface approximation and body contours remain outstanding. Full goal completion is unproven.
+
+A closer follow-up in the restored viewer resolves the casting grain (`c200-finish-baseline.jpg`, `c200-finish-close.jpg`), so the texture is present rather than missing. Source uses a 48-cell normal map over a .26-unit C200 tile: nominal .298 mm cell pitch at 55 mm/unit, with normal strength .48 and roughness centered on .48. At the earlier full-body framing much of that grain is subpixel. Do not enlarge its physical scale merely to force visibility in thumbnails. Next compare highlight breakup/roughness under matched framing; a C200-specific finish should avoid changing R7/40D materials incidentally.
+
+### 2026-10-11 — C200 cast-finish response
+
+Previous turn made progress by rejecting an unhelpful HDR environment and identifying the casting response as a separate issue. Corrected one diagnostic detail: the shared source material has .48 normal strength, but the C200 export already overrides it to .30. The shipped GLB confirmed that exported value (material name carries .001 suffix).
+
+Compared the operator close-up photograph against the actual viewer. Tested a C200-only casting change: normal strength .30 to .60 and roughness map values multiplied by .65 (mean roughly .48 to .312). Preserved the existing .26-unit texture tile / nominal .298 mm cell pitch. The first runtime trial matched the unsuffixed material name and therefore did not apply; corrected the match before judging it. The applied trial produced the broken specular highlights missing from the preceding rubber-like finish.
+
+Baked the retained response into the generator and rebuilt/compressed the C200 asset. Removed the temporary runtime override entirely; models.ts and scene.ts match HEAD. C200 smooth housing and other camera/lens materials retain their previous settings. No new runtime resource or render pass. Final asset 4,460,436 bytes. Header/compression, material normal scale and roughness texture presence validated. Generator retained its core/full-envelope, mount and round-button assertions.
+
+Inspected the final compressed asset in the actual classic viewer from side-close, front-oblique and rear views, without console errors. Proofs: c200-crinkle-final-side.jpg, c200-crinkle-final-front.jpg, c200-crinkle-final-rear.jpg. Updated editable blend, raw cache and selector thumbnail. This improves the distinction between the cast panel and smooth housing; it is not a full photographic match. Optical depth, body/lens contours and remaining material details still require work. Changes remain local and unpushed.
+
+### 2026-10-11 — f/2.8 front-barrel inscription placement
+
+Previous turn made progress by refining the C200 casting. Inspected the f/2.8 front rim and the saved product reference. The close view distinguishes the bright optical reflection from a separate, unambiguous marking error: this first-generation Canon telephoto carries its lens name on the white barrel, but the model printed generic arc lettering on the front face. Canon's EF365 product reference was rechecked online.
+
+Moved the f/2.8 name and 77 mm diameter inscription onto the white band ahead of the red ring; removed the generic front-face lettering. Reused the existing cylindrical lettering method while preserving the owned f/4 placement. The front face retains its dark material. No optics/reflection change was made; the bright optical crescent remains a separate fidelity issue.
+
+The generated-geometry probe output/gear-modeling/probe-f28-front-marking.py asserts exactly two barrel inscription meshes, no remaining front-ring inscription meshes, and all lettering vertices between the red ring and black rim. Actual z ranges are 3.42828–3.47282 and 3.42728–3.47364, clear of red-ring end 3.3474 and rim start 3.538. Existing Canon/ULTRASONIC branding also clears the red ring (max z 3.28930).
+
+Rebuilt source asset, editable blend and raw cache, compressed GLB (2,031,708 bytes), and selector thumbnail. Inspected actual viewer front, opposite side and rear-oblique views; no console errors. Proofs: f28-front-marking-front.jpg, f28-front-marking-side.jpg, f28-front-marking-rear.jpg. Generator syntax, GLB header/compression and diff checks pass. This is a reference-placement correction, not a complete photographic-fidelity pass. Changes remain local and unpushed.
+
+### 2026-10-11 — R7 rear control proportions and circularity
+
+Previous turn made progress by correcting f/2.8 barrel markings. Compared the R7 rear in the actual viewer with saved r7-back-canon.jpg and r7-rear.webp, then inspected r7-right-canon.jpg. The upper dial and lower four-way pad were too wide relative to the LCD; source inspection also confirmed that the global .87 body-height fit flattened their circular faces. Their centers relative to the display were already close to the reference.
+
+Reduced the complete upper dial/joystick assembly in XY to .86 of its original diameter and the lower rocker assembly to .88. Counter-scaled their local Y extents by 1/.87 before the shared body deformation, preserving final circularity without changing centers or Z seating. All associated bezels, face grips, joystick cup/dots, SET label and direction notches follow their assembly. Values are photo-based proportional fits, not manufacturer component dimensions.
+
+Added generated-geometry assertions for the finished ring axes. Ran output/gear-modeling/probe-r7-circular-controls.py against the updated generator: upper lip axes 20.6228 / 20.6238 mm; lower rim 19.4568 / 19.4568 mm. Both within .0001 model-unit tolerance. Probe log: /tmp/r7-circular-controls-probe.log.
+
+Rebuilt editable blend, raw cache, compressed R7 (3,748,784 bytes), selector thumbnail and setup poster. Synced the ignored poster renderer from production before capture. Actual-viewer rear, grip-side and front-oblique checks passed without console errors; proof r7-rear-controls-final-rear.jpg, r7-rear-controls-final-side.jpg and r7-rear-controls-final-front.jpg. Syntax, GLB header/compression and diff checks passed.
+
+This fixes a specific rear-control proportion/deformation error. Overall body contour, grip finish, optics and complete setup fidelity remain unproven. Other small rear controls still pass through the body's vertical fit and merit a separate reference check. Changes remain local and unpushed.
+
+### 2026-10-11 — R7 small rear-button circularity
+
+Previous turn made progress by correcting the two large rear controls. The smaller rear buttons still inherited the same .87 Y compression, and MENU additionally inherited .65 X compression from the left-shoulder fit. The actual viewer showed horizontally oval AF/INFO/playback controls and a vertically narrowed MENU cap, unlike the circular keys in Canon's saved rear photo.
+
+Counter-scaled each R7 button assembly locally around its original center before the existing body deformation. Included the bezel, cap and associated icons/labels. Retained the original cap diameter and seating depth; the body deformation still positions the control centers. MENU receives the X correction as well. No 40D or lens change in this turn.
+
+Expanded the generator's finished-geometry assertions to all seven small rear caps. During the actual build they measured 6.05 mm horizontally and 6.0500–6.0508 mm vertically. The two large controls continue to pass their circularity checks. Build log: /tmp/r7-small-buttons-build.log.
+
+Inspected the final compressed asset from rear, opposite rear-oblique and front in the actual viewer. MENU clears the shoulder edge; the corrected keys remain seated and legends remain visible. No console errors. Evidence: r7-small-buttons-baseline.jpg, r7-small-buttons-final-rear.jpg, r7-small-buttons-final-oblique.jpg, r7-small-buttons-final-front.jpg. Updated raw cache, editable blend, compressed GLB (3,762,084 bytes), R7 thumbnail and setup poster. Syntax, GLB header/compression and diff checks pass.
+
+This completes the identified R7 rear-control ovalization correction, not the overall photographic-fidelity goal. The oblique view still exposes rough terminal-cover/side-surface appearance, and grip finish, broader contours and optics remain incomplete. Changes are local, unpushed.
+
+### 2026-10-11 — R7 terminal-label footprint and molded relief
+
+Previous turn made progress by correcting small rear-button ovalization. Compared the actual terminal-side view with saved r7-terminals.webp. The flap outlines broadly follow the reference, but MIC and particularly HDMI were undersized relative to their covers. The existing tiny black planar lettering did not reproduce the reference's molded appearance.
+
+Matched their approximate horizontal footprints to 35 and 65 pixels in the same reference coordinate mapping already used for the flap geometry. Used bold glyphs with low molded relief and rounded edges, sharing the cover's rubber material. These are visual approximations, not exact traced HDMI-logo contours. The final relief is approximately .16 mm after projection and body-width fitting. Did not change cover outlines or rubber grain scale on this evidence.
+
+The first close-up exposed lumpy shading across narrow raised letter faces. Corrected the formed mesh so flat caps do not inherit bevel-side smooth normals. Inspected final compressed model in terminal-side rear-oblique close-up, rear and front views; no console errors. Proofs: r7-port-labels-final-oblique.jpg, r7-port-labels-final-rear.jpg, r7-port-labels-final-front.jpg. Earlier r7-port-labels-final-side.jpg predates the letter-normal repair and is intermediate evidence.
+
+Updated editable blend, raw cache, compressed GLB (3,811,436 bytes), R7 thumbnail and setup poster. All nine rear-control circularity assertions passed during this build. Generator syntax, GLB header/compression and diff checks pass. The terminal panel's broader rubber character and pocket geometry still need comparison; this does not establish full photographic fidelity. Changes remain local and unpushed.
+
+### 2026-10-11 — f/2.8 inner optical profiles and barrel occlusion
+
+Previous turn made progress on R7 terminal lettering. Compared the current telephoto glass profiles with Canon EF365's saved construction section (70-200-f28-optics.png). The generic shallow inner element was too deep and too flat. Replaced it with a stronger spherical positive meniscus, closer to the first element; added the smaller next front group. These shapes fit the diagram approximately and do not reproduce all 23 elements or constitute a measured prescription.
+
+The geometry-only trial made the oblique white patch brighter, exposing a distinct renderer error: environment reflections on internal glass ignored the surrounding barrel. Added a f/2.8-only shader check for whether the reflected direction can pass through the front sleeve opening (Z 3.634; radius approximately .6263). Directions blocked by the barrel no longer contribute environment radiance. Uses the actual decoded mesh-to-asset matrix and current world-to-asset transform, including quantized node scale and assembled pose. No new texture, network request or render pass; existing lazy/dirty rendering remains unchanged.
+
+The check uses straight rays, so it omits refraction through preceding groups. It does not fix multiple-interface transmission, internal absorption, or all ray occlusion. This limitation is documented beside the code. The external front-surface studio reflection remains present; it was not painted out.
+
+Actual viewer: checked head-on, intermediate and stronger oblique angles, then switched to owned 40D + 50mm and back to C200. No console errors, and returning to the C200 preserved the expected reflection pattern. Proofs: f28-aperture-occlusion-front.jpg, f28-aperture-occlusion-quarter.jpg, f28-aperture-occlusion-oblique.jpg. The earlier f28-inner-optics-oblique.jpg records the rejected geometry-only state.
+
+Executed output/gear-modeling/check-f28-aperture.ts against the actual production material hook with a synthetic quantized GLTF fixture: shader injection, translation/rotation/scale invariance, reflected-direction transforms and missing-integration guard passed. Generated-surface ray checks (check-f28-element-clearance.py) passed 400 samples with minimum adjacent front-group clearance 2.255 mm. Build passed: 15 pages, 20.90 s. Syntax, GLB header/compression and whitespace checks passed.
+
+Updated blend, raw cache, compressed f/2.8 asset (2,091,108 bytes) and thumbnail. This is a substantive optical-profile/visibility improvement, not proof of complete photographic fidelity. Other lenses do not yet have equivalent barrel-visibility checks, and full body/material/optical verification remains incomplete. Changes remain local and unpushed.
+
+### 2026-10-11 — 50mm internal-reflection visibility
+
+Previous turn made progress on f/2.8 profiles and barrel visibility. Inspected the owned 50mm geometry: its front element retaining lip ends at Z .5545 with clear radius .278. Parameterized the existing internal-reflection shader with a per-material opening uniform and enabled it for the 50mm using those dimensions. The f/2.8 retains its sleeve dimensions (3.634 / .62629). The opening-edge transition scales with radius rather than using a telephoto-sized constant.
+
+Performed a controlled actual-viewer comparison on R7 + 50mm, temporarily restoring the previous shader without changing assets/camera pose. The old broad internal olive reflection disappears when its reflected direction is blocked by the retaining lip; the front glass reflection remains. Evidence: 50-aperture-baseline-oblique.jpg and 50-aperture-trial-oblique.jpg. Retained the corrected shader, then checked R7 head-on, 40D + 50mm, and switching to the C200/f2.8 with its different opening. No console errors. Additional proof: 50-aperture-final-front.jpg and 50-aperture-final-40d.jpg.
+
+Ran check-lens-aperture.ts against both production material hooks: correct per-lens uniforms, shader injection, quantized-node compensation, assembly pose/direction invariance and integration-error guard passed. Build passed (15 pages, 23.78 s), diff check passed. Refreshed 50mm and f/2.8 selector thumbnails. No mesh or lighting change in this turn, no added render pass.
+
+The head-on sensor appearance remains too direct because this is still an approximate optical system. Opening visibility uses straight rays and does not model refraction through preceding elements or all internal stops. This correction does not establish full photorealism. Changes remain local and unpushed.
+
+### 2026-10-11 — Requested checkpoint release
+
+Shipping the retained C200 casting finish, f/2.8 inscriptions and internal groups, R7 rear controls and molded terminal labels, per-lens internal-reflection visibility for the 50mm and f/2.8, and refreshed previews. The local/unpushed wording above records each investigation's state at the time. Re-ran both lens material-hook checks for this checkpoint. Existing lazy loading and rendering behavior are preserved. Full photographic fidelity and multi-interface optical transport remain incomplete.

@@ -1236,6 +1236,7 @@ def body(which):
     else:
         # Rear R7 reference: a deeply recessed joystick inside a knurled wheel,
         # plus a separate four-way rocker below the sculpted thumb overmold.
+        rear_wheel_start=len(OBJECTS)
         x,y=-.62,.62
         cyl('Rear wheel recess',(x,y,rz-.047),.232,.024,'Deep black')
         ring('Rear wheel outer lip',rz-.074,.218,.202,.032,'Graphite polymer',center=(x,y))
@@ -1274,10 +1275,15 @@ def body(which):
         for ix in range(-3,4):
             for iy in range(-3,4):
                 if ix*ix+iy*iy<12:sphere('Joystick molded dots',(x+ix*.014,y+iy*.014,rz-.097),(.003,.003,.002),'Graphite polymer')
+        # Match the dial/display ratio in Canon's rear photo. Counter the
+        # later .87 body-height fit so the circular control stays circular.
+        wheel_fit=Matrix.Translation(Vector((x,y,0)))@Matrix.Diagonal((.86,.86/.87,1,1))@Matrix.Translation(Vector((-x,-y,0)))
+        for o in OBJECTS[rear_wheel_start:]:o.matrix_world=wheel_fit@o.matrix_world
         # Trace the rear reference's shelf beneath the joystick and the
         # narrow return around INFO and the four-way pad. The old outline
         # pinched inward too early, leaving a large bare patch beside INFO.
         profile('Rear thumb rubber',[(-1.257,.480),(-1.229,.539),(-1.16,.553),(-1.109,.52),(-1.086,.454),(-1.029,.395),(-.943,.382),(-.743,.336),(-.737,.217),(-.880,.145),(-.92,-.092),(-1.034,-.164),(-1.091,-.295),(-1.120,-.441),(-1.166,-.737),(-1.246,-.684),(-1.263,-.526)],rz-.058,rz-.037,'Molded grip rubber',.009)
+        four_way_start=len(OBJECTS)
         x,y=-.90,-.35
         cyl('Four way pad recessed bezel',(x,y,rz-.047),.211,.025,'Deep black')
         ring('Four way pad rim',rz-.069,.201,.181,.021,'Graphite polymer',center=(x,y))
@@ -1312,6 +1318,8 @@ def body(which):
                 radius=.130+i*.007;t=(.181-radius)/(.181-.079)
                 points.append((x+cos(a)*radius,y+sin(a)*radius,rz-.093+.018*(2*t-t*t)))
             line('Rocker direction notch',points,.002,'Deep black')
+        pad_fit=Matrix.Translation(Vector((x,y,0)))@Matrix.Diagonal((.88,.88/.87,1,1))@Matrix.Translation(Vector((-x,-y,0)))
+        for o in OBJECTS[four_way_start:]:o.matrix_world=pad_fit@o.matrix_world
     def rear_ink(name,x,y,points,mat='Blue ink',filled=False,width=.003):
         # Coordinates read left-to-right from the rear reference. Thin planar
         # polygons follow the cover below; these are printed ink, not hardware.
@@ -1354,6 +1362,7 @@ def body(which):
     rear_buttons=[(-1.36,.51,'*'),(-1.36,.35,'▣'),(-1.0,.52,'AF-ON'),(-.78,.08,'INFO'),(-.87,-.66,'▶'),(-1.07,-.66,'▥'),(.83,.52,'MENU')]
     if dslr:rear_buttons=[(-.89,.55,'AF-ON'),(-1.08,.53,'*'),(-1.27,.48,'▣'),(.85,.42,'MENU'),(.65,.45,'Print/Share'),(.84,-.73,'▶'),(.62,-.73,'▥'),(.40,-.73,'JUMP'),(.18,-.73,'INFO'),(-.05,-.73,'Picture Style')]
     for x,y,t in rear_buttons:
+        rear_button_start=len(OBJECTS)
         if dslr:
             hits=[bvh.ray_cast(Vector((x,y,-3)),Vector((0,0,1)),4) for bvh in rear_surfaces]
             hits=[hit for hit in hits if hit[0] is not None]
@@ -1427,6 +1436,11 @@ def body(which):
             label_x=x-.087 if dslr and y<0 else x
             label_y=y+(.033 if y<0 else .086) if dslr else y if on_button else y-.09
             text('Rear label '+t,'INFO.' if dslr and t=='INFO' else t,(label_x,label_y,rz-.045 if dslr else rz-.085),.045 if dslr else .040,rotation=(0,pi,0))
+        if not dslr:
+            # Body fitting changes button centers, not the manufactured circular
+            # caps or their icons. MENU also lies in the compressed left shoulder.
+            button_fit=Matrix.Translation(Vector((x,y,0)))@Matrix.Diagonal((1/.65 if x>.45 else 1,1/.87,1,1))@Matrix.Translation(Vector((-x,-y,0)))
+            for o in OBJECTS[rear_button_start:]:o.matrix_world=button_fit@o.matrix_world
     if dslr:
         # Legends printed beside the buttons belong on the outer cover or
         # rubber overmold. A shared Z plane buried the AE/AF markings in rubber.
@@ -1593,8 +1607,15 @@ def body(which):
         for name,points in covers:
             port_cover(name+' cover seam',points,1.102,'Deep black',.035)
             port_cover(name+' rubber cover',points,1.115,'Focus rubber')
-        for label,px,py,size in [('MIC',274,228,.046),('HDMI',367,357,.037)]:
-            text('Terminal molded '+label,label,port_point(px,py,1.122),size,'Deep black',rotation=(0,pi/2,0))
+        # Match the reference's molded lettering footprint to the same
+        # photograph coordinates used for the flap outlines.
+        for label,px,py,pixel_width in [('MIC',274,228,35),('HDMI',367,357,65)]:
+            mark=text('Terminal molded '+label,label,port_point(px,py,1.116),.060,'Focus rubber',rotation=(0,pi/2,0),font='Bold')
+            xs=[v.co.x for v in mark.data.vertices];width=max(xs)-min(xs)
+            mark.scale.x=(pixel_width/198*.52)/width
+            # Low molded relief above the cover, not painted black text.
+            relief=mark.modifiers.new('Molded legend relief','SOLIDIFY');relief.thickness=.009;relief.offset=1;apply(mark,relief)
+            edge=mark.modifiers.new('Rounded molded lettering','BEVEL');edge.width=.001;edge.segments=2;apply(mark,edge)
         def port_stroke(name,points,radius=.0023):
             line('Terminal molded '+name,[port_point(px,py,1.121) for px,py in points],radius,'Deep black')
         # Headphone arch and ear pads, remote-release plug and USB trident.
@@ -1644,8 +1665,12 @@ def body(which):
             fresh=bpy.data.meshes.new(old_mesh.name+' formed surface')
             fresh.from_pydata([v.co[:] for v in old_mesh.vertices],[],[tuple(f.vertices) for f in old_mesh.polygons])
             for mat in old_mesh.materials:fresh.materials.append(mat)
-            for face in fresh.polygons:face.use_smooth=True
-            fresh.update();o.data=fresh;bpy.data.meshes.remove(old_mesh)
+            fresh.update()
+            molded_label=o.name.endswith(('Terminal molded MIC','Terminal molded HDMI'))
+            for face in fresh.polygons:
+                # Rounded letter edges must not bend normals across flat caps.
+                face.use_smooth=abs(face.normal.x)<.95 if molded_label else True
+            o.data=fresh;bpy.data.meshes.remove(old_mesh)
     if not dslr:
         # Canon's right-side view shows a closed SD door behind the grip.
         # Fit its thin skin to the casting instead of adding a floating slab.
@@ -1787,6 +1812,13 @@ def body(which):
         # Keep the RF opening circular after the housing proportions change.
         bpy.ops.mesh.primitive_cylinder_add(vertices=128,radius=.436,depth=.80,location=(0,0,.15));bore=bpy.context.object
         cut=shell.modifiers.new('Open RF sensor chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
+    if not dslr:
+        for label in ['Rear wheel outer lip','Four way pad rim']+['Rear button '+t for _,_,t in rear_buttons]:
+            control=next(o for o in OBJECTS[start:] if o.name.split(' / ',1)[-1]==label)
+            points=[control.matrix_world@v.co for v in control.data.vertices]
+            diameters=[max(v[i] for v in points)-min(v[i] for v in points) for i in [0,1]]
+            assert abs(diameters[0]-diameters[1])<.0001, (label,diameters)
+            print('R7 circular control',label,'diameters mm',tuple(round(d*55,4) for d in diameters),flush=True)
     # Boolean pocket walls must not pull the exterior's smooth normals inward.
     for casting in ([shell] if dslr else [shell,rear_cover]):
         # The R7 rear cover also has Boolean perforations. Preserve their
@@ -2436,6 +2468,12 @@ def lens(which):
         # The first internal group is visibly more curved than the thin
         # front meniscus in Canon's diagram; avoid a nearly planar reflector.
         optical_element('Optical inner element',l*.87,r*.74,.065,.015,'Inner optical glass',back_sag=-.030)
+    elif which=='70-200-f28':
+        # EF365's second element is a strong positive meniscus, close behind
+        # the first element. The next front group has a smaller clear radius.
+        # Profiles follow the section diagram; they are not a lens prescription.
+        optical_element('Optical inner element',l-.380,.570,.130,.018,'Inner optical glass',back_sag=.110,spherical=True)
+        optical_element('Optical next front group',l-.607,.460,.130,.015,'Inner optical glass',back_sag=.105,spherical=True)
     else:
         optical_element('Optical inner element',l-.43 if which=='28-135' else l*.87,r*(.407 if which=='28-135' else .74),.055 if which=='28-135' else .021,.029,'Inner optical glass')
     if white:optical_element('Optical middle element',l*.58,r*.43,.014,.03,'Inner optical glass')
@@ -2444,14 +2482,17 @@ def lens(which):
         arc_text('CANON ZOOM LENS EF 28-135mm 1:3.5-5.6 IS',l+.0175,r*.89,.080,start=.30)
         arc_text('CANON INC.',l+.0175,r*.89,.077,start=pi*1.05)
         arc_text('Ø72mm',l+.0175,r*.89,.080)
-    elif which=='70-200-f4':
-        # The f/4 name is printed around the white barrel, not on the front face.
-        for label,angle in [('CANON ZOOM LENS EF 70-200mm 1:4 L IS USM',pi),('Ø67mm',0)]:
+    elif white:
+        # Both Canon telephotos carry the name around the white barrel.
+        # The f/2.8 strip lies ahead of the red ring, unlike the f/4 strip.
+        inscription_z=l*(.953 if which=='70-200-f28' else .893)
+        lens_name='CANON ZOOM LENS EF 70-200mm '+('1:2.8 L IS USM' if which=='70-200-f28' else '1:4 L IS USM')
+        for label,angle in [(lens_name,pi),('Ø'+str(thread)+'mm',0)]:
             o=text('Front barrel inscription',label,(0,0,0),.080,'Deep black')
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             for v in o.data.vertices:
                 u,vv,d=v.co;aa=angle+u/(r*.97);rr=r*.97+.001+d
-                v.co=(rr*cos(aa),rr*sin(aa),l*.893+vv)
+                v.co=(rr*cos(aa),rr*sin(aa),inscription_z+vv)
             o.data.update()
     else:
         arc_text(('CANON ZOOM LENS EF ' if which not in ['35','50'] else 'TAMRON SP ' if which=='35' else 'CANON LENS EF ')+range_+' '+aperture,l+.021,r*.889,.049 if white else .046)
@@ -3273,7 +3314,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.30 if name=='r7' else .36,'Crinkle painted metal':.30 if name=='c200' else .18}
+            strengths={'Molded grip rubber':.30 if name=='r7' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
@@ -3283,6 +3324,15 @@ def export_asset(name,objects):
                     if name=='r7' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE':
                         node.image=GRIP_CELL if node.image==PEBBLE else GRIP_ROUGH
                         node.image.colorspace_settings.name='Non-Color'
+                if name=='c200' and source.name=='Crinkle painted metal':
+                    # The cast operator panel has sharper broken highlights than
+                    # the smooth shell. Keep its physical grain pitch unchanged.
+                    for node in finish.node_tree.nodes:
+                        if node.type=='TEX_IMAGE' and 'roughness' in node.image.name:
+                            original=node.image
+                            values=np.array(original.pixels[:],dtype=np.float32).reshape(original.size[1],original.size[0],4)[:,:,:3]
+                            node.image=image('c200-casting-roughness',values*.65)
+                            node.image.colorspace_settings.name='Non-Color'
                 calibrated[source.name]=finish
             o.data.materials[0]=calibrated[source.name]
     # Smart UVs provide real material-space grain; normals are corrected before export.

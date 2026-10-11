@@ -228,6 +228,42 @@ export async function loadModelLibrary(initialIds: string[]) {
                       ? [350, 370]
                       : [220, 240];
                   }
+                  if (id === "70-200-f28" || id === "50") {
+                    // IBL has no barrel occlusion. Only reflect directions that
+                    // can reach the front opening from an internal glass surface.
+                    // shortcut: straight rays omit refraction through the front
+                    // group; replace with multi-surface optics for exact transport.
+                    object.updateWorldMatrix(true, false);
+                    const assetFromMesh = object.matrixWorld.clone();
+                    // Z/radius of each lens's front sleeve or retaining lip.
+                    const opening = id === "50"
+                      ? new THREE.Vector2(0.5545, 0.278)
+                      : new THREE.Vector2(3.634, 0.62629);
+                    const assetFromWorld = { value: new THREE.Matrix4() };
+                    material.onBeforeRender = (_renderer, _scene, _camera, _geometry, mesh) => {
+                      assetFromWorld.value.copy(mesh.matrixWorld).invert().premultiply(assetFromMesh);
+                    };
+                    material.onBeforeCompile = (shader) => {
+                      shader.uniforms.opticalAssetFromMesh = { value: assetFromMesh };
+                      shader.uniforms.opticalAssetFromWorld = assetFromWorld;
+                      shader.uniforms.opticalOpening = { value: opening };
+                      shader.vertexShader = "uniform mat4 opticalAssetFromMesh;\nvarying vec3 opticalAssetPosition;\n" + shader.vertexShader;
+                      shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\nopticalAssetPosition = (opticalAssetFromMesh * vec4(position, 1.0)).xyz;");
+                      shader.fragmentShader = "uniform mat4 opticalAssetFromWorld;\nuniform vec2 opticalOpening;\nvarying vec3 opticalAssetPosition;\n" + shader.fragmentShader;
+                      const environment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
+                        "return envMapColor.rgb * envMapIntensity;",
+                        `vec3 apertureRay = normalize(mat3(opticalAssetFromWorld) * reflectVec);
+                        float apertureDistance = (opticalOpening.x - opticalAssetPosition.z) / max(apertureRay.z, 0.00001);
+                        vec2 apertureHit = opticalAssetPosition.xy + apertureRay.xy * apertureDistance;
+                        float apertureVisibility = step(0.00001, apertureRay.z) * (1.0 - smoothstep(opticalOpening.y * 0.992, opticalOpening.y * 1.008, length(apertureHit)));
+                        return envMapColor.rgb * envMapIntensity * apertureVisibility;`,
+                      );
+                      if (!environment.includes("apertureVisibility") || !shader.vertexShader.includes("opticalAssetPosition =") || !shader.fragmentShader.includes("#include <envmap_physical_pars_fragment>"))
+                        throw new Error("Optical aperture shader integration changed");
+                      shader.fragmentShader = shader.fragmentShader.replace("#include <envmap_physical_pars_fragment>", environment);
+                    };
+                    material.customProgramCacheKey = () => "internal-aperture-v2";
+                  }
                   material.blending = THREE.AdditiveBlending;
                 } else material.color.setRGB(0.96, 0.98, 0.97);
                 object.castShadow = false;
