@@ -162,3 +162,65 @@ Moved the 4K frame fully onto the upper housing and seated power, Canon and func
 Verified the optimized C200 in the actual classic viewer: the 4K frame clears the recessed bay, the labels remain visible, and no console errors were reported. Proof: ignored `output/gear-modeling/c200-operator-ink-final.jpg`. Refreshed the C200 thumbnail; optimized GLB is 4,441,768 bytes. Generator syntax and compressed GLB headers/extensions validated for all four modified models.
 
 Release snapshot includes the preceding 40D crown, 50mm printing/slots and R7 sleeve changes. The earlier “local/not pushed” statements describe their verification-time state; this snapshot is prepared for the user's requested commit and push. No renderer or loading behavior changed. Full photographic fidelity remains incomplete.
+
+### 2026-10-11 — C200 tape hook and control legends
+
+The previous turn made progress by shipping the verified snapshot. Compared the operator side with the saved product photo and Canon manual page 12 (`c200-front-parts.png`). The manual explicitly identifies the tape-measure hook, WB button and dual-purpose playback controls.
+
+Added the projecting tape-measure hook, vertical EXHAUST VENT legend, WB button/label, play/pause mark, white-balance adjustment symbol and INDEX/stop mark. Right-aligned the power-mode legends against their index dots. The lower marks are beside the raised playback surround, on the fascia; intermediate placements over the recessed bay or behind that surround were corrected before final verification.
+
+Verified the final compressed asset in the actual classic viewer from operator side, front-oblique and rear-oblique views, with no console errors. Saved `c200-control-details-side.jpg`, `c200-control-details-front.jpg`, and `c200-control-details-rear.jpg` in ignored `output/gear-modeling/`. Updated raw cache, editable blend and selector thumbnail. Final optimized asset: 4,459,572 bytes. Generator syntax, GLB header/compression and diff whitespace checks pass. No runtime changes.
+
+These details improve reference coverage; the lower control layout remains crowded compared with Canon's photograph, and materials, broad contour and optical fidelity are not yet a full photographic match. Full goal completion remains unproven. This follow-up is local and not pushed.
+
+### 2026-10-11 — C200 operator bay and lower control spacing
+
+Previous turn made progress by adding reference-confirmed missing hardware and legends. Its viewer capture exposed the next discrepancy: the operator bay sat too low, leaving a crowded lower control strip. Compared again with the product photograph and Canon manual page 12.
+
+Moved the bay upward (top .31 to .45; bottom -.86 to -.74), reshaped its control casting, and moved the exhaust with it. Increased spacing in the main numbered column to .27 and the right column to .33 while bringing their horizontal separation closer to the reference. Repositioned the ND sub-panel. Raised the 4K/focal-plane/hook details and moved the whole power cluster right/up; a first trial missed the cluster because Blender object names carry a model prefix, corrected before final verification with an explicit matched-cluster assertion.
+
+Raised and separated the lower REC/dial/WB/playback controls; enlarged the REC bezel/cap relative to numbered keys. Raised the card latch and EOS/C badge while shortening the card door to maintain clearance. Printed REC/model/transport legends now sit on the fascia plane. The changes retain the body envelope calibration and do not change runtime or selectors.
+
+Verified final compressed asset in the actual viewer from side, front-oblique and rear-oblique views, with no console errors. Proofs: `c200-panel-layout-side.jpg`, `c200-panel-layout-front.jpg`, `c200-panel-layout-rear.jpg` in ignored `output/gear-modeling/`. Generator syntax, compressed GLB header/extension and diff whitespace checks passed. Updated raw cache, editable blend, optimized GLB (4,474,112 bytes) and thumbnail.
+
+This improves control layout but does not establish a full photographic match. The side housing's overall aspect/proportions relative to the EVF and front casting still need a careful multi-view comparison; the crinkle finish, optics and broader material response remain incomplete. Changes remain local, not pushed.
+
+### 2026-10-11 — C200 envelope calibration audit
+
+Previous turn made progress by correcting control spacing, but its images did not prove overall body proportions. This turn compared the current side/rear interactive views and the saved front/side/rear product references, then measured the generated component vertices independently of the exporter. Diagnostic source and results are retained in ignored `output/gear-modeling/measure-c200-proportions.py` and `c200-proportions-current.json`. No model geometry was changed during this audit.
+
+Measured current side fascia: 126.93 mm front-to-back by 130.39 mm high (ratio .973). Current CFast door: 29.23 by 51.11 mm (ratio .572). Both appear too broad relative to height in the product photograph and manual diagram. Those image ratios are visual constraints, not exact manufacturer component dimensions.
+
+A stronger independent constraint is Canon's C200B camera-unit specification: 144 x 146 x 137 mm, versus C200 144 x 153 x 179 mm. The present model core, excluding the detachable handgrip, BP-A30 battery geometry and EVF/eyecup group, measures 144.00 x 153.00 x 165.79 mm. Its depth extrema come from the front screw geometry and rear SDI terminal legend. The current overall-envelope calibration gives the chassis too much of the total C200 depth; the EVF contributes only about 13.21 mm beyond the core envelope rather than the 42 mm difference between Canon's published variants. Treat the C200B as a dimensional cross-check, not proof that all its geometry is identical.
+
+This changes the next modeling action: calibrate the main chassis and projecting EVF as separate groups, preserve the EF mating plane and round hardware, then reposition the rear assembly and accessory anchors. Do not simply stretch the whole assembled camera or declare the outer 144/153/179 check sufficient. Side-fascia height and the card-door aspect still need independent verification after that change.
+
+Actual-viewer proof: `c200-proportion-audit-side.jpg`, `c200-proportion-audit-rear.jpg`; no console errors. Full photographic fidelity remains unproven. Earlier local C200 edits are preserved. GitHub Pages run 38160651091 completed successfully for pushed commit ed71687; subsequent model work remains local.
+
+### 2026-10-11 — Separate C200 core and EVF calibration
+
+Previous turn made diagnostic progress: measured a 165.79 mm deep main core, contradicting the independent C200B 137 mm envelope despite passing C200 overall dimensions. Implemented separate groups for core, EVF, battery and handgrip. The core now targets 144 x 146 x 137 mm; the viewfinder is positioned to retain the full C200 144 x 153 x 179 mm envelope. This uses C200B as a shared-housing dimensional cross-check, not manufacturer CAD or proof of identical detail geometry.
+
+The EF mount retains its original matrices. The EVF, battery and grip retain their preceding shapes while their attachment positions follow the new core. Grip anchoring uses the actual transformed rosette pivot; battery anchoring uses its mating face and center. Circular side controls and printed markings receive a local vertical correction to avoid elliptic controls/narrowed type under the depth/height fit. The power cluster is corrected as a group. Handle size remains independently calibrated.
+
+Generator checks measured the generated core at 144.000 x 146.000 x 137.000 mm and body plus EVF at 144.000 x 153.000 x 179.000 mm. All nine side button cap diameters agree in their face axes to within .000002 mm; unchanged EF matrices are asserted. The independent component probe (`measure-c200-proportions-recalibrated.py`, `c200-proportions-recalibrated.json`) confirms core dimensions. Side fascia aspect improves from .973 to .843; CFast door from .572 to .495. Neither ratio alone proves exact photo fidelity.
+
+Inspected the final compressed model in the actual classic viewer from front-oblique, side, rear-oblique and grip-side views. Lens mating, rear battery, projecting EVF and grip attachments remain connected; no console errors. Proofs in ignored `output/gear-modeling/`: `c200-core-calibration-front.jpg`, `c200-core-calibration-side.jpg`, `c200-core-calibration-rear.jpg`, `c200-core-calibration-grip.jpg`. Updated generator, raw cache, blend, optimized GLB (4,467,104 bytes) and thumbnail. Syntax, GLB compression/header and diff whitespace checks pass. No renderer/loading changes.
+
+This is retained local progress, not pushed and not a photorealism pass. Side panel/card-door aspect, material finish, optical response and remaining camera/lens contour details still need reference comparison. The grip-side capture also leaves the f/2.8 lens switch appearance visibly suspect; inspect it against the actual lens reference instead of assuming a successful asset load proves correct switches.
+
+### 2026-10-11 — Switch-detail diagnosis and inspection zoom
+
+Previous turn made progress by recalibrating the C200 core/EVF. Its grip-side screenshot suggested broken f/2.8 switch geometry. Reproduced in the actual viewer and compared the saved `70-200-f28-controls.jpg` reference. Do not treat the initial distant screenshot as proof of intersecting geometry.
+
+`output/gear-modeling/probe-telephoto-print.py` traces outward from the centroids of 2,794 switch-lettering/tick triangles against all other model meshes. It found zero buried samples. Results: `f28-print-occlusion-before.json`. `probe-f28-switch-normals.py` also ruled out a gross stale-normal rotation: cap corner-normal deviation from the radial surface was at most 2.758 degrees, not a 90-degree shading failure. These probes cover those specific hypotheses, not every surface defect. No lens geometry/material was changed on this evidence.
+
+The interactive viewer's minimum camera distance grew with the entire assembled bounds, including the cinema monitor and long telephoto. That prevented useful inspection of tiny legends. Set the minimum distance to the existing 2.2-unit lower bound for every setup; full-assembly reset framing and maximum distance remain computed from the bounds. Panning can center an individual component before further zoom. No extra asset, shader, ray tracing, polling or render loop was added.
+
+Actual-viewer checks: zoomed beyond the preceding limit, read AF/MF and stabilizer legends, inspected all four switch faces/recesses, and reset the C200 to its full assembly. Switched to owned equipment, selected EF 50mm on R7, switched independently to 40D retaining the lens, zoomed and reset. No console errors. Proofs: `f28-switch-detail-zoom.jpg`, `detail-zoom-owned-reset.jpg`. Build passed (15 pages, 23.11 s); diff check passed.
+
+This improves inspectability/readability and rules out two suspected geometric faults. It does not establish complete photographic fidelity: materials, optics and the remaining body/lens contours still require comparison. Changes remain local and unpushed.
+
+### 2026-10-11 — Requested release snapshot
+
+Prepared the verified C200 controls/core/EVF refinements, refreshed C200 thumbnail and closer inspection zoom for the user-requested release. Earlier local/unpushed notes describe their verification-time state. Set aside the unfinished HDR environment trial in ignored output; production retains the previously verified lighting and lazy viewer loading. Full photographic fidelity remains incomplete.

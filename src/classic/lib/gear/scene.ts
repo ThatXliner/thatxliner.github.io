@@ -203,7 +203,8 @@ export async function createStudio(
     const box = new THREE.Box3().setFromObject(assembly);
     const center = box.getCenter(new THREE.Vector3());
     const radius = box.getSize(new THREE.Vector3()).length() / 2;
-    controls.minDistance = Math.max(2.2, radius * 1.08);
+    // Long lenses and the cinema monitor should not prevent detail inspection.
+    controls.minDistance = 2.2;
     controls.maxDistance = Math.max(17, radius * 4);
     floor.position.y = box.min.y - 0.04;
     orbit.position.y = floor.position.y + 0.012;

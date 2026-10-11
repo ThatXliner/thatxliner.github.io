@@ -2545,7 +2545,7 @@ def cinema():
     side_fascia=profile('Side fascia',[(-1,-1.01),(-1,.71),(-.92,.98),(.83,.98),(.96,.82),(1,-.72),(.89,-1.01)],-.035,.055,'Graphite polymer',.035)
     # The operator bay is recessed into the side housing, with a rounded
     # shoulder enclosing both the textured control casting and exhaust.
-    bay_outline=[(-1.03,-.86),(-1.03,.31),(.32,.31),(.43,.20),(.43,-.75),(.31,-.86)]
+    bay_outline=[(-1.03,-.74),(-1.03,.45),(.32,.45),(.43,.34),(.43,-.63),(.31,-.74)]
     bay=profile('Operator bay cutter',bay_outline,.003,.16,None,.026,rounding=.11)
     cut=side_fascia.modifiers.new('Recessed operator bay','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bay;apply(side_fascia,cut)
     OBJECTS.remove(bay);bpy.data.objects.remove(bay,do_unlink=True)
@@ -2555,19 +2555,20 @@ def cinema():
         if abs(face.normal.z)>.999:face.use_smooth=False
     # The operator controls sit in a stepped casting. The vent is a continuous
     # dark opening with horizontal louvers, not individual painted stripes.
-    profile('Operator panel surround',[(-.96,-.82),(-.96,.27),(.29,.27),(.38,.18),(.38,-.76),(.27,-.82)],.003,.008,'Graphite polymer',.002)
-    profile('Operator control casting',[(-.85,-.77),(-.85,-.16),(-.70,-.16),(-.70,.18),(-.54,.25),(.12,.25),(.18,.15),(.18,-.73),(.05,-.80)],.010,.028,'Crinkle painted metal',.008)
-    box('Exhaust opening',(.29,-.29,.020),(.17,1.03,.019),'Deep black',.028)
-    for i in range(14):box('Exhaust louver',(.29,-.76+i*.071,.039),(.18,.027,.029),'Graphite polymer',.007)
-    box('CFast door seam',(.68,-.095,.058),(.49,.93,.025),'Deep black',.032)
-    box('CFast door',(.68,-.095,.078),(.46,.90,.028),'Graphite polymer',.027)
+    profile('Operator panel surround',[(-.96,-.70),(-.96,.41),(.29,.41),(.38,.32),(.38,-.64),(.27,-.70)],.003,.008,'Graphite polymer',.002)
+    profile('Operator control casting',[(-.90,-.66),(-.90,.13),(-.66,.13),(-.66,.33),(-.54,.40),(.12,.40),(.18,.30),(.18,-.63),(.05,-.70)],.010,.028,'Crinkle painted metal',.008)
+    box('Exhaust opening',(.29,-.15,.020),(.17,1.03,.019),'Deep black',.028)
+    for i in range(14):box('Exhaust louver',(.29,-.62+i*.071,.039),(.18,.027,.029),'Graphite polymer',.007)
+    text('Exhaust ventilation label','EXHAUST VENT',(.147,-.16,.0295),.031,rotation=(0,0,pi/2))
+    box('CFast door seam',(.68,-.035,.058),(.49,.81,.025),'Deep black',.032)
+    box('CFast door',(.68,-.035,.078),(.46,.78,.028),'Graphite polymer',.027)
     box('CFast finger recess',(.65,.16,.095),(.13,.18,.011),'Deep black',.025)
     box('CFast finger pad',(.65,.16,.101),(.105,.152,.012),'Graphite polymer',.019)
     # Recessed release slider and status lamp, visible in the operator-side
     # product photograph. The thumb ridges run horizontally across the slider.
     latch_start=len(OBJECTS)
     latch_cut=rounded_panel('CFast latch cutter',(.74,-.74,.064),(.19,.137,.10),.017,None)
-    latch_cut.location.y+=.09
+    latch_cut.location.y+=.21
     cut=side_fascia.modifiers.new('CFast release pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=latch_cut;apply(side_fascia,cut)
     OBJECTS.remove(latch_cut);bpy.data.objects.remove(latch_cut,do_unlink=True)
     for face in side_fascia.data.polygons:
@@ -2579,7 +2580,7 @@ def cinema():
     cyl('CFast indicator bezel',(.55,-.747,.062),.025,.012,'Deep black',vertices=48,bevel=.002)
     cyl('CFast inactive indicator',(.55,-.747,.069),.020,.006,'Machined metal',vertices=48,bevel=.002)
     text('CFast label','CFast',(.50,-.70,.092),.049)
-    for o in OBJECTS[latch_start:]:o.location.y+=.09
+    for o in OBJECTS[latch_start:]:o.location.y+=.21
     # Reference: recessed circular selector, broad thumb lever and a crescent
     # guard around the lower/right edge, rather than a bar on a flat disk.
     cyl('Power control seam',(-.12,.64,.062),.147,.024,'Deep black')
@@ -2597,45 +2598,68 @@ def cinema():
     rounded_panel('Power legend field',(-.35,.875,.056),(.215,.049,.0006),.007,'White ink')
     text('Power label','POWER',(-.35,.875,.0567),.045,mat='Deep black')
     line('Power lock arc',[(-.12+.168*cos(a*pi/180),.64+.168*sin(a*pi/180),.058) for a in range(85,146,5)],.0025,'White ink')
-    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.43,y,.0567),.062)
+    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.287,y,.0567),.062,align='RIGHT')
     text('Canon side wordmark','Canon',(.58,.55,.0567),.13,font='Canon')
     # Printed markings belong to the upper housing, above the recessed bay.
     # The former 4K box crossed the bay lip and floated above both surfaces.
-    text('4K mark','4K',(-.66,.425,.0567),.105)
+    text('4K mark','4K',(-.54,.54,.0567),.105)
     verts=[];faces=[]
     for width,height,radius in [(.156,.116,.013),(.144,.104,.007)]:
         for cx,cy,a in [(width/2-radius,height/2-radius,0),(-width/2+radius,height/2-radius,pi/2),(-width/2+radius,-height/2+radius,pi),(width/2-radius,-height/2+radius,3*pi/2)]:
             for i in range(9):
                 angle=a+i*pi/16
-                verts.append((-.66+cx+radius*cos(angle),.425+cy+radius*sin(angle),.0567))
+                verts.append((-.54+cx+radius*cos(angle),.54+cy+radius*sin(angle),.0567))
     n=len(verts)//2
     faces=[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
     mesh=bpy.data.meshes.new('Printed 4K frame');mesh.from_pydata(verts,[],faces);mesh.update()
     frame=bpy.data.objects.new('Printed 4K frame',mesh);scene.collection.objects.link(frame);register(frame,'Printed 4K frame','White ink')
-    line('Operator focal plane circle',[(-.66+.019*cos(a*2*pi/48),.585+.019*sin(a*2*pi/48),.0575) for a in range(49)],.0015,'White ink')
-    line('Operator focal plane stem',[(-.66,.544,.0575),(-.66,.626,.0575)],.0015,'White ink')
+    # Canon manual p.12 identifies the projecting tape-measure hook above
+    # the focal-plane mark; it is part of the body, not an optional accessory.
+    cyl('Tape measure hook stem',(-.54,.84,.090),.053,.070,'Anodized black',vertices=64,bevel=.006)
+    cyl('Tape measure hook head',(-.54,.84,.137),.081,.035,'Graphite polymer',vertices=64,bevel=.008)
+    cyl('Tape measure hook center',(-.54,.84,.155),.026,.001,'Screw steel',vertices=48,bevel=0)
+    line('Operator focal plane circle',[(-.54+.019*cos(a*2*pi/48),.70+.019*sin(a*2*pi/48),.0575) for a in range(49)],.0015,'White ink')
+    line('Operator focal plane stem',[(-.54,.659,.0575),(-.54,.741,.0575)],.0015,'White ink')
     rounded_panel('Power lock symbol body',(-.061,.823,.0565),(.034,.028,.0005),.003,'White ink')
     line('Power lock symbol shackle',[(-.061+.011*cos(a*pi/24),.841+.011*sin(a*pi/24),.0575) for a in range(25)],.0015,'White ink')
     cyl('Power lock keyhole',(-.061,.824,.057),.003,.0004,'Deep black',vertices=16,bevel=0)
     for yy in [.765,.60,.45]:cyl('Power mode index',(-.265,yy,.0568),.004,.0004,'White ink',vertices=16,bevel=0)
-    rounded_panel('ND filter raised casting',(-.80,-.375,.040),(.235,.59,.040),.048,'Crinkle painted metal')
-    for x,y,label_,n in [(-.48,.03,'MAGN.','1'),(-.48,-.23,'PEAKING','2'),(-.48,-.47,'ZEBRA','3'),(-.48,-.71,'WFM','4'),(-.02,-.06,'ISO/GAIN','5'),(-.02,-.37,'SHUTTER','6'),(-.02,-.69,'DISP.','7'),(-.80,-.24,'ND FILTER','+'),(-.80,-.51,'','−')]:
-        offset=-.019 if x==-.80 else -.049
+    rounded_panel('ND filter raised casting',(-.78,-.16,.040),(.235,.62,.040),.048,'Crinkle painted metal')
+    for x,y,label_,n in [(-.43,.24,'MAGN.','1'),(-.43,-.03,'PEAKING','2'),(-.43,-.30,'ZEBRA','3'),(-.43,-.57,'WFM','4'),(-.08,.17,'ISO/GAIN','5'),(-.08,-.16,'SHUTTER','6'),(-.08,-.49,'DISP.','7'),(-.78,-.045,'ND FILTER','+'),(-.78,-.315,'','−')]:
+        offset=-.019 if x==-.78 else -.049
         # Broad, shallow plastic caps with printed numbers; the former small
         # metal domes produced bead-like highlights and undersized lettering.
         cyl('Function bezel',(x,y,.081+offset),.099,.018,'Deep black')
         sphere('Function button',(x,y,.097+offset),(.077,.077,.011),'Graphite polymer')
         text('Function number',n,(x,y,.109+offset),.082)
-        text('Function label',label_,(x,y+.126,.0615 if x==-.80 else .0295),.049 if x==-.80 else .061)
-    cyl('Record bezel',(-.43,-.92,.10),.109,.044,'Anodized black');sphere('Red REC button',(-.43,-.92,.129),(.072,.072,.023),'Red lacquer');text('REC label','REC',(-.26,-.82,.116),.046)
-    box('Control dial recess',(-.77,-.91,.062),(.20,.22,.032),'Deep black',.027)
-    dial((-.77,-.91,.082),.098,'y',width=.071)
-    rounded_panel('Playback control surround',(.11,-.91,.076),(.37,.178,.028),.071,'Graphite polymer')
-    rounded_panel('Playback shared recess',(.11,-.91,.093),(.327,.139,.010),.060,'Deep black')
-    for x in [.02,.20]:sphere('Playback button',(x,-.91,.106),(.055,.055,.020),'Anodized black')
-    text('Camera model','EOS\nC200',(.54,-.83,.107),.077)
-    box('Cinema EOS badge',(.84,-.84,.092),(.17,.19,.029),'Red lacquer',.022);text('Cinema mark','C',(.84,-.84,.111),.155,font='Canon')
+        text('Function label',label_,(x,y+.126,.0615 if x==-.78 else .0295),.049 if x==-.78 else .061)
+    cyl('Record bezel',(-.43,-.875,.10),.139,.044,'Anodized black');sphere('Red REC button',(-.43,-.875,.129),(.094,.094,.023),'Red lacquer');text('REC label','REC',(-.24,-.755,.0567),.046)
+    box('Control dial recess',(-.77,-.87,.062),(.20,.26,.032),'Deep black',.027)
+    dial((-.77,-.87,.082),.118,'y',width=.071)
+    rounded_panel('Playback control surround',(.11,-.865,.076),(.37,.178,.028),.071,'Graphite polymer')
+    rounded_panel('Playback shared recess',(.11,-.865,.093),(.327,.139,.010),.060,'Deep black')
+    for x in [.02,.20]:sphere('Playback button',(x,-.865,.106),(.055,.055,.020),'Anodized black')
+    # Recessed WB button and the two dual-purpose playback controls.
+    cyl('WB button recess',(-.193,-.815,.058),.031,.006,'Deep black',vertices=48,bevel=.002)
+    sphere('WB button',(-.193,-.815,.062),(.022,.022,.005),'Graphite polymer')
+    text('WB button legend','WB',(-.193,-.89,.0567),.031)
+    profile('Play symbol',[(-.228,-.966),(-.228,-.936),(-.197,-.951)],.0567,.057,'White ink',0,rounding=.0001)
+    line('Play pause separator',[(-.188,-.969,.057),(-.175,-.933,.057)],.0015,'White ink')
+    for xx in [-.166,-.152]:box('Pause symbol',(xx,-.951,.0569),(.005,.030,.0004),'White ink',0)
+    text('Index stop legend','INDEX /',(.366,-.95,.0567),.031)
+    box('Stop symbol',(.443,-.95,.0569),(.025,.025,.0004),'White ink',0)
+    # White balance adjustment symbol printed above the index legend.
+    sphere('White balance symbol dot',(.374,-.84,.057),(.009,.006,.0003),'White ink')
+    line('White balance symbol trays',[(.338,-.862,.057),(.338,-.848,.057),(.367,-.862,.057),(.338,-.862,.057)],.0014,'White ink')
+    line('White balance symbol trays',[(.410,-.862,.057),(.410,-.848,.057),(.381,-.862,.057),(.410,-.862,.057)],.0014,'White ink')
+    text('Camera model','EOS\nC200',(.54,-.71,.0567),.077)
+    box('Cinema EOS badge',(.84,-.72,.092),(.17,.19,.029),'Red lacquer',.022);text('Cinema mark','C',(.84,-.72,.111),.155,font='Canon')
     for p in [(-.87,.79,.057),(-.90,-.92,.068),(.83,.23,.09),(.82,-.98,.07)]:screw(p,r=.021)
+    # The power cluster occupies the upper field in Canon's side diagram.
+    # Move all of its pieces together so raised hardware and printed legends agree.
+    power_cluster=[o for o in OBJECTS[panelStart:] if o.name.split(' / ',1)[-1].startswith('Power ')]
+    assert len(power_cluster)>=15, 'C200 power cluster was not found'
+    for o in power_cluster:o.matrix_world=Matrix.Translation(Vector((.24,.06,0)))@o.matrix_world
     tr=Matrix.Translation(Vector((.982,.06,-.73)))@Matrix.Rotation(pi/2,4,'Y')
     for o in OBJECTS[panelStart:]:o.matrix_world=tr@o.matrix_world
     # Right ergonomic handgrip, battery compartment and viewfinder.
@@ -2781,10 +2805,12 @@ def cinema():
     grip_pivot=Vector((0,.10,.015))
     grip_pose=Matrix.Translation(grip_pivot)@Matrix.Rotation(-pi/2,4,'Z')@Matrix.Translation(-grip_pivot)
     tr=Matrix.Translation(Vector((-.96,-.15,-.45)))@Matrix.Rotation(-pi/2,4,'Y')
+    grip_mount_anchor=tr@grip_pivot
     for o in OBJECTS[gripStart:]:o.matrix_world=tr@grip_pose@o.matrix_world
     rearStart=len(OBJECTS)
     box('Rear control fascia',(0,.02,0),(1.77,1.91,.07),'Graphite polymer',.07)
     box('Battery bay',(-.23,-.60,.042),(1.19,.68,.035),'Deep black',.045)
+    battery_start=len(OBJECTS)
     box('BP-A30 battery',(-.23,-.59,.16),(1.05,.57,.25),'Anodized black',.055)
     box('Battery label',(-.23,-.59,.289),(.86,.40,.006),'Graphite polymer',.018)
     text('Battery Canon','Canon',(-.23,-.48,.295),.064,font='Canon')
@@ -2797,6 +2823,7 @@ def cinema():
     cyl('Battery check membrane',(.070,-.61,.296),.052,.008,'Graphite polymer',vertices=64,bevel=.002)
     ring('Battery check outline',.301,.051,.047,.002,'White ink',center=(.07,-.61))
     text('Battery check legend','CHECK',(.070,-.535,.300),.025)
+    battery_objects=set(OBJECTS[battery_start:])
     box('Battery release recess',(.398,-.425,.067),(.105,.22,.040),'Deep black',.024)
     box('Battery release tab',(.405,-.415,.095),(.068,.129,.029),'Graphite polymer',.016)
     text('Battery release legend','BATTERY\nRELEASE',(.388,-.261,.070),.026)
@@ -2879,6 +2906,7 @@ def cinema():
         else:text('Terminal legend '+label_,label_,(.58,y,.187 if label_=='SDI' else .108),.031)
     tr=Matrix.Translation(Vector((0,0,-1.88)))@Matrix.Rotation(pi,4,'Y')
     for o in OBJECTS[rearStart:]:o.matrix_world=tr@o.matrix_world
+    evf_start=len(OBJECTS)
     # The EVF is a rounded tapered housing, fullest immediately behind the
     # eyecup and narrowing into the upper chassis (rear product photograph).
     # Match the rear section to the eyecup instead of tilting a smaller box.
@@ -2903,7 +2931,10 @@ def cinema():
     box('EVF diopter recessed track',(.31,.638,-1.84),(.30,.024,.124),'Deep black',.020)
     box('EVF diopter sliding lever',(.31,.619,-1.84),(.101,.028,.086),'Graphite polymer',.014)
     for xx in [.282,.302,.322,.342]:box('EVF diopter thumb rib',(xx,.602,-1.84),(.007,.008,.070),'Focus rubber',.002)
-    bare_body=[o for o in OBJECTS[start:] if o not in OBJECTS[gripStart:rearStart]]
+    evf_objects=set(OBJECTS[evf_start:])
+    grip_objects=set(OBJECTS[gripStart:rearStart])
+    bare_body=[o for o in OBJECTS[start:] if o not in grip_objects]
+    core_body=[o for o in bare_body if o not in evf_objects and o not in battery_objects]
     # Detachable handle with a hollow grip, shoe and drilled accessory holes.
     accessories_start=len(OBJECTS)
     # HDU-2 is a narrow continuous casting, not a cage plate with two posts.
@@ -3062,23 +3093,50 @@ def cinema():
     monitor_cable_points=[cable_top,cable_top+Vector((.10,-.18,.07)),cable_top+Vector((.10,-.92,-.10)),Vector((1.38,1.60,.31)),Vector((1.29,1.19,-.22)),Vector((.99,.76,-.46))]
     cyl('Monitor cable connector',(.99,.76,-.46),.049,.09,'Anodized black','x',48)
     for o in OBJECTS[accessories_start:]:o.location.y+=.16
-    # Lens dimensions establish 55 mm per scene unit (28-135: 96.8 mm length).
-    # Calibrate the bare body independently of the detachable grip and monitor.
+    # C200B's 144 x 146 x 137 mm core is an independent constraint on the
+    # shared housing; using only C200's 179 mm envelope made the core too long.
+    # Keep the projecting EVF and removable battery out of the core fit.
     bpy.context.view_layer.update()
-    corners=[o.matrix_world@Vector(c) for o in bare_body for c in o.bound_box]
-    lo=Vector(tuple(min(v[i] for v in corners) for i in range(3)))
-    hi=Vector(tuple(max(v[i] for v in corners) for i in range(3)))
-    target=Vector((144/55,153/55,179/55))
-    factors=Vector(tuple(target[i]/(hi[i]-lo[i]) for i in range(3)))
-    # Anchor scaling at the front mating plane so every EF lens still attaches.
+    def bounds(items,transform=Matrix.Identity(4)):
+        points=[transform@o.matrix_world@Vector(c) for o in items for c in o.bound_box]
+        return (Vector(tuple(min(v[i] for v in points) for i in range(3))),
+                Vector(tuple(max(v[i] for v in points) for i in range(3))))
+    lo,hi=bounds(core_body)
+    factors=Vector(tuple(t/(hi[i]-lo[i]) for i,t in enumerate((144/55,146/55,137/55))))
     pivot=Vector((0,0,hi.z))
     calibration=Matrix.Translation(pivot)@Matrix.Diagonal((*factors,1))@Matrix.Translation(-pivot)
+    # Retain the existing EVF/battery/grip shapes; reposition their anchors
+    # against the shorter core instead of squashing these separate assemblies.
+    old_lo,old_hi=bounds(bare_body)
+    old_factors=Vector(tuple(t/(old_hi[i]-old_lo[i]) for i,t in enumerate((144/55,153/55,179/55))))
+    accessory_shape=Matrix.Translation(pivot)@Matrix.Diagonal((*old_factors,1))@Matrix.Translation(-pivot)
+    evf_lo,evf_hi=bounds(evf_objects,accessory_shape)
+    evf_shift=Vector((0,(calibration@lo).y+153/55-evf_hi.y,pivot.z-179/55-evf_lo.z))
+    evf_fit=Matrix.Translation(evf_shift)@accessory_shape
+    battery_anchor=Vector((.23,-.59,-1.915))
+    battery_fit=Matrix.Translation(calibration@battery_anchor-accessory_shape@battery_anchor)@accessory_shape
+    grip_fit=Matrix.Translation(calibration@grip_mount_anchor-accessory_shape@grip_mount_anchor)@accessory_shape
+    # Side-facing circular controls must not become elliptical under the
+    # independently constrained depth/height fit. Their centers keep the layout.
+    side_round_prefixes=('Function bezel','Function button','Function number',
+        'Record bezel','Red REC button','Playback button','WB button',
+        'Tape measure hook','Cinema EOS badge')
+    operator_objects=OBJECTS[panelStart:rightStart]
+    power_objects=[o for o in operator_objects if o.name.split(' / ',1)[-1].startswith('Power ')]
+    power_center=calibration@Vector((.982,.70+.06,-.73-.12))
     hb=handle_base+Vector((0,.16,0))
     handle_shift=calibration@hb-hb
     attachment=Vector((0,1.65,.439))
     arm_shift=handle_size@attachment+Vector((0,.16,0))+handle_shift-calibration@(attachment+Vector((0,.16,0)))
+    mount_poses={o:o.matrix_world.copy() for o in mount_objects}
     for o in OBJECTS[start:]:
-        if o in handle_objects:
+        if o in evf_objects:
+            o.matrix_world=evf_fit@o.matrix_world
+        elif o in battery_objects:
+            o.matrix_world=battery_fit@o.matrix_world
+        elif o in grip_objects:
+            o.matrix_world=grip_fit@o.matrix_world
+        elif o in handle_objects:
             o.matrix_world=Matrix.Translation(handle_shift)@o.matrix_world
         elif o in arm_objects:
             o.matrix_world=Matrix.Translation(arm_shift)@calibration@o.matrix_world
@@ -3089,6 +3147,16 @@ def cinema():
             circular=Matrix.Translation(pivot)@Matrix.Diagonal((factors.x,factors.x,factors.z,1))@Matrix.Translation(-pivot)
             o.matrix_world=circular@o.matrix_world
         elif o not in mount_objects:o.matrix_world=calibration@o.matrix_world
+    bpy.context.view_layer.update()
+    for o in operator_objects:
+        label=o.name.split(' / ',1)[-1]
+        printed=o.data.materials and o.data.materials[0].name=='White ink'
+        if o not in power_objects and not printed and not label.startswith(side_round_prefixes):continue
+        if o in power_objects:center=power_center
+        else:
+            low,high=bounds([o]);center=(low+high)*.5
+        keep_round=Matrix.Translation(center)@Matrix.Diagonal((1,factors.z/factors.y,1,1))@Matrix.Translation(-center)
+        o.matrix_world=keep_round@o.matrix_world
     anchor=monitor_anchor+Vector((0,.16,0))
     monitor_shift=calibration@anchor-anchor+arm_shift
     line('Monitor cable',[tuple(v+Vector((0,.16,0))+monitor_shift) if i<3 else tuple(calibration@(v+Vector((0,.16,0)))) for i,v in enumerate(monitor_cable_points)],.024,'Focus rubber',smooth=True)
@@ -3097,7 +3165,22 @@ def cinema():
     hd=tuple((max(v[i] for v in hc)-min(v[i] for v in hc))*55 for i in range(3))
     print('HDU-2 dimensions mm',tuple(round(v,2) for v in hd),'bore diameter mm',8.8,'bore spacing mm',35.5,flush=True)
     assert abs(hd[1]-81)<.1 and abs(hd[2]-156)<.1 and abs(hd[0]-44)<1.0
-    print('C200 body calibration: original mm',tuple(round(v*55,2) for v in hi-lo),'target mm',(144,153,179),'scale',tuple(factors),flush=True)
+    # Check the generated geometry, not just the target constants.
+    for o,pose in mount_poses.items():
+        assert max(abs(o.matrix_world[i][j]-pose[i][j]) for i in range(4) for j in range(4))<1e-8, 'EF mount moved'
+    cap_errors=[]
+    for o in operator_objects:
+        if o.name.split(' / ',1)[-1].startswith('Function button'):
+            low,high=bounds([o]);extent=high-low;cap_errors.append(abs(extent.y-extent.z)*55)
+    assert len(cap_errors)==9 and max(cap_errors)<.02, cap_errors
+    print('C200 side button diameter mismatch mm',round(max(cap_errors),6),flush=True)
+    core_low,core_high=bounds(core_body)
+    body_low,body_high=bounds(core_body+list(evf_objects))
+    core_size=tuple((core_high[i]-core_low[i])*55 for i in range(3))
+    body_size=tuple((body_high[i]-body_low[i])*55 for i in range(3))
+    print('C200 core dimensions mm',tuple(round(v,3) for v in core_size),'body with EVF mm',tuple(round(v,3) for v in body_size),flush=True)
+    assert all(abs(a-b)<.5 for a,b in zip(core_size,(144,146,137))), core_size
+    assert all(abs(a-b)<.5 for a,b in zip(body_size,(144,153,179))), body_size
     return OBJECTS[start:]
 
 def adapter():

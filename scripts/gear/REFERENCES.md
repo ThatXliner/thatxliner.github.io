@@ -3260,3 +3260,27 @@ Rechecked the Canon grip-side photograph already saved as `output/gear-reference
 ### C200 operator-side printing — 2026-10-11
 
 Reused the saved operator-side reference `output/gear-reference/c200.jpg` to move the 4K badge above the control bay and add the focal-plane and power-lock symbols. Printed labels now follow their respective housing planes. Verified in the interactive classic viewer; this is a placement/detail correction, not a claim of full photorealism.
+
+### C200 operator controls — 2026-10-11 follow-up
+
+Reused `output/gear-reference/c200.jpg` and Canon instruction-manual page 12 (`output/gear-reference/c200-front-parts.png`). Diagram items 1, 18 and 20 confirm the tape-measure hook, WB/play-pause control and white-balance-adjustment/INDEX-stop control respectively; item 19 confirms the exhaust outlet. Added the missing geometry/markings and aligned power labels to the mode dots. Inspected the final asset in front, side and rear-oblique interactive views. Placement and material fidelity still require further work.
+
+### C200 control-bay proportions — 2026-10-11
+
+Compared the saved Canon page-12 side diagram (`c200-front-parts.png`) with `c200.jpg` and the actual viewer. The lower controls require a separate fascia strip below the bay. Revised bay/casting extent, numbered-button spacing, ND block, REC/dial size, upper power cluster and card-door/latch/badge clearances. These are visual reference fits, not manufacturer-measured component dimensions. Verified front, side and rear-oblique viewer captures; overall housing proportions and material fidelity are still unproven.
+
+### C200 versus C200B envelope constraints — 2026-10-11
+
+- Canon C200: https://www.usa.canon.com/support/p/eos-c200 — camera unit 144 x 153 x 179 mm.
+- Canon C200B: https://www.usa.canon.com/support/p/eos-c200b — camera unit 144 x 146 x 137 mm.
+- The same pair appears on specification page 210 in the saved C200/C200B manual.
+
+Used these as independent constraints while measuring generated core and EVF components, not as a replacement for product-photo contour checks. The current main core excluding grip, battery and EVF is 165.79 mm deep, substantially longer than the C200B reference envelope. A single assembled-body scaling step can pass C200 outer dimensions while retaining this internal proportion error. Diagnostic details are recorded in FIDELITY_AUDIT.md.
+
+### C200 separate chassis/viewfinder fit — 2026-10-11
+
+Applied the preceding Canon C200/C200B specifications as independent core/full-envelope constraints. Preserved existing EVF, battery and handgrip shapes while moving their attachment anchors with the recalibrated core. Added actual generated-geometry checks for both envelopes, fixed EF mount matrices and circular side-button faces. Confirmed in front, side, rear-oblique and grip-side interactive views. Component ratios improved but remain visual approximations, and material/optical fidelity is still incomplete.
+
+### EF 70–200mm f/2.8 switch close-up — 2026-10-11
+
+Compared the saved control photograph with a closer actual-viewer inspection after removing the assembled-bounds-dependent near zoom limit. White slider faces and surrounding dark slots remain intact at close range, with readable markings. Triangle-centroid visibility probes found no switch lettering buried in the surrounding meshes. This is evidence against the suspected intersection, not a full fidelity sign-off.
