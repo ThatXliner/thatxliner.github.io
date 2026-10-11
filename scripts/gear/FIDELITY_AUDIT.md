@@ -110,3 +110,55 @@ Actual /classic viewer experiments, using 40D + EF50 at the same front-oblique v
 Baseline proof: `40d-seat-resolution-before.jpg`. Generator and runtime files restored byte-for-byte from pre-test copies. These tests isolate remaining work to base shape / mesh vertex normals; they do not prove the specific source of the remaining contour error. Next useful comparison is smooth vertex normals against unweighted geometric normals on the continuous casting, then the transverse grip profile and its junction to the LCD deck. Do not retain higher polygon counts or remove shading features as a substitute for this diagnosis.
 
 Restoration completed: regenerated 40D raw GLB and editable blend from the pre-trial generator; compressed output is 3.53 MB. Verified the restored model renders in /classic without console errors. No diagnostic runtime overrides remain.
+
+### 2026-10-11 — 40D shoulder normals and compression isolation
+
+The previous shipping turn verified deployment of bb25fdb; it made no modeling progress. Resumed the outstanding shoulder contour investigation against that exact asset in the `/classic` interactive viewer, using EF 50mm, Home, four zoom-in steps and four upward orbit steps.
+
+- Inspected the saved production Blender mesh's 13,125 corner normals on the painted grip shoulder (x -1.5…-.85, y .4….8, z -.1….65). Resetting custom normals to calculated normals changed none: median, 95th percentile and maximum angular difference were all 0°. This rules out stale custom normals in that region.
+- Trialed sharp boundaries at 11 casting edges with a dihedral angle above 35° around the shutter/command-wheel pockets. Re-exported, optimized and inspected in the actual viewer at the same angle. The broad uneven highlights remained; rejected the trial.
+- Loaded the original uncompressed 40D GLB through the same actual viewer. The broad shoulder distortion remained. Meshopt normal quantization is therefore not its cause; retaining a larger uncompressed download would not solve it.
+- Measured transverse casting sections from the baked mesh. Pocket-floor hits contaminate some top-surface samples, so those samples must not drive a smoothing fit. The next shape investigation should sample the casting before control-pocket booleans and compare transverse curvature across the grip/top-deck union against `output/gear-reference/40d-top.jpg`.
+
+Diagnostics retained in ignored `output/gear-modeling/`: `probe-40d-corner-normals.py`, `probe-40d-pocket-edges.py`, `probe-40d-transverse.py`, `40d-transverse.log`, `40d-pocket-edge-before.jpg`, `40d-uncompressed-shoulder.jpg`. Restored the compressed public asset byte-for-byte; generator, editable Blender file, original raw cache, previews and runtime were unchanged. This is diagnostic progress, not a photorealism pass or a new deployment.
+
+### 2026-10-11 — 40D crown geometry and strap-recess fit
+
+The preceding normals/compression turn made diagnostic progress: its ruled-out causes directed this edit to the casting geometry. Measured the casting before pocket cuts using `inspect-40d-crown-stages.py` (`40d-crown-before.log`) and compared the saved front, top and grip-side product references. The old upper grip rings contracted too early, leaving a rounded shutter bulge and a sharp transition into the deck.
+
+- Broadened the upper grip loft and extended its forward shoulder: replaced the two upper rows at y .57/.64 with three at .55/.64/.68. The lower grip and rubber sleeve contour are unchanged.
+- Moved the 40D shutter seat from z .389 to .460. The wider crown alone left it too far back and almost invisible from the front. The revised spacing from the main wheel follows the top reference more closely, and the front view again shows its angled face. Its seat and pocket continue to follow the measured casting surface.
+- Corrected the grip-side strap recess where the original cut approached the crown's curved edge. A trial lowering it to y .425 caused an intersection with the rubber and was rejected. Final center y .445, opening height .17, lining height .16, and eye offset -.032 retain a continuous upper rim and clear the rubber. The opposite-side lug is unchanged.
+- Verified the final compressed asset from front, grip side and rear in the actual `/classic` viewer with EF 50mm. No console errors. Saved proof: `40d-crown-final-front.jpg`, `40d-crown-final-side.jpg`, `40d-crown-final-rear.jpg` in ignored `output/gear-modeling/`. Earlier trial captures are explicitly not final proofs.
+
+Updated the generator, optimized 40D GLB (3,602,404 bytes), original raw cache, editable Blender file and selector thumbnail. Body selectors, ownership tabs and lazy rendering are unchanged. The crown is a closer approximation, not a full photorealism pass: uneven broader highlights, material appearance and other body/lens discrepancies still need work. These local changes have not been pushed.
+
+### 2026-10-11 — EF 50mm II surface details
+
+Previous turn was progress: retained and verified the revised 40D crown/recess, with updated asset and preview. This turn compared the 50mm with a newly fetched official Canon product photograph (source recorded in REFERENCES.md).
+
+Corrected the minimum-focus marking to white lettering plus a yellow flower, moved it around the barrel relative to the main 50mm legend, and projected both onto the shell. The saved Blender asset's distance-legend vertices were checked against the intended barrel radius with `output/gear-modeling/check-50-marking-surface.py`. Replaced sinusoidal rear groove profiles with flat floors and rounded walls, retaining their count, extent and depth while increasing angular sampling.
+
+Actual-viewer checks: R7 front glass/inscription, opposite-side label and slots, AF/MF switch side, and 40D front-oblique mounting. No console errors. Captures in `output/gear-modeling/`: `50-markings-slot-front.jpg`, `50-markings-slot-side.jpg`, `50-markings-slot-switch.jpg`, `50-markings-slot-40d.jpg`. Updated GLB, raw cache, blend and thumbnail. Final GLB 933,020 bytes versus 883,552 before this turn; Meshopt remains enabled. Generator parses and diff whitespace checks pass. No runtime/renderer changes.
+
+This improves specific reference mismatches; full photographic fidelity remains incomplete. The front glass's appearance still needs evaluation, and the R7 grip-side inspection shows a visibly imperfect sleeve/casting seam that should be addressed in the body geometry. These local changes are not pushed.
+
+### 2026-10-11 — R7 upper grip sleeve contact
+
+Previous turn was progress (50mm slot geometry and reference-correct printing). The R7 side view from that turn exposed an upper rubber sleeve that flared away from the casting. Checked Canon's already-saved grip-side reference, `output/gear-reference/r7-right-canon.jpg`.
+
+`output/gear-modeling/probe-r7-sleeve-fit.py` samples the upper sleeve against the finished casting after the body's deformations, before export. The original maximum positive clearance was .033298 model units (1.831 mm at 55 mm/unit); the 95th percentile was 1.454 mm. The sleeve still followed its original loft while the casting had been unioned and smoothed.
+
+Fitted the exposed upper sleeve to the casting before receiver placement, with a smooth transition from the lower grip. Solidify's paired outer/inner vertices retain separate .004/.0005 offsets. Deeply buried rear portions remain inside the housing. The final transformed model measures maximum positive clearance .232 mm and 95th percentile .224 mm in the same region. Logs: `r7-sleeve-fit-before.log` and `r7-sleeve-fit-after.log`.
+
+Actual `/classic` viewer checks with EF 50mm: side flare is removed; front receiver and rear controls remain seated. No console errors. Proof captures: `r7-sleeve-fit-side.jpg`, `r7-sleeve-fit-front.jpg`, `r7-sleeve-fit-rear.jpg` in ignored `output/gear-modeling/`. Updated raw GLB, blend, optimized GLB (3,757,832 bytes), R7 thumbnail and setup poster. The ignored poster helper was synchronized with the current production scene before capturing; it had been missing the current front environment card. Runtime code and loading behavior are unchanged.
+
+This repairs a specific geometry gap. The rear termination of the sleeve and broader body contour/material/optical fidelity still require further comparison; completion remains unproven. These changes are local and not pushed.
+
+### 2026-10-11 — C200 operator markings and release snapshot
+
+Moved the 4K frame fully onto the upper housing and seated power, Canon and function legends closer to their actual panel surfaces. Added the focal-plane symbol, power-lock symbol and mode index dots from the saved C200 operator-side product reference. The 4K frame is a flat printed mesh instead of a raised tube.
+
+Verified the optimized C200 in the actual classic viewer: the 4K frame clears the recessed bay, the labels remain visible, and no console errors were reported. Proof: ignored `output/gear-modeling/c200-operator-ink-final.jpg`. Refreshed the C200 thumbnail; optimized GLB is 4,441,768 bytes. Generator syntax and compressed GLB headers/extensions validated for all four modified models.
+
+Release snapshot includes the preceding 40D crown, 50mm printing/slots and R7 sleeve changes. The earlier “local/not pushed” statements describe their verification-time state; this snapshot is prepared for the user's requested commit and push. No renderer or loading behavior changed. Full photographic fidelity remains incomplete.

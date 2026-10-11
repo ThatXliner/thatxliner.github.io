@@ -3236,3 +3236,27 @@ Rebuilt the compressed GLB, raw cache, editable blend and thumbnail. Inspected r
 ### 2026-10-02 — 40D quick-control wheel proportions
 
 Compared the Ffordes rear photograph (`40d-rear-photo.jpg`) with the live viewer. Reduced the wheel face dish depth from .021 to .008 model units, widened the central collar, and replaced the small domed SET button with a shallow beveled cylinder (radius .080 → .095). The button-to-wheel diameter ratio is now approximately .30. Verified the final compressed asset from rear and rear-oblique angles with no console errors; the collar and button remain seated. Proof: `output/gear-modeling/40d-wheel-face.jpg`. Updated the GLB, raw cache, editable blend and thumbnail. Remaining shoulder shape/material/optical issues still prevent a claim of overall photorealistic completion.
+
+### 2026-10-11 — 40D shutter crown and grip-side strap recess
+
+Rechecked the already-saved `output/gear-reference/40d.jpg` front/grip-side composite and `40d-top.jpg`. Their upper grip is a broad ledge that slopes toward the shutter; the previous loft contracted too early into a rounded crown. Broadened the upper rings and moved the shutter forward relative to the main wheel, checking the resulting front projection as well as the oblique view. These are visual fits to the product photographs, not manufacturer-specified component dimensions.
+
+The grip-side strap pocket must stay enclosed within that curved shoulder and above the rubber seam. Final fit reduces the pocket's height and shifts its center slightly down; a larger downward shift intersected the rubber and was rejected. The final compressed model, raw cache, blend and thumbnail agree. See the corresponding fidelity-audit entry and front/side/rear viewer captures for the verification scope; complete photographic fidelity remains unproven.
+
+### 2026-10-11 — EF 50mm II barrel printing and slot cross-sections
+
+Canon Camera Museum product page: https://global.canon/en/c-museum/product/ef295.html
+Official product photograph: https://global.canon/ja/c-museum/wp-content/uploads/2015/08/ef295_b.jpg
+Saved locally as `output/gear-reference/50ii-canon.jpg` and compared with the previously saved `50ii.jpg`.
+
+The distance legend is white with a separate yellow close-focus flower. It occupies a different angular position from the large 50mm marking, rather than appearing in gold immediately underneath it. Corrected the color/icon and wrapped both legends onto the cylindrical shell. The distance legend's -60° offset from the main legend is a visual estimate from the photographs, not a measured Canon dimension.
+
+The existing rear grooves were already recesses; their sinusoidal profile and eight angular samples per slot made their smooth shading resemble bulges. Retained the 48-slot count, band dimensions and depth estimate, but changed the cross-section to a flat floor with short rounded walls and doubled angular samples to 16 per slot. Checked the optimized result on both R7 and 40D in the actual viewer. The new profile reads more like the molded slots in the photographs. The glass was inspected but not changed or accepted as photorealistic.
+
+### 2026-10-11 — R7 molded grip/casting contact
+
+Rechecked the Canon grip-side photograph already saved as `output/gear-reference/r7-right-canon.jpg`: the rubber follows the shoulder closely, with a defined seam rather than a flared upper lip. Measured an up-to-1.831 mm gap in the generated model. Fit the upper sleeve to the casting produced by union and smoothing, preserving separate inner/outer layers. The resulting maximum clearance in the measured upper region is .232 mm. These are model measurements, not Canon's rubber-thickness specification. Actual viewer front, grip-side and rear checks support the contact repair; the model's full photographic fidelity remains incomplete.
+
+### C200 operator-side printing — 2026-10-11
+
+Reused the saved operator-side reference `output/gear-reference/c200.jpg` to move the 4K badge above the control bay and add the focal-plane and power-lock symbols. Printed labels now follow their respective housing planes. Verified in the interactive classic viewer; this is a placement/detail correction, not a claim of full photorealism.

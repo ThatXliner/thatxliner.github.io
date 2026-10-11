@@ -108,6 +108,7 @@ material('Screw steel',(.09,.1,.11),.28,.85)
 material('White enamel',(.66,.645,.59),.34,0,FINE,.16)
 material('Red lacquer',(.46,.018,.011),.27,.15)
 material('Gold engraving',(.48,.35,.12),.4,.45)
+material('Yellow marking ink',(.95,.55,.015),.5,0)
 material('Stabilizer badge gold',(.42,.19,.025),.4,.2)
 material('White ink',(.76,.78,.74),.5,0)
 material('Blue ink',(.065,.36,.66),.4,0)
@@ -623,8 +624,10 @@ def body(which):
             crest=max(0,min(1,(y-.34)/.4))*math.exp(-((x-.04)/.40)**4)
             rear_weight=max(0,min(1,(front-z)/(front-back)))
             v.co.z-=.115*crest*rear_weight
-    # Full-depth ergonomic grip and a separate pebbled overmold follow the same contour.
-    rows=[(-.85,-1.09,.11,.25,.32),(-.80,-1.12,.11,.33,.43),(-.65,-1.14,.12,.35,.46),(-.25,-1.15,.15,.355,.47),(.12,-1.14,.16,.345,.49),(.4,-1.16,.12,.33,.46),(.57,-1.19,.04,.29,.36),(.64,-1.21,-.02,.20,.24)]
+    # The 40D crown carries a broad shutter ledge before turning into the grip;
+    # the previous tight upper rings collapsed it into a rounded bulge.
+    # Full-depth grip and separate pebbled overmold share the lower contour.
+    rows=[(-.85,-1.09,.11,.25,.32),(-.80,-1.12,.11,.33,.43),(-.65,-1.14,.12,.35,.46),(-.25,-1.15,.15,.355,.47),(.12,-1.14,.16,.345,.49),(.4,-1.16,.12,.33,.46),(.55,-1.17,.10,.34,.43),(.64,-1.18,.04,.30,.35),(.68,-1.20,-.015,.22,.25)]
     if not dslr:
         rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.15,.46,.34,.39),(.69,-1.16,.59,.30,.23),(.73,-1.16,.63,.21,.11)]
         # Canon's grip-side view shows the finger grip recessed below the
@@ -718,6 +721,25 @@ def body(which):
     if not dslr:
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
+        # The union and shoulder smoothing change the casting after the loft
+        # rows are defined. Fit the visible upper sleeve to that final surface,
+        # keeping Solidify's paired inner vertices beneath the outer skin.
+        grip_casting=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        outer_count=len(grip_rubber.data.vertices)//2
+        for i in range(outer_count):
+            outer=grip_rubber.data.vertices[i]
+            if outer.co.y<=.10:continue
+            hit,normal,_,_=grip_casting.find_nearest(outer.co)
+            gap=(outer.co-hit).dot(normal)
+            # Buried rear portions terminate inside the housing, not on its back.
+            if gap<=-.015:continue
+            height=max(0,min(1,(outer.co.y-.10)/.15))
+            exposed=max(0,min(1,(gap+.015)/.010))
+            weight=height*height*(3-2*height)*exposed*exposed*(3-2*exposed)
+            outer.co=outer.co.lerp(hit+normal*.004,weight)
+            inner=grip_rubber.data.vertices[i+outer_count]
+            inner.co=inner.co.lerp(hit+normal*.0005,weight)
+        grip_rubber.data.update()
         grip_surface=BVHTree.FromObject(grip_rubber,bpy.context.evaluated_depsgraph_get())
         hit,normal,_,_=grip_surface.ray_cast(Vector((-1.23,-.37,2)),Vector((0,0,-1)),4)
         if hit is None:raise RuntimeError('Remote receiver missed grip')
@@ -734,7 +756,7 @@ def body(which):
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
     shutter_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.389) if dslr else (-1.10,2,.770)),Vector((0,-1,0)),4)
+    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.460) if dslr else (-1.10,2,.770)),Vector((0,-1,0)),4)
     if seat is None:raise RuntimeError(which+' shutter seat missed grip')
     # Sink the angled R7 seat into the convex crown rather than lifting its
     # rear edge into a peak above the original silhouette.
@@ -1448,19 +1470,19 @@ def body(which):
         bpy.context.view_layer.update()
         surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         side=1 if x>0 else -1
-        hit,normal,_,_=surface.ray_cast(Vector((3*side,.46,-.20)),Vector((-side,0,0)),4)
+        hit,normal,_,_=surface.ray_cast(Vector((3*side,.445 if side<0 else .46,-.20)),Vector((-side,0,0)),4)
         if hit is None:raise RuntimeError('40D strap eye missed shoulder')
         across=Vector((0,0,-side));across=(across-normal*across.dot(normal)).normalized()
         upright=normal.cross(across).normalized()
         pose=Matrix.Translation(hit)@Matrix((across,upright,normal)).transposed().to_4x4()
         if side<0:
-            pocket=rounded_panel('Strap pocket cutter',(0,0,-.020),(.43,.23,.15),.047,None)
+            pocket=rounded_panel('Strap pocket cutter',(0,0,-.020),(.43,.17,.15),.047,None)
             pocket.matrix_world=pose
             cut=shell.modifiers.new('Recessed shoulder strap pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=pocket;apply(shell,cut)
             OBJECTS.remove(pocket);bpy.data.objects.remove(pocket,do_unlink=True)
-            floor=rounded_panel('Strap pocket lining',(0,0,-.084),(.42,.22,.015),.044,'Deep black');floor.matrix_world=pose
-        eye=rounded_panel('Rectangular strap eye',(0,-.037,-.042 if side<0 else .006),(.29,.093,.025),.034,'Anodized black')
-        bore=rounded_panel('Strap webbing aperture',(0,-.037,-.042 if side<0 else .006),(.215,.040,.070),.017,None)
+            floor=rounded_panel('Strap pocket lining',(0,0,-.084),(.42,.16,.015),.044,'Deep black');floor.matrix_world=pose
+        eye=rounded_panel('Rectangular strap eye',(0,-.032 if side<0 else -.037,-.042 if side<0 else .006),(.29,.093,.025),.034,'Anodized black')
+        bore=rounded_panel('Strap webbing aperture',(0,-.032 if side<0 else -.037,-.042 if side<0 else .006),(.215,.040,.070),.017,None)
         cut=eye.modifiers.new('Open rectangular strap aperture','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(eye,cut)
         OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True)
         eye.matrix_world=pose
@@ -1783,16 +1805,18 @@ def fifty_prime():
     ring('Smooth fixed barrel',.475,.62,.610,.29,'Graphite polymer')
     # Canon C21-6241, YA2-0425: short axial grooves in the rear outer
     # barrel. These belong to the lens, independently of its ribbed dust cap.
-    segments=384;verts=[];faces=[]
+    segments=768;verts=[];faces=[]
     stations=[.190,.202,.209,.216,.228,.280,.292,.299,.306,.330]
     for z in stations:
         ramp=min(1,max(0,(z-.202)/.014),max(0,(.306-z)/.014))
         ramp=ramp*ramp*(3-2*ramp)
         for i in range(segments):
             a=i*2*pi/segments
-            # Smooth-rooted narrow slots retain broad, flat molded lands.
-            slot=max(0,(cos(a*48)-.15)/.85)
-            slot=slot*slot*(3-2*slot)
+            # Molded slots have flat floors and short rounded sidewalls;
+            # a sinusoidal cross-section made them read as soft raised bumps.
+            distance=abs(math.atan2(sin(a*48),cos(a*48)))/pi
+            edge=max(0,min(1,(distance-.24)/.20))
+            slot=1-edge*edge*(3-2*edge)
             # The switch insert interrupts the rear grip band.
             switch_clearance=abs(math.atan2(sin(a-pi),cos(a-pi)))<.23
             radius=.62-.008*ramp*slot*(not switch_clearance)
@@ -1877,8 +1901,25 @@ def fifty_prime():
         mesh.from_pydata([tuple(v.co) for v in old.vertices],[],[tuple(p.vertices) for p in old.polygons])
         for mat in old.materials:mesh.materials.append(mat)
         mesh.update();o.data=mesh;bpy.data.meshes.remove(old);finish(o)
-    text('Fixed focal length','50mm',(0,.624,.41),.078,rotation=(-pi/2,0,0))
-    text('Minimum focusing distance','0.45m / 1.5ft',(0,.624,.35),.031,'Gold engraving',rotation=(-pi/2,0,0))
+    # Canon's product photo has white distance lettering and a yellow flower,
+    # on the far shoulder of the barrel rather than beneath the 50mm legend.
+    marking_start=len(OBJECTS)
+    text('Fixed focal length','50mm',(0,0,0),.078)
+    focal_marks=OBJECTS[marking_start:]
+    marking_start=len(OBJECTS)
+    text('Minimum focusing distance','0.45m/1.5ft',(.023,0,0),.031)
+    for angle in [0,pi/2,pi,3*pi/2]:
+        cyl('Close focus flower petal',(-.108+.006*cos(angle),.006+.006*sin(angle),0),.0045,.0003,'Yellow marking ink',vertices=16,bevel=0)
+    line('Close focus flower stem',[(-.108,.002,0),(-.108,-.015,0)],.0015,'Yellow marking ink')
+    line('Close focus flower leaf',[(-.108,-.009,0),(-.116,-.005,0),(-.113,-.012,0),(-.108,-.012,0)],.0015,'Yellow marking ink')
+    distance_marks=OBJECTS[marking_start:]
+    for items,phase,z in [(focal_marks,0,.41),(distance_marks,-pi/3,.34)]:
+        for o in items:
+            active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            for v in o.data.vertices:
+                u,vv,depth=v.co;angle=pi/2-u/.62+phase;radius=.6215+depth
+                v.co=(radius*cos(angle),radius*sin(angle),z-vv)
+            o.data.update()
     sphere('Mount alignment pip',(-.622,-.16,.245),(.014,.018,.018),'Red lacquer')
     for i in range(8):
         a=pi*1.15+i*.075;cyl('Lens electrical contact',(cos(a)*.468,sin(a)*.468,.012),.013,.012,'Gold engraving',vertices=16)
@@ -2553,13 +2594,30 @@ def cinema():
     for x in range(6):
         for y in range(3):
             sphere('Power lever grip bead',(-.092+x*.012,.621+y*.014,.129),(.004,.004,.003),'Graphite polymer')
-    rounded_panel('Power legend field',(-.35,.875,.060),(.215,.049,.004),.007,'White ink')
-    text('Power label','POWER',(-.35,.875,.063),.045,mat='Deep black')
-    line('Power lock arc',[(-.12+.168*cos(a*pi/180),.64+.168*sin(a*pi/180),.062) for a in range(95,146,5)],.0025,'White ink')
-    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.43,y,.07),.062)
-    text('Canon side wordmark','Canon',(.58,.55,.071),.13,font='Canon')
-    text('4K mark','4K',(-.66,.29,.071),.105)
-    line('4K outline',[(-.738,.348,.071),(-.582,.348,.071),(-.582,.232,.071),(-.738,.232,.071),(-.738,.348,.071)],.003,'White ink')
+    rounded_panel('Power legend field',(-.35,.875,.056),(.215,.049,.0006),.007,'White ink')
+    text('Power label','POWER',(-.35,.875,.0567),.045,mat='Deep black')
+    line('Power lock arc',[(-.12+.168*cos(a*pi/180),.64+.168*sin(a*pi/180),.058) for a in range(85,146,5)],.0025,'White ink')
+    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.43,y,.0567),.062)
+    text('Canon side wordmark','Canon',(.58,.55,.0567),.13,font='Canon')
+    # Printed markings belong to the upper housing, above the recessed bay.
+    # The former 4K box crossed the bay lip and floated above both surfaces.
+    text('4K mark','4K',(-.66,.425,.0567),.105)
+    verts=[];faces=[]
+    for width,height,radius in [(.156,.116,.013),(.144,.104,.007)]:
+        for cx,cy,a in [(width/2-radius,height/2-radius,0),(-width/2+radius,height/2-radius,pi/2),(-width/2+radius,-height/2+radius,pi),(width/2-radius,-height/2+radius,3*pi/2)]:
+            for i in range(9):
+                angle=a+i*pi/16
+                verts.append((-.66+cx+radius*cos(angle),.425+cy+radius*sin(angle),.0567))
+    n=len(verts)//2
+    faces=[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    mesh=bpy.data.meshes.new('Printed 4K frame');mesh.from_pydata(verts,[],faces);mesh.update()
+    frame=bpy.data.objects.new('Printed 4K frame',mesh);scene.collection.objects.link(frame);register(frame,'Printed 4K frame','White ink')
+    line('Operator focal plane circle',[(-.66+.019*cos(a*2*pi/48),.585+.019*sin(a*2*pi/48),.0575) for a in range(49)],.0015,'White ink')
+    line('Operator focal plane stem',[(-.66,.544,.0575),(-.66,.626,.0575)],.0015,'White ink')
+    rounded_panel('Power lock symbol body',(-.061,.823,.0565),(.034,.028,.0005),.003,'White ink')
+    line('Power lock symbol shackle',[(-.061+.011*cos(a*pi/24),.841+.011*sin(a*pi/24),.0575) for a in range(25)],.0015,'White ink')
+    cyl('Power lock keyhole',(-.061,.824,.057),.003,.0004,'Deep black',vertices=16,bevel=0)
+    for yy in [.765,.60,.45]:cyl('Power mode index',(-.265,yy,.0568),.004,.0004,'White ink',vertices=16,bevel=0)
     rounded_panel('ND filter raised casting',(-.80,-.375,.040),(.235,.59,.040),.048,'Crinkle painted metal')
     for x,y,label_,n in [(-.48,.03,'MAGN.','1'),(-.48,-.23,'PEAKING','2'),(-.48,-.47,'ZEBRA','3'),(-.48,-.71,'WFM','4'),(-.02,-.06,'ISO/GAIN','5'),(-.02,-.37,'SHUTTER','6'),(-.02,-.69,'DISP.','7'),(-.80,-.24,'ND FILTER','+'),(-.80,-.51,'','−')]:
         offset=-.019 if x==-.80 else -.049
@@ -2568,7 +2626,7 @@ def cinema():
         cyl('Function bezel',(x,y,.081+offset),.099,.018,'Deep black')
         sphere('Function button',(x,y,.097+offset),(.077,.077,.011),'Graphite polymer')
         text('Function number',n,(x,y,.109+offset),.082)
-        text('Function label',label_,(x,y+.126,.087+offset),.049 if x==-.80 else .061)
+        text('Function label',label_,(x,y+.126,.0615 if x==-.80 else .0295),.049 if x==-.80 else .061)
     cyl('Record bezel',(-.43,-.92,.10),.109,.044,'Anodized black');sphere('Red REC button',(-.43,-.92,.129),(.072,.072,.023),'Red lacquer');text('REC label','REC',(-.26,-.82,.116),.046)
     box('Control dial recess',(-.77,-.91,.062),(.20,.22,.032),'Deep black',.027)
     dial((-.77,-.91,.082),.098,'y',width=.071)
