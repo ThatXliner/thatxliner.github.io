@@ -3308,3 +3308,7 @@ Reused r7-terminals.webp to fit MIC/HDMI lettering relative to the existing trac
 ### EF365 internal menisci and reflection visibility — 2026-10-11
 
 Reused Canon's optical section from https://global.canon/en/c-museum/product/ef365.html (saved 70-200-f28-optics.png). Fitted the second element and next front group's approximate profile/spacing instead of a generic shallow internal disk. Actual-viewer testing exposed impossible internal environment reflections from directions blocked by the barrel; added a straight-ray front-opening visibility approximation. This is neither a complete optical prescription nor full multi-interface ray tracing. See FIDELITY_AUDIT.md for checks and limitations.
+
+### EF50mm f/1.8 II group count and transmission diagnosis — 2026-10-11
+
+Rechecked https://global.canon/en/c-museum/product/ef295.html: six elements in five groups, five diaphragm blades. Compared the saved 50-optics.gif with the three simplified glass meshes in fifty_prime(). Inspected the installed Three transmission shader to distinguish geometry omissions from missing sequential refraction; see FIDELITY_AUDIT.md and the ignored numerical diagnostic. Canon's block diagram is not a measured optical prescription.
