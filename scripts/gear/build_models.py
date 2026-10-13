@@ -125,7 +125,9 @@ material('Inactive display glass',(.0025,.003,.0032),.075,0)
 # Measured through the final R7 mesh UVs, this mask is ~62.8 x 41.9 mm (3:2).
 # The old 346-pixel height made the visible screen close to 4:3.
 for display_name,rect in [('R7 display glass',(39,345,51,461)),('40D display glass',(10,374,17,495))]:
-    face=np.empty((384,512,3));face[:]=(.007,.009,.010)
+    face=np.empty((384,512,3))
+    # R7 cover glass has a subtle inactive-pixel boundary, not a black inset.
+    face[:]=(.012,.015,.0165) if display_name=='R7 display glass' else (.007,.009,.010)
     top,bottom,left,right=rect;face[top:bottom,left:right]=(.016,.020,.022)
     face=np.where(face<=.0031308,12.92*face,1.055*face**(1/2.4)-.055)
     display_image=image(display_name.lower().replace(' ','-'),face);display_image.colorspace_settings.name='sRGB'
@@ -817,17 +819,24 @@ def body(which):
             bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
             bmesh.ops.triangulate(bm,faces=list(bm.faces))
         bm.to_mesh(shell.data);bm.free()
+    seat_rotation=Vector((0,1,0)).rotation_difference(normal).to_matrix()
     for v in shell.data.vertices:
         x,y,z=v.co
-        rho=math.sqrt(((x-seat.x)/.185)**2+((z-seat.z)/seat_radius_z)**2)
+        local=seat_rotation.transposed()@(v.co-seat)
+        rho=math.sqrt(((x-seat.x)/.185)**2+((z-seat.z)/seat_radius_z)**2) if dslr else math.sqrt((local.x/.185)**2+(local.z/seat_radius_z)**2)
         if rho>=1 or y<=seat_floor:continue
         t=max(0,min(1,(rho-.60)/.40));blend=1-t*t*(3-2*t)
         # Fade the seat into the descending front of the grip. A hard
         # height cutoff tears the otherwise continuous crown surface.
         height=max(0,min(1,(y-seat_floor)/seat_fade))
         blend*=height*height*(3-2*height)
-        plane_y=seat.y-(normal.x*(x-seat.x)+normal.z*(z-seat.z))/normal.y
-        v.co.y+=(plane_y-y)*blend
+        if dslr:
+            plane_y=seat.y-(normal.x*(x-seat.x)+normal.z*(z-seat.z))/normal.y
+            v.co.y+=(plane_y-y)*blend
+        else:
+            # Form the crown in the same tilted plane as the shutter pocket.
+            # Vertical projection pulled the descending grip sides into a bulge.
+            v.co-=normal*(local.y*blend)
     shell.data.update()
     pose=Matrix.Translation(seat)@Vector((0,1,0)).rotation_difference(normal).to_matrix().to_4x4()
     def shutter_disc(name,low,high,rx,rz,mat):
@@ -3277,6 +3286,20 @@ def cinema():
     back_faces.extend([tuple(reversed(range(cross_count))),tuple(range((len(sections)-1)*cross_count,len(sections)*cross_count))])
     mesh=bpy.data.meshes.new('LM-V1 continuous back');mesh.from_pydata(back_verts,[],back_faces);mesh.update()
     monitor_back=bpy.data.objects.new('LM-V1 continuous back',mesh);scene.collection.objects.link(monitor_back);register(monitor_back,'LM-V1 continuous back','Graphite polymer');finish(monitor_back)
+    # Area-weighted end-cap normals bend the broad rear face by up to 75 degrees.
+    # Preserve the swept shoulder tangent and keep the case end caps planar.
+    shell_normals=[tuple(n.vector) for n in mesh.corner_normals]
+    for face in mesh.polygons:
+        if abs(face.normal.x)>.999:
+            face.use_smooth=False
+            for loop in face.loop_indices:shell_normals[loop]=tuple(face.normal)
+        elif abs(face.center.y)<1e-6 and abs(face.normal.z)>.9:
+            for loop in face.loop_indices:
+                xx=mesh.vertices[mesh.loops[loop].vertex_index].co.x
+                t=max(0,min(1,(xx-.35)/.40))
+                slope=-.085*6*t*(1-t)/.40
+                shell_normals[loop]=tuple(Vector((slope,0,-1)).normalized()) if face.normal.z<0 else (0,0,1)
+    mesh.normals_split_custom_set(shell_normals)
     rounded_panel('Monitor display bezel',(.135,0,-.003),(1.79,1.215,.016),.040,'Deep black')
     # 4-inch 16:9 active panel: approx 88.5 x 49.8 mm.
     rounded_panel('Monitor glass',(.135,0,.008),(88.5/55,49.8/55,.009),.020,'Inactive display glass')
