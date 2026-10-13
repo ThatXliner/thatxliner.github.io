@@ -3363,3 +3363,7 @@ Reused c200-front.jpg: PUSH AUTO IRIS and ONE-SHOT AF sit below buttons 10/11 on
 ### C200 outer casting shoulder — 2026-10-13
 
 Reused c200-front.jpg to compare the broad bright outer band and recessed dark fasteners. The old flat annulus produced a planar highlight, unlike the curved shoulder visible in the product photo. Candidate uses a rolled radial profile with the same .984 outer radius and six recessed fasteners. Profile depth and counterbores are photo-derived authoring approximations; the reference lighting is not calibrated.
+
+### f/2.8 IS front-oblique reference — 2026-10-13
+
+Sam Garza, 26 February 2007, Canon EF 70-200mm f/2.8 L IS USM, CC BY 2.0: https://commons.wikimedia.org/wiki/File:Canon_EF_70-200mm_f2.8_L_IS_USM.jpg . Original photo https://upload.wikimedia.org/wikipedia/commons/0/0d/Canon_EF_70-200mm_f2.8_L_IS_USM.jpg inspected in browser, screenshot retained in ignored output/gear-modeling/f28-is-garza-reference.jpg. Shows the first-generation IS lens opening at an oblique angle. The model's EF365 construction and IS markings make this the appropriate variant; the previously searched non-IS listing cannot establish its optics. Lighting is uncalibrated, and this image alone cannot validate front-on internal reflections.

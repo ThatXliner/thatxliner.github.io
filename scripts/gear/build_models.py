@@ -2421,7 +2421,16 @@ def lens(which):
     else:ring('Front printed ring',l+.009,r*.958,r*.801,.016,'Zoom front polymer' if which=='28-135' else 'Graphite polymer')
     if white:ring('Front internal black sleeve',l-.058,r*.842,r*.778,.144,'Optical barrel flocking' if which=='70-200-f4' else 'Anodized black')
     for j in range(8):ring('Filter thread',l-.03-j*.008,r*.846,r*.825,.004,'Anodized black')
-    for j in range(0 if which=='28-135' else 3):ring('Optical light baffle',l-.15-j*.13,r*(.80-j*.07),r*(.787-j*.07),.009,'Optical barrel flocking' if which=='70-200-f4' else 'Deep black')
+    for j in range(0 if which=='28-135' else 3):
+        baffle_z=l-.15-j*.13;baffle_outer=r*(.80-j*.07)
+        if which=='70-200-f28':
+            # Seat each baffle into the tapered lining. The former outer radii
+            # left annular gaps around the second and third rings.
+            lining_rear=l*.46+.025;lining_front=l-.17
+            t=max(0,min(1,(baffle_z-lining_rear)/(lining_front-lining_rear)))
+            lining_radius=r*(.49+(.782-.49)*t)
+            baffle_outer=max(baffle_outer,lining_radius+.006)
+        ring('Optical light baffle',baffle_z,baffle_outer,r*(.787-j*.07),.009,'Optical barrel flocking' if which=='70-200-f4' else 'Deep black')
     if which=='28-135':
         # The reference shows fine annular cuts in a shallow black recess.
         # Cut them into one surface so the grooves do not become stacked rings.
