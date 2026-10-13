@@ -88,6 +88,8 @@ material('C200 ocular glass',(.96,.98,.97),.028,0,transmission=1)
 material('C200 ocular glass inner',(.002,.002,.002),.03,0)
 M['C200 ocular glass inner'].node_tree.nodes.get('Principled BSDF').inputs['Specular Tint'].default_value=(.38,.12,.65,1)
 material('C200 finder field',(.016,.021,.018),.7,0)
+material('C200 clear audio cover',(.97,.98,.98),.025,0,transmission=1)
+M['C200 clear audio cover'].node_tree.nodes.get('Principled BSDF').inputs['Coat Weight'].default_value=0
 material('Anodized black',(.009,.01,.011),.28,.55)
 material('Deep black',(.002,.0024,.003),.55,0)
 material('Optical barrel flocking',(.003,.0035,.004),.84,0)
@@ -107,6 +109,7 @@ material('Machined metal',(.45,.47,.48),.25,.85)
 material('Tamron satin accent',(.60,.575,.51),.48,.65)
 material('Screw steel',(.09,.1,.11),.28,.85)
 material('White enamel',(.66,.645,.59),.34,0,PEBBLE,.40)
+material('Telephoto switch seat',(.34,.33,.30),.48,0)
 material('Red lacquer',(.46,.018,.011),.27,.15)
 material('Gold engraving',(.48,.35,.12),.4,.45)
 material('Yellow marking ink',(.95,.55,.015),.5,0)
@@ -2388,7 +2391,7 @@ def lens(which):
             cutter=rounded_panel('Switch opening cutter',(0,y-.007,0),opening,.060,None)
             cut=switch_panel.modifiers.new('Recessed switch opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(switch_panel,cut)
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-            rounded_panel('Switch recess floor',(0,y-.007,.009),(opening[0]-.002,opening[1]-.002,.001),.059,'Deep black')
+            rounded_panel('Switch recess floor',(0,y-.007,.009),(opening[0]-.002,opening[1]-.002,.001),.059,'Deep black' if f4 else 'Telephoto switch seat')
             # Keys occupy roughly four fifths of the opening in the reference.
             # Keep their left stop fixed while extending the face toward the slot.
             rounded_panel('Switch slider',(-.010 if stabilizer else -.020,y-.007,.017 if stabilizer else .012),(.225,.145,.020) if stabilizer else (.205,.116,.010),.048,'White enamel')
@@ -3027,11 +3030,22 @@ def cinema():
         box('SD door thumb pad',(x,.37,.104),(.17,.24,.012),'Anodized black',.013)
         box('SD door bottom grip',(x,-.04,.104),(.15,.032,.015),'Anodized black',.008)
     text('SD card legend','SD CARD',(-.04,.62,.065),.049)
-    text('SD slots','A             B',(-.04,-.15,.065),.039)
+    line('SD card grouping bracket',[(-.30,.556,.065),(-.30,.584,.065),(.22,.584,.065),(.22,.556,.065)],.0025,'White ink')
+    # Card insertion pictogram between the two doors, plus boxed slot letters.
+    line('SD card icon',[(-.064,.181,.065),(-.020,.181,.065),(-.020,.227,.065),(-.047,.227,.065),(-.064,.212,.065),(-.064,.181,.065)],.0025,'White ink')
+    line('SD card insertion arrow',[(-.020,.247,.065),(-.061,.247,.065),(-.048,.257,.065)],.0025,'White ink')
+    for x,letter in [(-.20,'A'),(.12,'B')]:
+        rounded_panel('SD slot identity plate',(x,-.15,.066),(.049,.058,.002),.004,'White ink')
+        text('SD slot identity',letter,(x,-.15,.069),.042,'Graphite polymer')
     cyl('Slot select',(-.04,-.23,.073),.048,.029,'Anodized black')
     text('Slot select label','SLOT SELECT',(-.04,-.30,.069),.029)
-    box('Audio control cover',(-.53,.24,.058),(.34,.88,.038),'Graphite polymer',.018)
-    for y in [-.16,.64]:box('Audio cover hinge',(-.35,y,.085),(.020,.070,.017),'Machined metal',.005)
+    box('Audio control backing',(-.53,.24,.058),(.34,.88,.038),'Graphite polymer',.018)
+    # The closed transparent guard stands above the dials, as photographed;
+    # the dark panel below them is the backing, not the protective cover.
+    rounded_panel('Audio protective cover',(-.53,.24,.145),(.352,.888,.012),.018,'C200 clear audio cover')
+    for y in [-.16,.64]:box('Audio cover hinge',(-.35,y,.131),(.020,.070,.051),'Machined metal',.005)
+    for x in [-.709,-.351]:box('Audio cover edge',(x,.24,.130),(.008,.85,.038),'Satin control plastic',.003)
+    box('Audio cover lower pull lip',(-.53,-.204,.144),(.28,.015,.028),'Satin control plastic',.004)
     cyl('Audio status bezel',(-.49,.58,.087),.058,.025,'Deep black')
     sphere('Audio status button',(-.49,.58,.105),(.045,.045,.009),'Graphite polymer')
     text('Audio status number','9',(-.49,.58,.116),.056)
@@ -3405,8 +3419,17 @@ def cinema():
 def adapter():
     global current;current='adapter';start=len(OBJECTS)
     length=24/55;radius=71.2/110
-    ring('Adapter rear housing',.090,radius-.022,.43,.180,'Crinkle painted metal')
-    ring('Adapter front housing',(.175+length-.008)/2,radius,.43,length-.183,'Crinkle painted metal')
+    housings=[ring('Adapter rear housing',.090,radius-.022,.43,.180,'Crinkle painted metal'),
+              ring('Adapter front housing',(.175+length-.008)/2,radius,.43,length-.183,'Crinkle painted metal')]
+    # The optical bore is dark lined; exterior paint inside it produces a
+    # broad bright crescent when viewed through a mounted lens.
+    for housing in housings:
+        housing.data.materials.append(M['Optical barrel flocking'])
+        inner_faces=0
+        for face in housing.data.polygons:
+            if max(math.hypot(housing.data.vertices[i].co.x,housing.data.vertices[i].co.y) for i in face.vertices)<.434:
+                face.material_index=1;inner_faces+=1
+        assert inner_faces>=128, 'Adapter bore finish was not assigned'
     ring('Adapter rear weather seal',.008,radius-.026,.47,.016,'Focus rubber')
     # RF bayonet extends into the camera; the EF face terminates at the other
     # mating plane. Only thin metal edges remain visible with a lens attached.
@@ -3452,6 +3475,11 @@ def adapter():
 def bake_occlusion(name,objects):
     # A second UV set carries local contact shadowing independently of the
     # repeating grain textures. Joining preserves material slots and UV0.
+    # The clear audio guard must not become an opaque blocker while the bake
+    # temporarily replaces surface shaders with emission.
+    clear_covers=[o for o in objects if o.data.materials[0].name=='C200 clear audio cover']
+    objects=[o for o in objects if o not in clear_covers]
+    for o in clear_covers:o.hide_render=True
     bpy.ops.object.select_all(action='DESELECT')
     for o in objects:o.select_set(True)
     bpy.context.view_layer.objects.active=objects[0];bpy.ops.object.join()
@@ -3482,7 +3510,8 @@ def bake_occlusion(name,objects):
     obj.data.uv_layers.active_index=0;obj.data.uv_layers[0].active_render=True
     ao_image.filepath_raw=os.path.join(WORK,name+'-occlusion.png');ao_image.file_format='PNG';ao_image.save();ao_image.pack()
     print('BAKED AO',name,flush=True)
-    return [obj]
+    for o in clear_covers:o.hide_render=False;o.select_set(True)
+    return [obj]+clear_covers
 
 def export_asset(name,objects):
     import bmesh
@@ -3492,7 +3521,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.30 if name=='r7' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
+            strengths={'Molded grip rubber':.65 if name=='r7' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:

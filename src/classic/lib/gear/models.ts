@@ -132,7 +132,7 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                 material instanceof THREE.MeshPhysicalMaterial &&
                 material.transmission > 0 &&
                 !material.name.startsWith("Patent Optical") &&
-                !/^(40D|C200) ocular glass/.test(material.name)
+                !/^(40D|C200) ocular glass|^C200 clear audio cover/.test(material.name)
               ) {
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
@@ -273,6 +273,27 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                   material.blending = THREE.AdditiveBlending;
                 } else material.color.setRGB(0.96, 0.98, 0.97);
                 object.castShadow = false;
+              }
+              if (
+                material instanceof THREE.MeshPhysicalMaterial &&
+                material.name.startsWith("C200 clear audio cover")
+              ) {
+                // Standard shadow maps treat transmissive plastic as opaque.
+                object.castShadow = false;
+                material.side = THREE.FrontSide;
+                // shortcut: thin clear sheet; use volume filtering for a thick/frosted guard.
+                // The volume shader's bicubic blur obscures nearby dial print.
+                material.onBeforeCompile = (shader) => {
+                  const sample = "return textureBicubic( transmissionSamplerMap, fragCoord.xy, lod );";
+                  const transmission = THREE.ShaderChunk.transmission_pars_fragment;
+                  if (!transmission.includes(sample) || !shader.fragmentShader.includes("#include <transmission_pars_fragment>"))
+                    throw new Error("Clear cover transmission shader integration changed");
+                  shader.fragmentShader = shader.fragmentShader.replace(
+                    "#include <transmission_pars_fragment>",
+                    transmission.replace(sample, "return textureLod( transmissionSamplerMap, fragCoord.xy, 0.0 );"),
+                  );
+                };
+                material.customProgramCacheKey = () => "clear-audio-guard-v1";
               }
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&

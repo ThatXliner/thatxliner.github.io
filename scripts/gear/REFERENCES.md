@@ -3418,3 +3418,23 @@ Finite-ray follow-up: independent spherical Snell tracing reproduces nominal f/4
 ### f/4 register and transmitted chamber follow-up — 2026-10-13
 
 Canon EF391 specifies maximum diameter/length 76x172 mm. Compared that length with the authored f/4 mesh, measured from the Z .088 seating face used by src/classic/lib/gear/scene.ts: 167.75 mm at 55 mm per scene unit. The separate patent candidate now measures 172 mm from the seat, and the patent's optical vertex positions are anchored to that seat with EF's 44 mm register. Earlier prototype coordinates assumed the bayonet rear at Z 0 was the seat and are superseded. Longitudinal extension is a uniform correction of the authored casing forward of the mount; it does not establish exact control/ring positions from manufacturer CAD. Re-inspected 70-200-f4-front.jpg: it supports layered curved reflections and a dark internal chamber, but its uncalibrated room lighting cannot identify proprietary coating thicknesses.
+
+### 2026-10-13 — C200 audio-control protective cover
+
+The saved rear product photograph `output/gear-reference/c200-rear.jpg` shows a glossy transparent cover over the rear audio controls, with two right-edge hinges and a lower pull lip. The saved Canon manual (`c200-manual.txt`, Recording Audio, manual audio-level adjustment) explicitly states that closing the protective cover prevents inadvertent adjustments. Added a separate thin transmissive polymer guard above the existing dial faces, retaining the dark backing and adjusting hinge depth to meet the guard. Shape and thickness are photographic estimates, not measured CAD. Keep this uncoated material out of the viewer's lens-coating conversion and out of the emission-based AO bake so it does not cast an opaque baked shadow over the controls.
+
+### 2026-10-13 — clear-cover sampling and SD-card legends
+
+In the installed Three.js transmission shader, getTransmissionSample applies bicubic filtering and a roughness-derived mip level independently of the cover-to-control distance. Same-pose actual-viewer comparison showed that this softened AUDIO STATUS and CH1/CH2 through the thin guard. For this guard only, sample level zero directly, preserving its surface Fresnel reflections and leaving lens/ocular shaders unchanged. This approximates a thin clear sheet, not volumetric refraction; revisit if modeling a thick or frosted cover. Added the rear photograph's SD CARD grouping bracket, insertion pictogram and separate boxed A/B slot labels.
+
+### 2026-10-13 — f/2.8 telephoto switch-seat finish
+
+Compared `output/gear-reference/70-200-f28-controls.jpg` directly with the actual C200/f2.8 viewer configuration. The photograph shows pale recessed seats beside the white sliders, with narrow darker seams. Existing Deep black floors produced broad black half-ovals beside all four switches. Assigned the f/2.8 floors a separate neutral warm-gray polymer finish; retained the existing recess geometry and f/4 material. Color/roughness are photographic estimates, not measured reflectance. Same-pose side and front-oblique comparisons show pale seats and retained slider seams.
+
+### 2026-10-13 — R7 grip relief comparison
+
+Compared the actual rear view with `r7-rear.webp` and Canon's `r7-back-canon.jpg`, plus `r7.jpg` for the front. Existing molded-cell normal pattern was too subdued relative to the adjacent smooth plastic. Increased only the R7 molded-rubber normal strength from .30 to .65; preserved grain pitch, roughness and geometry. This is a visual finish estimate, not measured surface topography. Checked rear and exposed front grip with the shorter EF50mm configuration so the lens did not obscure the grip.
+
+### 2026-10-13 — Control Ring adapter inner housing finish
+
+Product photo inspected in-browser: https://nzcamera.co.nz/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/c/o/control-ring-mount-adapter-ef-eos-r-slant.jpg (listing https://nzcamera.co.nz/canon-mount-adapter-eos-ef-eos-r-control-ring.html). Shows a dark inner liner distinct from the exterior's coarse paint. Canon's product page https://www.usa.canon.com/shop/p/control-ring-mount-adapter-ef-eos-r identifies the adapter model; the Canon UK linked image showed only the exterior and was insufficient for the bore comparison. Diagnostic colors in the real viewer identified the large crescent through EF50mm as Crinkle painted metal on the adapter housing's inward faces. Assigned only those bore faces the existing matte optical-lining material; exact surface treatment/reflectance remains estimated from the photograph. Exterior, mount planes and aperture dimensions unchanged.
