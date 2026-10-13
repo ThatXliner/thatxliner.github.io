@@ -128,11 +128,11 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                       : 0.35
                     : 0.6,
                 );
+              // The matte focusing screen also transmits light; preserve its authored finish.
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
                 material.transmission > 0 &&
-                !material.name.startsWith("Patent Optical") &&
-                !/^(40D|C200) ocular glass|^C200 clear audio cover/.test(material.name)
+                /^(Optical glass|Inner optical glass)/.test(material.name)
               ) {
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
