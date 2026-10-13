@@ -3367,3 +3367,20 @@ Reused c200-front.jpg to compare the broad bright outer band and recessed dark f
 ### f/2.8 IS front-oblique reference — 2026-10-13
 
 Sam Garza, 26 February 2007, Canon EF 70-200mm f/2.8 L IS USM, CC BY 2.0: https://commons.wikimedia.org/wiki/File:Canon_EF_70-200mm_f2.8_L_IS_USM.jpg . Original photo https://upload.wikimedia.org/wikipedia/commons/0/0d/Canon_EF_70-200mm_f2.8_L_IS_USM.jpg inspected in browser, screenshot retained in ignored output/gear-modeling/f28-is-garza-reference.jpg. Shows the first-generation IS lens opening at an oblique angle. The model's EF365 construction and IS markings make this the appropriate variant; the previously searched non-IS listing cannot establish its optics. Lighting is uncalibrated, and this image alone cannot validate front-on internal reflections.
+
+### f/2.8 antireflection coating correction — 2026-10-13
+
+Canon Science Lab, Lens Coatings: https://global.canon/en/technology/s_labo/light/003/03.html . Explains interference-based antireflection films and multilayer coatings for high-end lenses. This is general coating technology, not a prescription for EF365; its 99.9% transmission and SWC claims must not be assigned to the original f/2.8 IS lens. The old internal 230 nm, n=1.38 film was an uncalibrated rendering assumption. The new single-film approximation targets visible green (550 nm / (4 × 1.38) = 99.638 nm). It reduces the unsupported gold cast but does not reproduce Canon's proprietary multilayer coating. Sam Garza's previously recorded matching-variant photograph supports a dark front opening with restrained colored reflections, but its uncalibrated lighting cannot validate exact coating color or reflectance.
+
+### f/2.8 rear shoulder interior — 2026-10-13
+
+Reused the matching EF70–200 f/2.8L IS USM front-oblique photograph recorded above to check the dark optical cavity. Actual-viewer material probes exposed an authoring error: the rear taper's inward wall and forward-facing interior ledge inherited the exterior White enamel. Changed only those interior faces to the existing matte optical lining finish. The photograph does not reveal a measured internal surface treatment; this is an interior/exterior material correction, not a claim of exact Canon manufacturing data.
+
+### LM-V1 monitor rear shell, connector and controls — 2026-10-13
+
+Canon product page: https://www.usa.canon.com/shop/p/lm-v1-lcd-monitor . Existing Canon C200 manual p.17 (c200-monitor-parts.png) establishes FUNC/assignable 1, MENU, joystick, MIRROR, CANCEL, DISP/assignable 2, mounting socket and VIDEO terminal. New original product photographs from Adorama's used LM-V1 listing, viewed via https://www.ebay.com/p/13026655676 :
+- Front: https://i.ebayimg.com/images/g/LcsAAeSwfCxqbvqd/s-l1600.webp
+- Rear/MIRROR side: https://i.ebayimg.com/images/g/J58AAeSwWUhqbvqd/s-l1600.webp
+- Rear/VIDEO side: https://i.ebayimg.com/images/g/S40AAeSwK8xqbvqd/s-l1600.webp
+
+Photos show a smoothly raised housing at the side opposite the control strip, a D-section connector pod with its cylinder axis across the case width, VIDEO socket facing inward, MIRROR on the outer end, and screws on the case edges. Used-item labels, serial numbers and wear are not modeled. Screenshots lm-v1-{front,rear,connector}-reference.png are retained locally under output/gear-modeling. Exact pod radii and shell ramp profile are photo-derived approximations; the documented case envelope remains the scale constraint. Ignore the marketplace's unrelated structured feature/specification fields; use the actual photographs and Canon documentation.

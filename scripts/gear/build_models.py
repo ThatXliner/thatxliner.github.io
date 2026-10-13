@@ -2126,7 +2126,24 @@ def lens(which):
     l,r,range_,aperture,thread=specs[which];white=which.startswith('70-200');paint='White enamel' if white else 'Graphite polymer'
     # Hollow, stepped barrel: no opaque disk in front of the optical assembly.
     ring('EF bayonet',.044,.535,.43,.088,'Machined metal');ring('Rear gasket',.09,.55,.425,.034,'Deep black')
-    ring('Mount end',.19,r*.82,.41,.18,'Anodized black');ring('Taper shoulder',.32,r*.92,.43,.08,paint)
+    ring('Mount end',.19,r*.82,.41,.18,'Anodized black')
+    shoulder=ring('Taper shoulder',.32,r*.92,.43,.08,paint)
+    if which=='70-200-f28':
+        # Exterior enamel must not continue into the light-facing barrel throat.
+        # Split the existing faces so there are no overlapping lining surfaces.
+        interior=[];exterior=[]
+        for face in shoulder.data.polygons:
+            radial=Vector((face.center.x,face.center.y,0))
+            inside=face.normal.dot(radial)<-.001 or (face.center.z>.32 and face.normal.z>.001)
+            (interior if inside else exterior).append(face.index)
+        vertices=[tuple(v.co) for v in shoulder.data.vertices]
+        assert interior and exterior, 'Rear shoulder surface classification failed'
+        for label,faces,finish_material in [('Taper shoulder exterior',exterior,paint),('Taper shoulder optical lining',interior,'Optical barrel flocking')]:
+            mesh=bpy.data.meshes.new(label);mesh.from_pydata(vertices,[],[tuple(shoulder.data.polygons[i].vertices) for i in faces]);mesh.update()
+            obj=bpy.data.objects.new(label,mesh);scene.collection.objects.link(obj);register(obj,label,finish_material)
+            for face in mesh.polygons:face.use_smooth=True
+            mesh.normals_split_custom_set([tuple(shoulder.data.corner_normals[loop].vector) for i in faces for loop in shoulder.data.polygons[i].loop_indices])
+        OBJECTS.remove(shoulder);bpy.data.objects.remove(shoulder,do_unlink=True)
     barrel_start=.265;barrel_end=l-.045
     housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
@@ -3188,7 +3205,14 @@ def cinema():
     # A continuous swept shell avoids overlapping coplanar faces and
     # Boolean n-gons across the tapered electronics housing.
     back_verts=[];back_faces=[];cross_count=36
-    sections=[(-mw/2+.007,-.34,.075),(-mw/2+.045,-.36,.015),(-.75,-.36,.007),(-.65,-.345,.007),(-.50,-.305,.007),(-.35,-.275,.007),(mw/2-.045,-.275,.015),(mw/2-.007,-.255,.075)]
+    sections=[]
+    for i in range(49):
+        xx=(-mw/2+.007)+(mw-.014)*i/48
+        t=max(0,min(1,(xx-.35)/.40))
+        back_depth=-.275-.085*t*t*(3-2*t)
+        dx=max(0,abs(xx)-(mw/2-.105))
+        inset=.007+.105-math.sqrt(max(0,.105**2-dx**2))
+        sections.append((xx,back_depth,inset))
     for xx,back_depth,inset in sections:
         top=mh/2-inset;bottom=-top;front_depth=-.145;r=.025
         for cy,cz,angle in [(top-r,front_depth-r,0),(bottom+r,front_depth-r,pi/2),(bottom+r,back_depth+r,pi),(top-r,back_depth+r,3*pi/2)]:
@@ -3202,7 +3226,7 @@ def cinema():
             back_faces.append((k,n,n+cross_count,k+cross_count))
     back_faces.extend([tuple(reversed(range(cross_count))),tuple(range((len(sections)-1)*cross_count,len(sections)*cross_count))])
     mesh=bpy.data.meshes.new('LM-V1 continuous back');mesh.from_pydata(back_verts,[],back_faces);mesh.update()
-    monitor_back=bpy.data.objects.new('LM-V1 continuous back',mesh);scene.collection.objects.link(monitor_back);register(monitor_back,'LM-V1 continuous back','Graphite polymer')
+    monitor_back=bpy.data.objects.new('LM-V1 continuous back',mesh);scene.collection.objects.link(monitor_back);register(monitor_back,'LM-V1 continuous back','Graphite polymer');finish(monitor_back)
     rounded_panel('Monitor display bezel',(.135,0,-.003),(1.79,1.215,.016),.040,'Deep black')
     # 4-inch 16:9 active panel: approx 88.5 x 49.8 mm.
     rounded_panel('Monitor glass',(.135,0,.008),(88.5/55,49.8/55,.009),.020,'Inactive display glass')
@@ -3210,28 +3234,46 @@ def cinema():
         cyl('Monitor '+name+' bezel',(-.937,yy,.002),.077,.018,'Deep black',vertices=48,bevel=.003)
         sphere('Monitor '+name+' button',(-.937,yy,.017),(.062,.062,.013),'Graphite polymer')
         text('Monitor '+name+' legend',name,(-.937,yy+.099,.009),.032)
+        if name in ['FUNC','DISP']:
+            text('Monitor assignable button number','1' if name=='FUNC' else '2',(-.937,yy,.031),.065)
     cyl('Monitor joystick recess',(-.937,0,.004),.084,.020,'Deep black',vertices=64,bevel=.004)
     sphere('Monitor joystick',(-.937,0,.030),(.055,.055,.032),'Focus rubber')
     ring('Monitor joystick ring',.025,.080,.067,.008,'Graphite polymer',center=(-.937,0))
-    # MIRROR is on the left edge, not a sixth front control.
-    cyl('Monitor MIRROR surround',(-mw/2,-.12,-.20),.060,.015,'Deep black','x',48,.003)
-    cyl('Monitor MIRROR button',(-mw/2-.009,-.12,-.20),.043,.013,'Graphite polymer','x',48,.003)
+    # The VIDEO pod runs across the case width; MIRROR is on its outer end.
+    pod_outer=-mw/2+.012;pod_inner=pod_outer+.42
+    pod_outline=[(.274,-.225),(.43,-.225)]
+    pod_outline.extend((.43+.225*sin(pi*j/32),-.225*cos(pi*j/32)) for j in range(1,33))
+    pod_outline.append((.274,.225))
+    pod=profile('Monitor D-section video pod',pod_outline,pod_outer,pod_inner,'Graphite polymer',.008)
+    pod.rotation_euler.y=pi/2
+    cyl('Monitor MIRROR surround',(pod_outer-.005,0,-.43),.086,.014,'Deep black','x',64,.004)
+    cyl('Monitor MIRROR button',(pod_outer-.014,0,-.43),.062,.013,'Graphite polymer','x',64,.004)
+    text('Monitor MIRROR legend','MIRROR',(pod_outer-.014,.145,-.43),.040,rotation=(0,-pi/2,0))
     socket_x=mw/2-15.25/55
     mount_ring=ring('Monitor mounting socket',0,.057,.032,.012,'Machined metal');mount_ring.rotation_euler.x=pi/2;mount_ring.location=(socket_x,-mh/2,-12.85/55)
-    # Rear-facing VIDEO terminal accounts for the 35.99 mm overall depth.
-    cyl('Monitor video pod',(-.78,0,-.425),.205,.30,'Graphite polymer',vertices=64,bevel=.030)
-    cyl('Monitor video collar',(-.78,0,-.583),.160,.047,'Anodized black',vertices=64,bevel=.007)
-    cyl('Monitor video plug',(-.78,0,-.626),.120,.057,'Focus rubber',vertices=64,bevel=.010)
-    for x in [-.96,.96]:
-        for yy in [-.56,.56]:
-            screw_start=len(OBJECTS);screw((0,0,0),r=.018)
-            for o in OBJECTS[screw_start:]:o.matrix_world=Matrix.Translation(Vector((x,yy,-.282)))@Matrix.Rotation(pi,4,'Y')@o.matrix_world
+    # The arched pod gives the 36 mm depth; the connector exits inward along X.
+    cyl('Monitor video collar',(pod_inner+.018,0,-.43),.117,.043,'Machined metal','x',64,.005)
+    cyl('Monitor video plug',(pod_inner+.078,0,-.43),.105,.096,'Focus rubber','x',64,.008)
+    ring('Monitor connector grip seam',0,.108,.101,.012,'Anodized black').matrix_world=Matrix.Translation(Vector((pod_inner+.062,0,-.43)))@Matrix.Rotation(pi/2,4,'Y')
+    legend=text('Monitor VIDEO legend','VIDEO',((pod_outer+pod_inner)/2,0,-.656),.042,rotation=(0,pi,0))
+    active(legend);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+    for v in legend.data.vertices:
+        depth=-.656-v.co.z
+        v.co.z=-.43-math.sqrt(max(0,.225**2-v.co.y**2))-.001-depth
+    for side in [-1,1]:
+        for yy in [-.50,.50]:
+            screw_start=len(OBJECTS);screw((0,0,0),r=.021)
+            for o in OBJECTS[screw_start:]:o.matrix_world=Matrix.Translation(Vector((side*mw/2,yy,-.20)))@Matrix.Rotation(side*pi/2,4,'Y')@o.matrix_world
+    for xx in [socket_x-.18,socket_x+.18]:
+        screw_start=len(OBJECTS);screw((0,0,0),r=.020)
+        for o in OBJECTS[screw_start:]:o.matrix_world=Matrix.Translation(Vector((xx,-mh/2,-.225)))@Matrix.Rotation(pi/2,4,'X')@o.matrix_world
     monitor_anchor=Vector((.55,2.15,.650))
     tr=Matrix.Translation(monitor_anchor)@Matrix.Rotation(pi-.16,4,'Y')@Matrix.Translation(Vector((-socket_x,mh/2,12.85/55)))
     monitor_objects=set(OBJECTS[monitorStart:])
     for o in monitor_objects:o.matrix_world=tr@o.matrix_world
-    cable_top=tr@Vector((-.78,0,-.659))
-    monitor_cable_points=[cable_top,cable_top+Vector((.10,-.18,.07)),cable_top+Vector((.10,-.92,-.10)),Vector((1.38,1.60,.31)),Vector((1.29,1.19,-.22)),Vector((.99,.76,-.46))]
+    cable_top=tr@Vector((pod_inner+.128,0,-.43))
+    cable_exit=tr.to_3x3()@Vector((1,0,0))
+    monitor_cable_points=[cable_top,cable_top+cable_exit*.16,cable_top+cable_exit*.24+Vector((0,-.32,0)),Vector((1.38,1.60,.31)),Vector((1.29,1.19,-.22)),Vector((.99,.76,-.46))]
     cyl('Monitor cable connector',(.99,.76,-.46),.049,.09,'Anodized black','x',48)
     for o in OBJECTS[accessories_start:]:o.location.y+=.16
     # C200B's 144 x 146 x 137 mm core is an independent constraint on the

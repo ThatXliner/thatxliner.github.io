@@ -224,9 +224,14 @@ export async function loadModelLibrary(initialIds: string[]) {
                       : id === "70-200-f28" ? 0.35
                       : id === "70-200-f4" ? 0.6
                       : material.name.includes("rear") ? 0.4 : 1;
-                    material.iridescenceThicknessRange = material.name.includes("rear")
-                      ? [350, 370]
-                      : [220, 240];
+                    // Approximate a visible-band antireflection film (550 nm / 4n).
+                    // This is not Canon's proprietary multilayer prescription.
+                    const visibleFilm = 550 / (4 * material.iridescenceIOR);
+                    material.iridescenceThicknessRange = id === "70-200-f28"
+                      ? [visibleFilm, visibleFilm]
+                      : material.name.includes("rear")
+                        ? [350, 370]
+                        : [220, 240];
                   }
                   if (id === "70-200-f28" || id === "50") {
                     // IBL has no barrel occlusion. Only reflect directions that
