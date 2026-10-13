@@ -3322,3 +3322,8 @@ Rechecked Canon's EOS 40D specifications (https://global.canon/en/c-museum/produ
 ### 40D folded screen plane and open mirror passage — 2026-10-13
 
 Reused the Canon white-paper page 14 assembly diagram and the previously inspected 40d-mount.jpg. The diagram places the screen above the mirror; our cylindrical liner wrongly closed that optical passage. Screen position is derived from the project's 44 mm EF register and existing nominal mirror plane, not dimensioned from the diagram. The sensor dimensions follow Canon's EOS 40D specification. Screen margins, frame details and matte finish remain provisional. See the secondary-ray before/after evidence in FIDELITY_AUDIT.md.
+
+
+### 40D closed flash seam — 2026-10-13
+
+- 103momo, “Canon EOS 40D.jpg” (2007-09-08), own-work oblique photograph: https://commons.wikimedia.org/wiki/File:Canon_EOS_40D.jpg . Page offers CC BY-SA 3.0 and other licenses. Saved unmodified as ignored output/gear-reference/40d-oblique-103momo.jpg for geometry comparison; not bundled into the site. The visible closed flash/casting seam is thin and nearly flush. This supports reducing the cover's lower-edge rounding, not a measured corner-radius claim.

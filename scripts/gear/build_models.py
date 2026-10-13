@@ -409,8 +409,9 @@ def smooth_outline(points,steps=6,radius=.10):
     for i,point in enumerate(points):
         p=np.array(point,float);before=np.array(points[(i-1)%len(points)],float);after=np.array(points[(i+1)%len(points)],float)
         left=before-p;right=after-p
-        a=p+left/np.linalg.norm(left)*min(radius,np.linalg.norm(left)*.4)
-        b=p+right/np.linalg.norm(right)*min(radius,np.linalg.norm(right)*.4)
+        corner_radius=radius[i] if isinstance(radius,(list,tuple)) else radius
+        a=p+left/np.linalg.norm(left)*min(corner_radius,np.linalg.norm(left)*.4)
+        b=p+right/np.linalg.norm(right)*min(corner_radius,np.linalg.norm(right)*.4)
         for j in range(steps+1):
             t=j/steps;out.append((1-t)**2*a+2*(1-t)*t*p+t*t*b)
     return out
@@ -830,7 +831,8 @@ def body(which):
         # extrusion. End support rings round the lip without shading strips.
         outline_flash=[(-.49,.80),(-.42,.94),(-.29,1.075),(.29,1.075),(.42,.94),(.49,.80)]
         outline_flash.reverse()
-        corners=smooth_outline(outline_flash,8);section=[]
+        # The closing seam has a small moulded edge, not the crown's broad radius.
+        corners=smooth_outline(outline_flash,8,radius=[.008 if y<.81 else .10 for x,y in outline_flash]);section=[]
         for a,b in zip(corners,corners[1:]+corners[:1]):
             steps=max(1,int(np.ceil(np.linalg.norm(b-a)/.025)))
             section.extend(a+(b-a)*i/steps for i in range(steps))
@@ -871,18 +873,20 @@ def body(which):
         support=bpy.data.objects.new('Prism cover seat',support_mesh);scene.collection.objects.link(support)
         join=shell.modifiers.new('Continuous prism beneath flash','BOOLEAN');join.operation='UNION';join.solver='EXACT';join.object=support;apply(shell,join)
         bpy.data.objects.remove(support,do_unlink=True)
-        # A narrow pocket keeps the two moulded parts from intersecting.
-        cavity=flash.copy();cavity.data=flash.data.copy();scene.collection.objects.link(cavity)
-        # Remove the original crown outside the new cover as well as inside it.
-        # A normal-offset copy left small exterior shell islands visible through
-        # the tapered hood near y=.96, z=.24.
-        for v in cavity.data.vertices:
-            # Keep the lower seating seam close to the cover. The wider
-            # clearance is needed only higher up to trim the original crown.
-            crown_clearance=max(0,min(1,(v.co.y-.82)/.13))
-            v.co.x*=1.008+.242*crown_clearance
-            v.co.y+=.14*max(0,min(1,(v.co.y-.80)/.20))
-        cavity.data.update()
+        # Trim the whole crown to the closed cover's underside. Expanding a
+        # copy of the cover cut side notches and left intersecting shell edges.
+        seat_verts=[];seat_faces=[]
+        for row,t in enumerate(stations):
+            seat_y=min(v[1] for v in verts[row*n:(row+1)*n])-.003
+            z=-.36+.915*t
+            seat_verts.extend([(-.80,seat_y,z),(.80,seat_y,z),(.80,2,z),(-.80,2,z)])
+            if row:
+                for i in range(4):
+                    j=(i+1)%4;seat_faces.append(((row-1)*4+i,(row-1)*4+j,row*4+j,row*4+i))
+        last=(len(stations)-1)*4
+        seat_faces.extend([(3,2,1,0),(last,last+1,last+2,last+3)])
+        seat_mesh=bpy.data.meshes.new('Closed flash seating cutter');seat_mesh.from_pydata(seat_verts,[],seat_faces);seat_mesh.update()
+        cavity=bpy.data.objects.new('Closed flash seating cutter',seat_mesh);scene.collection.objects.link(cavity)
         cut=shell.modifiers.new('Flash cover seating pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cavity;apply(shell,cut)
         bpy.data.objects.remove(cavity,do_unlink=True)
         line('Flash cover front seam',[(x*.68,y-.09*max(0,min(1,(y-.8)/.275)),.559) for x,y in [(-.46,.82),(-.37,.95),(-.27,1.035),(.27,1.035),(.37,.95),(.46,.82)]],.003)
