@@ -633,7 +633,7 @@ def body(which):
     outline=[(-1.43,-.83),(-1.48,-.68),(-1.48,.38),(-1.41,.60),(-1.2,.69),(-.84,.66),(-.64,.64),(-.44,.78),(-.30,1.03 if dslr else .91),(.27,1.03 if dslr else .91),(.42,.77),(.65,.61),(.94,.53),(1.05,.38),(1.07,-.65),(.98,-.83)]
     if not dslr:
         outline=[(-1.43,-.83),(-1.48,-.65),(-1.48,.40),(-1.39,.65),(-1.19,.73),(-.83,.77),(-.48,.78),(-.34,.94),(.28,.94),(.43,.73),(.65,.64),(.92,.59),(1.05,.40),(1.07,-.65),(.98,-.83)]
-    back=-.58 if dslr else -.39;front=.28 if dslr else .25
+    back=-.58 if dslr else -.18;front=.28 if dslr else .25
     shell=profile('Continuous cast housing',outline,back,front,'Crinkle painted metal',bevel=.055 if dslr else .085)
     if dslr:
         # The prism casting projects forward beneath the closed flash. A flat
@@ -658,12 +658,25 @@ def body(which):
         cut=shell.modifiers.new('Open reflex mirror chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
         open_focusing_screen_path(shell)
     if not dslr:
+        # The terminal-side casting reaches forward beside the fixed RF flange.
+        # Sample the front face before shaping its transition from the mount.
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(shell.data)
+        for _ in range(6):
+            bmesh.ops.triangulate(bm,faces=list(bm.faces))
+            edges=[e for e in bm.edges if e.calc_length()>.06 and max(v.co.x for v in e.verts)>.40]
+            if not edges:break
+            bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
+        bmesh.ops.triangulate(bm,faces=list(bm.faces));bm.to_mesh(shell.data);bm.free()
         for v in shell.data.vertices:
             x,y,z=v.co
+            terminal=max(0,min(1,(x-.45)/.45));terminal=terminal*terminal*(3-2*terminal)
+            forward=max(0,min(1,(z-back)/(front-back)))
+            v.co.z+=.24*terminal*forward
             # The upper viewfinder housing reaches behind the shoulder plane.
             crest=max(0,min(1,(y-.34)/.4))*math.exp(-((x-.04)/.40)**4)
             rear_weight=max(0,min(1,(front-z)/(front-back)))
-            v.co.z-=.115*crest*rear_weight
+            v.co.z-=.325*crest*rear_weight
     # The 40D crown carries a broad shutter ledge before turning into the grip;
     # the previous tight upper rings collapsed it into a rounded bulge.
     # Full-depth grip and separate pebbled overmold share the lower contour.
@@ -941,8 +954,9 @@ def body(which):
         rounded_panel('Model badge inset',(.84,.295,front+.034),(.221,.236,.008),.030,'Anodized black')
     if not dslr:
         # R7 front reference: a low, tall release beside the RF flange.
-        rounded_panel('Lens release bezel',(.71,-.025,front+.025),(.190,.365,.018),.060,'Deep black')
-        rounded_panel('Lens release button',(.71,-.025,front+.039),(.150,.300,.019),.046,'Graphite polymer')
+        bezel=rounded_panel('Lens release bezel',(0,0,.005),(.160,.320,.018),.060,'Deep black')
+        button=rounded_panel('Lens release button',(0,0,.019),(.130,.280,.019),.046,'Graphite polymer')
+        release_parts=[bezel,button]
     if dslr:
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
@@ -1131,7 +1145,7 @@ def body(which):
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-        for name,x,y,z in [('M-Fn',-1.015,.677,.575),('ISO',-1.25,.735,.185),('LOCK',-.97,.751,-.095),('Record',-1.015,.745,.200)]:
+        for name,x,y,z in [('M-Fn',-1.015,.677,.575),('ISO',-1.25,.735,.285),('LOCK',-.97,.751,.010),('Record',-1.015,.745,.300)]:
             hit,normal,_,_=surface.ray_cast(Vector((x,2,z)),Vector((0,-1,0)),4)
             if hit is None:raise RuntimeError('R7 top button missed casting: '+name)
             pose=Matrix.Translation(hit-normal*.002)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
@@ -1150,7 +1164,7 @@ def body(which):
         label=text('Power legend','ON OFF',(-1.255,.759,-.08),.044)
         label.matrix_world=Matrix.Translation(label.location)@Matrix.Rotation(-pi/2,4,'X')@Matrix.Rotation(pi,4,'Z')
         box('Power selector white index',(-1.225,.746,-.192),(.008,.002,.058),'White ink',.001)
-        hit,normal,_,_=surface.ray_cast(Vector((-1.225,2,-.242)),Vector((0,-1,0)),4)
+        hit,normal,_,_=surface.ray_cast(Vector((-1.225,2,-.032)),Vector((0,-1,0)),4)
         if hit is None:raise RuntimeError('R7 power selector missed casting')
         power_pose=Matrix.Translation(hit-normal*.003)@Vector((0,1,0)).rotation_difference(normal).to_matrix().to_4x4()@Matrix.Translation(Vector((1.225,-.707,.242)))
         for o in OBJECTS[power_start:]:
@@ -1163,6 +1177,7 @@ def body(which):
             if ('Top ' in o.name and ' marking' in o.name) or 'Power legend' in o.name:
                 active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
                 for v in o.data.vertices:
+                    if 'Power legend' in o.name:v.co.z+=.21
                     hit,normal,_,_=surface.ray_cast(Vector((v.co.x,2,v.co.z)),Vector((0,-1,0)),4)
                     if hit is not None:v.co.y=hit.y+.003
     # Back screen and control layout differ between the two cameras.
@@ -1202,7 +1217,7 @@ def body(which):
             v=display.data.vertices[display.data.loops[loop].vertex_index].co
             uv.data[loop].uv=((v.x-screenX)/glass_w+.5,(v.y-screenY-.015)/glass_h+.5)
     if dslr:text('Rear Canon logo','Canon',(screenX,screenY-screenH/2+.047,rz-.074),.058,rotation=(0,pi,0),font='Canon')
-    eyecup(.04,.69,rz,which,housing=(shell,rear_cover) if dslr else ())
+    eyecup(.04,.69,rz if dslr else -.432,which,housing=(shell,rear_cover) if dslr else ())
     if dslr:
         # The grip-side reference places the focal-plane symbol ahead of
         # the diopter wheel. Its stem is aligned with the modeled sensor plane.
@@ -1633,7 +1648,7 @@ def body(which):
         # R7 left-side product photo: four separate shaped rubber covers.
         # Reference image coordinates preserve their relative outlines.
         def port_point(px,py,depth=1.118):
-            return (depth,.38-(py-190)/370*1.14,.20-(px-220)/198*.52)
+            return (depth,.38-(py-190)/370*1.14,.40-(px-220)/198*.52)
         def port_cover(name,points,depth,mat,expand=0):
             cx=sum(p[0] for p in points)/len(points);cy=sum(p[1] for p in points)/len(points)
             points=[(cx+(px-cx)*(1+expand),cy+(py-cy)*(1+expand)) for px,py in points]
@@ -1689,7 +1704,7 @@ def body(which):
         # across the casting depth instead of copying its remeshing ripples.
         heights=np.linspace(-.82,.48,33);widths=[]
         for yy in heights:
-            hits=[port_surface.ray_cast(Vector((3,float(yy),float(zz))),Vector((-1,0,0)),4)[0] for zz in np.linspace(-.30,.22,15)]
+            hits=[port_surface.ray_cast(Vector((3,float(yy),float(zz))),Vector((-1,0,0)),4)[0] for zz in np.linspace(-.10,.42,15)]
             widths.append(float(np.median([hit.x for hit in hits if hit is not None])))
         for _ in range(2):widths=np.convolve(np.pad(widths,2,mode='edge'),[1/16,4/16,6/16,4/16,1/16],mode='valid')
         def cover_width(y):
@@ -1741,6 +1756,7 @@ def body(which):
             ridge=box('SD door finger grip rib',(-.023,-.28+j*.045,.055),(.006,.008,.085),'Graphite polymer',.002)
         for o in OBJECTS[card_start:]:
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            for v in o.data.vertices:v.co.z=v.co.z*.82+.147
             import bmesh
             bm=bmesh.new();bm.from_mesh(o.data)
             bmesh.ops.triangulate(bm,faces=list(bm.faces))
@@ -1766,7 +1782,7 @@ def body(which):
         for a,b in zip(rim_outline,rim_outline[1:]+rim_outline[:1]):
             steps=max(1,int(np.ceil(np.linalg.norm(b-a)/.035)))
             for j in range(steps):
-                t=j/steps;zz=a[0]*(1-t)+b[0]*t;yy=a[1]*(1-t)+b[1]*t
+                t=j/steps;zz=(a[0]*(1-t)+b[0]*t)*.82+.147;yy=a[1]*(1-t)+b[1]*t
                 hit,_,_,_=card_surface.ray_cast(Vector((-3,yy,zz)),Vector((1,0,0)),4)
                 if hit is None:raise RuntimeError('SD door seam missed casting')
                 points.append((hit.x-.009,yy,zz))
@@ -1813,7 +1829,7 @@ def body(which):
         # shorter than the earlier generic DSLR-like housing. Apply the same
         # deformation to attached controls so none float beyond the new shell.
         for o in OBJECTS[start:]:
-            if o in mount_objects:continue
+            if o in mount_objects or o in release_parts:continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             if o in [shell,rear_cover]:
                 # The crown deformation is nonlinear. Subdivide long planar
@@ -1847,7 +1863,9 @@ def body(which):
                 finder=math.exp(-(x/.48)**4)
                 if not rigid_shoe:v.co.z+=.17*finder*upper*front_weight
                 crown=max(0,min(1,(y-.35)/.35));crown=crown*crown*(3-2*crown)
-                v.co.y+=.045 if rigid_shoe else .045*crown*math.exp(-((z+.06)/.26)**4)
+                # Keep crown shaping ahead of the rear panel; rear controls are rigid.
+                deck=max(0,min(1,(z-back)/.20));deck=deck*deck*(3-2*deck)
+                v.co.y+=.045 if rigid_shoe else .045*crown*deck*math.exp(-((z+.06)/.26)**4)
                 v.co.y*=.87
                 if v.co.x>.45 and 'Lens release' not in o.name:
                     v.co.x=.45+(v.co.x-.45)*.65
@@ -1860,6 +1878,37 @@ def body(which):
                 for face,source in zip(mesh.polygons,old.polygons):
                     face.material_index=source.material_index;face.use_smooth=True
                 mesh.update();o.data=mesh;bpy.data.meshes.remove(old)
+        # Seat the rigid release after body fitting so its center and normal
+        # follow the final casting without squeezing its manufactured outline.
+        # Keep the center outside the fixed mount gasket (front-reference layout).
+        bpy.context.view_layer.update()
+        release_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        hit,normal,_,_=release_surface.ray_cast(Vector((.715,-.025*.87,2)),Vector((0,0,-1)),4)
+        if hit is None:raise RuntimeError('R7 lens release missed formed casting')
+        pose=Matrix.Translation(hit)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
+        for o in release_parts:o.matrix_world=pose@o.matrix_world
+        # Fit the shoe's molded foot to the formed finder roof; keep its metal
+        # rails and contact bed rigid while the underside follows the casting.
+        bpy.context.view_layer.update()
+        shoe_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        shoe_parts=[o for o in OBJECTS[start:] if any(part in o.name for part in ['Hot shoe','Flash contact'])]
+        shoe_base=next(o for o in shoe_parts if o.name.split(' / ',1)[-1]=='Hot shoe base')
+        base_low=min(v.co.y for v in shoe_base.data.vertices);base_high=max(v.co.y for v in shoe_base.data.vertices)
+        contacts=[]
+        for v in shoe_base.data.vertices:
+            hit,_,_,_=shoe_surface.ray_cast(Vector((v.co.x,2,v.co.z)),Vector((0,-1,0)),4)
+            if hit is None:raise RuntimeError('R7 hot shoe foot missed finder roof')
+            contacts.append(hit.y)
+        top=max(contacts)+.012
+        for o in shoe_parts:
+            if o==shoe_base:
+                for v,roof in zip(o.data.vertices,contacts):
+                    t=(v.co.y-base_low)/(base_high-base_low)
+                    v.co.y=(roof-.001)*(1-t)+top*t
+            else:
+                for v in o.data.vertices:v.co.y+=top-base_high
+            o.data.update()
+        print('R7 hot shoe roof-fit height range mm',round(min(contacts)*55,4),round(max(contacts)*55,4),flush=True)
         # Keep the RF opening circular after the housing proportions change.
         bpy.ops.mesh.primitive_cylinder_add(vertices=128,radius=.436,depth=.80,location=(0,0,.15));bore=bpy.context.object
         cut=shell.modifiers.new('Open RF sensor chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
@@ -3512,6 +3561,9 @@ def bake_occlusion(name,objects):
     bpy.ops.uv.smart_project(angle_limit=1.0,island_margin=.006);bpy.ops.object.mode_set(mode='OBJECT')
     ao_image=bpy.data.images.new(name+'-occlusion',width=2048,height=2048,alpha=False)
     ao_image.colorspace_settings.name='Non-Color'
+    # Subpixel UV islands can leave unbaked texels. Their neutral AO value
+    # is white; clearing to black creates false scratches along atlas seams.
+    ao_image.pixels.foreach_set(np.ones(len(ao_image.pixels),dtype=np.float32));ao_image.update()
     restores=[]
     group=bpy.data.node_groups.get('glTF Material Output') or bpy.data.node_groups.new('glTF Material Output','ShaderNodeTree')
     if not group.interface.items_tree:group.interface.new_socket(name='Occlusion',in_out='INPUT',socket_type='NodeSocketFloat')
@@ -3527,7 +3579,7 @@ def bake_occlusion(name,objects):
         gltf=nodes.new('ShaderNodeGroup');gltf.node_tree=group;links.new(tex.outputs['Color'],gltf.inputs['Occlusion'])
         restores.append((mat,output,original,ao,emission))
     scene.render.engine='CYCLES';scene.cycles.samples=32
-    bpy.ops.object.bake(type='EMIT',use_clear=True,margin=8,uv_layer='BakedAO')
+    bpy.ops.object.bake(type='EMIT',use_clear=False,margin=8,uv_layer='BakedAO')
     for mat,output,original,ao,emission in restores:
         mat.node_tree.links.new(original,output.inputs['Surface']);mat.node_tree.nodes.remove(ao);mat.node_tree.nodes.remove(emission)
     obj.data.uv_layers.active_index=0;obj.data.uv_layers[0].active_render=True
