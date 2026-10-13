@@ -739,3 +739,55 @@ Actual /classic viewer inspected at matching rear pose, close rear, front and ob
 Validation: site build passed (15 pages, 30.09s); git diff --check passed. Build-triggered development reload reset the viewer to R7, so the pending side screenshot must be captured again after restoring C200 selection.
 
 Restored selection after development reloads and verified the outer side: MIRROR button/legend, edge screws and front controls are visible; cable remains attached. Overwrote c200-monitor-mirror-side.png with the verified C200 view. Some initial screenshots after build/document writes showed the reset R7 selection and were not accepted as C200 evidence. Full goal remains active; no push.
+
+
+### 2026-10-13 — f/4 rear shoulder interior
+
+Previous turn committed and pushed C200 monitor and f/2.8 improvements as 4d4a562. Pages run 38449824206 failed its first attempt when the homepage data request returned HTML instead of JSON; the retried build remains in progress at this inspection. No live publication claim.
+
+Inspected owned R7 + Control Ring adapter + f/4 in the actual viewer against 70-200-f4-side.jpg and 70-200-f4-front.jpg. Switches remain seated in the cylindrical panel; no tripod collar. The front shows broad gold internal reflections. Source inspection found the same closed Taper shoulder ring assigned exterior enamel on its inward wall and forward-facing ledge. Extended the existing material split from f/2.8 to both white telephotos; exterior and face geometry retained.
+
+The independent exported-mesh check check-f4-shoulder-finish.py traces 64 synthetic local surface rays (32 inner-wall and 32 ledge samples) through old/new uncompressed exports: White enamel becomes Optical barrel flocking on all samples, maximum hit-position difference 0.0. These are surface regression rays, not camera rays or optical-prescription validation. Compressed model separately inspected in actual viewer. Front appearance barely changes and the gold reflection remains, so the shoulder correction does not explain or resolve the visible optics problem. Side assembly and flush switches remain intact. Rebuilt only f/4 and refreshed its thumbnail. Asset 2,331,400 bytes versus 2,334,788 before; SHA256 3e371ecfee11e6d360e17d368a3514731bce36561c8c28537eea1b8226eac1f0. Evidence f4-before-interior-front.png and f4-black-shoulder-front.png. No renderer change or new push. Full goal remains incomplete.
+
+Validation: site build passed (15 pages, 31.12s); git diff --check passed. Viewer error log empty. The f/4 rear outer barrel has abrupt cylindrical steps compared with the smoother reference taper; that contour and the internal reflections remain next targets, rather than calling this a lens fidelity pass.
+
+
+### 2026-10-13 — f/4 rear shell contour
+
+Previous turn corrected the rear shoulder's inward material. Compared current mounted side views with 70-200-f4-top.jpg and 70-200-f4-side.jpg. Existing housing started at Z .265 with a full-radius cylindrical wall, exposing too much black neck and omitting the narrower collar seat. Replaced its rear section with a continuous revolved shell from Z .078 to .745: rounded rear edge, raised ribbed band, shallow recessed seat, and return to the zoom-ring shoulder. Retained overall lens length/radius and bayonet position. The inner wall and forward ledge use optical lining, exterior uses enamel. Profile is photo-derived, not measured Canon CAD.
+
+Moved rear molded ribs and stabilizer badge onto the new raised band; conformed side Canon text to the profile. Restored visible red mount alignment dot, then caught its overlap with the badge in the overhead viewer and moved it around the band toward the switch side as the reference shows. No tripod collar added. Initial R7 side/opposite-side checks show the white casing seated against the Control Ring adapter without the previous exposed black neck. Reflections remain inaccurate and unchanged. Final assembly validation follows.
+
+Final compressed asset checked on R7/Control Ring adapter from both sides and overhead, and on 40D from side, front and rear. Markings remain on the shell, alignment dot no longer overlaps the badge, and no obvious mount intersection or detached ring is visible. No browser errors. 64 shoulder-material rays still pass with zero hit-position movement; these do not validate the new exterior against measured CAD. Evidence f4-rear-contour-{r7-side,adapter,top,r7-oblique,40d-side,40d-front,40d-rear}.png. New GLB SHA256 436b7f657c3affa6eb7a7b8ef21be8e0f058c88a29d8e5d28617b5a4c37ff7b8, approximately 2.43 MB. Thumbnail refreshed. First site build failed on the existing GitHub GraphQL HTML-instead-of-JSON response; retry pending. No new push; broader photorealism remains incomplete.
+
+Retry passed: 15 pages in 28.24s. git diff --check passed. Shipment run 38449824206 remains in_progress on recheck; no duplicate/restarted workflow. New f/4 contour remains local.
+
+
+### 2026-10-13 — f/4 optical contribution isolation
+
+Previous turn improved the rear casing profile. Built ignored f4-isolation.html/.ts and f4-isolation-scene.ts from the current production scene, loading the actual R7/adapter/f4 assets. Separate controls multiply front transmitted and specular contributions and hide/show the internal reflection meshes. This avoids applying the f/2.8 diagnostic's incompatible surface prescription to f/4. Baseline reproduces the actual viewer's concentric gold discs. Hiding internal reflections removes the gold while leaving a faint gray central chamber; internal-only retains the gold discs.
+
+A visible-band film trial (99.638 nm, same general quarter-wave approximation used for f/2.8) turns the internal reflections blue/neutral but does not fix their geometry. A separate straight-ray opening visibility trial uses the modeled front sleeve's front Z 3.134 and inner radius .53682. It clips edge reflections but leaves the central discs; at oblique angles the lens becomes dark without recovering the reference's refracted internal shapes. Both controls are diagnostic-only; no runtime/production coating or shader changes retained. The front-opening filter omits refraction, intervening elements, iris and barrel transport, so it is not accepted as an optical fix.
+
+Reopened Canon's EF391 page, confirming 20 elements in 15 groups, eight circular aperture blades and 76x172 mm dimensions. The current asset has four approximate optical elements, with the same internal material shared across three meshes/groups after export. The construction diagram can guide relative shapes but is not a measured optical prescription. Pixel-color scans through its small diagram are ambiguous at the black optical-axis line and cannot justify a new surface curvature by themselves. Next optical work must address refractive placement/transport and reference-supported group geometry, not simply lower reflection opacity or recolor the discs.
+
+Evidence f4-isolation-{no-inner,internal,opening,oblique}.png. Diagnostic front and oblique views show no browser errors. This is new diagnostic evidence, not a photo-fidelity pass or a production visual improvement. No rebuild needed because production code/assets were unchanged this turn; prior f/4 contour build passed. Full goal remains active.
+
+Shipment checkpoint: 4d4a562 Pages run 38449824206 completed successfully. Live C200 and f/2.8 assets downloaded with curl and SHA256 matched b3b72b02d7013f2615c16dec8b22c8380c11ea946b1eb50cad30cfe0138be912 and 0dde775b7b9d06a0212a39c8081eae26226492aaa712e4a6359ce26ec2bdda04 respectively. Initial Python urllib fetch returned HTTP 403; curl succeeded. Current f/4 modifications remain local.
+
+
+### 2026-10-13 — f/4 sequential-reflection diagnostic and baffle seating
+
+Previous turn isolated the gold discs to internal reflections. Adapted ignored lens-reflections.ts to the f/4's four authored parabolic elements/eight surfaces, smaller eight-blade iris and a 45-section barrel envelope. f4-isolation.html now compares the original additive meshes with sequential refracted reflection paths on the front mesh. This still uses four approximate elements, assumed IOR 1.52, single-film coating and native screen-space transmission; it is not Canon's 20-element prescription.
+
+Initial GPU/independent CPU comparison passed 1,445 forward rays and 10,115 reflected paths with zero classification mismatches, but broad implausible reflected discs remain visually. GPU cost at 1650x930: baseline median 4.460679 ms, candidate 18.858533 ms (three alternating ten-draw batches; compilation excluded, this device/view only). This timing preceded the baffle geometry correction below. Candidate remains ignored and unshipped. No acceptable appearance/performance result claimed.
+
+Compared the analytic barrel envelope with actual opaque triangles in the generated f/4 Blender asset. Initially 324 non-iris segment mismatches (153 incoming, 171 reflection) were all false blocks through outer baffle gaps. Inspection also showed the third baffle at Z 2.71 crossing the first internal glass element's bulk with inner radius .44643, well inside that element's .5106 radius. This explained the unsupported thin ring visible across the glass, independently of the gold reflection issue.
+
+Extended baffle outer radii into the existing tapered lining with .006 overlap, preserving axial positions. Widened the third baffle opening to .500388 (98% of the authored glass radius), placing its holding edge near the glass perimeter. This is mechanically coherent authored geometry, not a measured Canon retaining-ring dimension. Existing f/2.8 geometry is unchanged by the shared formula. Rebuilt/compressed only f/4 and refreshed its preview. New GLB 2,428,252 bytes, SHA256 080d80716b5c8146d4a5bdb730f37e0c701d4e36a3a2527797ae01d2db8b4205.
+
+After correction, analytic envelope agrees with actual opaque mesh on all 19,411 sampled non-iris segments. Mesh audit: 299,408 opaque triangles, 193 complete forward rays, 3,530 escaping reflected paths. Updated GPU/CPU test: 1,445 rays, 193 complete, zero classification mismatches, maximum position/direction error 5.71e-7/9.57e-7; 10,115 reflected paths, 3,530 escaping, zero mismatches, maximum direction/energy error 9.52e-7/5.87e-7. This verifies the modeled path math and sampled geometry, not the manufacturer's prescription or photo-fidelity. Saved f4-profile-before-seating.json, f4-profile-comparison.json, f4-opaque-path-audit.json, f4-transport-parity.txt and matching scripts locally.
+
+Actual /classic compressed asset inspected front and oblique: the floating internal ring is removed, while gold discs/reflection shapes remain unresolved. No browser errors. Evidence f4-baffles-classic-{front,oblique}.png. Full goal remains active, new work local. No runtime optical shader changes retained.
+
+Validation: site build passed (15 pages, 31.04s); git diff --check passed. No new push.

@@ -3384,3 +3384,23 @@ Canon product page: https://www.usa.canon.com/shop/p/lm-v1-lcd-monitor . Existin
 - Rear/VIDEO side: https://i.ebayimg.com/images/g/S40AAeSwK8xqbvqd/s-l1600.webp
 
 Photos show a smoothly raised housing at the side opposite the control strip, a D-section connector pod with its cylinder axis across the case width, VIDEO socket facing inward, MIRROR on the outer end, and screws on the case edges. Used-item labels, serial numbers and wear are not modeled. Screenshots lm-v1-{front,rear,connector}-reference.png are retained locally under output/gear-modeling. Exact pod radii and shell ramp profile are photo-derived approximations; the documented case envelope remains the scale constraint. Ignore the marketplace's unrelated structured feature/specification fields; use the actual photographs and Canon documentation.
+
+
+### f/4 rear shoulder material separation — 2026-10-13
+
+Reused 70-200-f4-front.jpg and 70-200-f4-side.jpg to inspect the dark cavity and seated white switch controls. The generator had applied exterior White enamel to the rear shoulder's inner cylindrical wall and inward-facing ledge, as previously found on f/2.8. Reassigned only these faces to existing matte optical lining. The exact finish remains an authoring approximation; the front photo's colored reflected scene does not establish a calibrated coating or internal optical prescription. Actual-viewer gold reflections remain unresolved.
+
+
+### f/4 rear shell and collar seat — 2026-10-13
+
+Reused 70-200-f4-top.jpg (Ken Rockwell reference image previously recorded) and 70-200-f4-side.jpg. Both show a rounded white rear band, a narrower smooth collar seat before the zoom ring and a thin dark mount edge. The former full-radius cylinder and exposed black neck did not match this silhouette. New axial profile and alignment-dot angle are photo-derived approximations, preserving the existing overall lens dimensions. The owned lens remains without the removable tripod collar.
+
+
+### f/4 optical diagnostic reference recheck — 2026-10-13
+
+Reopened https://global.canon/en/c-museum/product/ef391.html : EF70–200mm f/4L IS USM (November 2006), 20 elements/15 groups, eight circular diaphragm blades, 76x172 mm. The saved Canon construction diagram remains a qualitative section, not radius/thickness/glass-index data. It does not justify accepting the four-element approximation or a simple aperture-clipped environment reflection as photorealistic.
+
+
+### f/4 baffle support correction — 2026-10-13
+
+Continued using Canon EF391 construction diagram and the saved front photograph. The model's baffle placement—not a new manufacturer dimension—revealed unsupported outer gaps and a retaining ring intersecting the clear interior of a modeled glass element. Extended the rings to the authored lining and moved the intersecting inner edge to 98% of that element's radius. This removes an authoring inconsistency; the exact internal hardware remains approximate and the full 20-element optical train is not yet reconstructed.

@@ -2128,7 +2128,7 @@ def lens(which):
     ring('EF bayonet',.044,.535,.43,.088,'Machined metal');ring('Rear gasket',.09,.55,.425,.034,'Deep black')
     ring('Mount end',.19,r*.82,.41,.18,'Anodized black')
     shoulder=ring('Taper shoulder',.32,r*.92,.43,.08,paint)
-    if which=='70-200-f28':
+    if white:
         # Exterior enamel must not continue into the light-facing barrel throat.
         # Split the existing faces so there are no overlapping lining surfaces.
         interior=[];exterior=[]
@@ -2144,7 +2144,31 @@ def lens(which):
             for face in mesh.polygons:face.use_smooth=True
             mesh.normals_split_custom_set([tuple(shoulder.data.corner_normals[loop].vector) for i in faces for loop in shoulder.data.polygons[i].loop_indices])
         OBJECTS.remove(shoulder);bpy.data.objects.remove(shoulder,do_unlink=True)
-    barrel_start=.265;barrel_end=l-.045
+    # Photo-derived f/4 rear shell: rounded mount edge and recessed collar seat.
+    rear_profile=[(.078,.625),(.105,.657),(.135,r*.97),(.340,r*.97),(.415,.634),(.680,.634),(.745,r*.97)]
+    def rear_radius(z):
+        if z<=rear_profile[0][0]:return rear_profile[0][1]
+        for (za,ra),(zb,rb) in zip(rear_profile,rear_profile[1:]):
+            if z<=zb:
+                t=(z-za)/(zb-za);return ra+(rb-ra)*t*t*(3-2*t)
+        return r*.97
+    barrel_start=.745 if which=='70-200-f4' else .265;barrel_end=l-.045
+    if which=='70-200-f4':
+        n=128;sections=[]
+        for (za,ra),(zb,rb) in zip(rear_profile,rear_profile[1:]):
+            for j in range(8):
+                zz=za+(zb-za)*j/8;sections.append((zz,rear_radius(zz)))
+        sections.append(rear_profile[-1])
+        outline=sections+[(.745,r*.79),(.078,r*.79)]
+        verts=[(rr*cos(2*pi*i/n),rr*sin(2*pi*i/n),zz) for zz,rr in outline for i in range(n)]
+        faces=[(k*n+i,k*n+(i+1)%n,((k+1)%len(outline))*n+(i+1)%n,((k+1)%len(outline))*n+i) for k in range(len(outline)) for i in range(n)]
+        mesh=bpy.data.meshes.new('F4 rear shell');mesh.from_pydata(verts,[],faces);mesh.update()
+        shell=bpy.data.objects.new('F4 rear shell',mesh);scene.collection.objects.link(shell);register(shell,'F4 rear shell',paint)
+        mesh.materials.append(M['Optical barrel flocking'])
+        for face in mesh.polygons:
+            face.use_smooth=True
+            if face.index//n in [len(sections)-1,len(sections)]:face.material_index=1
+        assert min(rr for zz,rr in sections)>r*.79
     housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
     if white:
@@ -2165,13 +2189,13 @@ def lens(which):
                 active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
                 for v in o.data.vertices:
                     u,vv,d=v.co;angle=u/(r*.97);rr=r*.97+d
-                    v.co=(rr*sin(angle),rr*cos(angle),.465-vv)
+                    v.co=(rr*sin(angle),rr*cos(angle),.235-vv)
                 o.data.update()
             # Short molded rear ribs stop around the smooth badge area.
             for i in range(64):
                 a=2*pi*i/64
                 if abs(math.atan2(sin(a),cos(a)))<.48:continue
-                rib=box('Rear barrel molded rib',(0,r*.972,.324),(.009,.007,.104),paint,.002)
+                rib=box('Rear barrel molded rib',(0,r*.972,.218),(.009,.007,.156),paint,.002)
                 rib.matrix_world=Matrix.Rotation(a,4,'Z')@rib.matrix_world
         # The owned f/4 lens is used without a tripod collar or foot.
         if which=='70-200-f28':
@@ -2420,7 +2444,7 @@ def lens(which):
         o.matrix_world=Matrix.Translation(o.location)@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(pi/2,4,'Z')
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         for v in o.data.vertices:
-            x,y,z=v.co;radius=(r*.97 if z>=.265 else r*.82)+.002;length=math.hypot(x,y)
+            x,y,z=v.co;radius=(rear_radius(z) if which=='70-200-f4' else r*.97 if z>=.265 else r*.82)+.002;length=math.hypot(x,y)
             v.co.x=x/length*radius;v.co.y=y/length*radius
     # Internal baffles recede toward the iris; glass elements have curved surfaces.
     ring('Front rim',l-.032,r,r*(.958 if which in ['28-135','70-200-f4'] else .845),.10,'Anodized black')
@@ -2440,14 +2464,21 @@ def lens(which):
     for j in range(8):ring('Filter thread',l-.03-j*.008,r*.846,r*.825,.004,'Anodized black')
     for j in range(0 if which=='28-135' else 3):
         baffle_z=l-.15-j*.13;baffle_outer=r*(.80-j*.07)
-        if which=='70-200-f28':
+        baffle_inner=r*(.787-j*.07)
+        if white:
             # Seat each baffle into the tapered lining. The former outer radii
             # left annular gaps around the second and third rings.
-            lining_rear=l*.46+.025;lining_front=l-.17
+            lining_rear=l*.46+(-.010 if which=='70-200-f4' else .025);lining_front=l-.17
             t=max(0,min(1,(baffle_z-lining_rear)/(lining_front-lining_rear)))
-            lining_radius=r*(.49+(.782-.49)*t)
+            lining_start=.49*(.96 if which=='70-200-f4' else 1)
+            lining_radius=r*(lining_start+(.782-lining_start)*t)
             baffle_outer=max(baffle_outer,lining_radius+.006)
-        ring('Optical light baffle',baffle_z,baffle_outer,r*(.787-j*.07),.009,'Optical barrel flocking' if which=='70-200-f4' else 'Deep black')
+            if which=='70-200-f4' and j==2:
+                # This ring crosses the inner element axially: seat it at the
+                # glass edge rather than cutting through its clear face.
+                baffle_inner=max(baffle_inner,r*.74*.98)
+        assert baffle_outer>baffle_inner
+        ring('Optical light baffle',baffle_z,baffle_outer,baffle_inner,.009,'Optical barrel flocking' if which=='70-200-f4' else 'Deep black')
     if which=='28-135':
         # The reference shows fine annular cuts in a shallow black recess.
         # Cut them into one surface so the grooves do not become stacked rings.
@@ -2561,7 +2592,8 @@ def lens(which):
     # Tiny mount contacts and red alignment pip stay visible during lens swapping.
     for i in range(8):
         a=pi*1.15+i*.075;cyl('Lens electrical contact',(cos(a)*.468,sin(a)*.468,.012),.013,.012,'Gold engraving',vertices=16)
-    sphere('Mount alignment pip',(0,r*.89,.24),(.018,.014,.018),'Red lacquer')
+    pip=sphere('Mount alignment pip',(0,rear_radius(.20)+.002 if which=='70-200-f4' else r*.89,.20 if which=='70-200-f4' else .24),(.018,.014,.018),'Red lacquer')
+    if which=='70-200-f4':pip.matrix_world=Matrix.Rotation(pi/3,4,'Z')@pip.matrix_world
     return OBJECTS[start:]
 
 def cinema():
