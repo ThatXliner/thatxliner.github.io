@@ -89,7 +89,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                   if (
                     value ===
                       (material as THREE.MeshStandardMaterial).normalMap ||
-                    ((/Pebbled rubber|Scanned grip rubber|Molded grip rubber/.test(material.name) ||
+                    ((/Pebbled rubber|Scanned grip rubber|Molded grip rubber|White enamel/.test(material.name) ||
                       ((id === "r7" || id === "40d" || id === "c200") && material.name.includes("Crinkle painted metal"))) &&
                       (value ===
                         (material as THREE.MeshStandardMaterial).roughnessMap ||
@@ -98,7 +98,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                             .metalnessMap))
                   ) {
                     value.wrapS = value.wrapT = THREE.RepeatWrapping;
-                    const grain = /^(R7|40D|C200) /.test(material.name)
+                    const grain = /^(R7|40D|C200) |^White enamel/.test(material.name)
                       ? 1
                       : material.name.includes("Scanned grip rubber")
                       ? (id === "r7" || id === "40d")
@@ -118,7 +118,7 @@ export async function loadModelLibrary(initialIds: string[]) {
                 material.normalMap
               )
                 material.normalScale.multiplyScalar(
-                  /^(R7|40D|C200) /.test(material.name)
+                  /^(R7|40D|C200) |^White enamel/.test(material.name)
                     ? 1
                     : material.name.includes("Molded grip rubber")
                     ? 0.3

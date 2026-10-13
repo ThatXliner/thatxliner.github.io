@@ -513,3 +513,73 @@ Final validation: site build passed (15 pages, 29.34s), git diff --check passed,
 ### 2026-10-13 — Requested shipping checkpoint: flash seating
 
 Shipping the multi-angle-verified small closing-edge treatment, continuous crown trim, matching refreshed thumbnail, references and 15-point clearance check. Retained asset SHA256: 3dece58da009fcb5c981f769ebf07ea1230e1b063dd2419f95edb7b438b95e6c. The subsequent LCD-spacing candidate passes a local bridge ray check but has not completed visual review; its source and compressed/raw assets remain in ignored output/gear-modeling. Restored the verified source/asset pair for this release. Remaining shoulder/LCD transition and full photographic fidelity are unfinished. Production rendering and lazy activation remain unchanged; optical experiments are not included.
+
+### 2026-10-13 — LCD pocket no longer cuts the prism shoulder
+
+Previous turn shipped c16b41a (flash seating checkpoint); this turn resumes local fidelity work. Differential experiment removed only the top-LCD casting subtraction: the lower rectangular gouge disappeared while the upper flash seam remained. Restored the pocket and moved the recess, bezel, glass and inactive display segments .09 model units toward the grip (about 4.95 mm); button row remains in place. The top product reference supports a larger optical-axis-to-display distance, approximately 32 mm instead of 27 mm, but this is photo-derived rather than measured CAD.
+
+Retained candidate after actual /classic viewer inspection at oblique, top, front, side and rear. Lower gouge is absent; LCD remains seated within the body. No new exterior contour regression or missing rear controls observed, and browser error log empty. Upper seam remains visibly angular, and lens optics/markings and overall body fidelity are not complete. Evidence saved as 40d-lcd-spacing-{oblique,top,front,side,rear}.jpg in ignored output/gear-modeling. Refreshed thumbnail using the same preview renderer.
+
+Added independent bridge/pocket ray probes to check_prism_clearance.py. Old exported mesh fails at bridge Y=.575 (the pocket floor); new assembly passes at Y=.71004, with actual pocket floor still .575. All 15 flash-seat checks still pass at .003 separation. Compressed asset 3,618,492 bytes, SHA256 2c3d2f6a48d9aac6fa85be16c9b4e54cc1b8d68da6bf7af4ad2885c71e67c80e. Geometry checks are limited regression checks, not proof of photographic fidelity. No production shader changes or new push.
+
+Validation: first site build encountered the existing GitHub GraphQL HTML-response/JSON-parse failure. One retry passed, 15 pages in 28.46s. git diff --check passed. The previously pushed c16b41a Pages deployment retry was still in progress when last checked; no deployment claim for this local iteration. Next inspect the remaining upper flash seam and the conspicuously exposed mount rim with EF50 against references.
+
+### 2026-10-13 — Settled mount check corrects an animation-frame diagnosis
+
+Previous turn made concrete progress by fixing the LCD pocket/shoulder collision. This turn rechecked the alleged exposed silver mount rim against source geometry and the actual viewer after lens insertion completed. The settled EOS 40D + EF50 assembly covers the flange correctly. The previous oblique capture was made during insertion; do not shrink the flange or enlarge the lens to correct that transient frame. Saved 40d-lcd-spacing-settled-oblique.jpg and a settled grip-side view. The lower shoulder correction remains visible in the settled view; the upper flash seam remains angular and needs further topology work. No mount geometry change is warranted by these observations. This corrects the previous turn's mount-rim follow-up, not the full fidelity assessment.
+
+### 2026-10-13 — Corrected closed-cover longitudinal seam profile
+
+Tested a local .035, four-segment concave fillet on 185 support/shoulder union edges. The candidate passed seat/LCD checks but did not visibly correct the upper seam in settled oblique/side views. Rejected it; source, raw/compressed assets and screenshots remain in ignored output.
+
+Rechecked the existing 40d.jpg side reference: its closed-cover seam rises gently toward the front. Our .065*sin(pi*t) underside term instead formed a pronounced midpoint arch. Reduced that term to .012 in both the cover loft and underlying support, retaining the continuous crown trim and .003 clearance. This is photo-derived contour fitting, not a measured Canon dimension. The settled oblique view no longer has the triangular-looking interruption. Side seam is gentler; front/rear have no new visible contour regressions or missing controls. Browser error log empty. Saved 40d-seam-profile-{oblique,side,front,rear}.jpg. All 15 seating probes and both LCD bridge/pocket probes pass (prism-seam-profile-check.txt). Refreshed thumbnail.
+
+Retained compressed asset: 3,597,936 bytes; SHA256 c532c16a39d6f8c91ce593a034ed9e5109ff20d5c92c96985dddad7feacdf2bc. Full photorealism remains unfinished; materials, optics and broader body/lens reference matching still require verification. No new push. Earlier c16b41a deployment run 38421792920 now reports success.
+
+Final checks: site build passed (15 pages, 29.50s); git diff --check passed. Downloaded live model hash matches the shipped c16b41a checkpoint (3dece58da009fcb5c981f769ebf07ea1230e1b063dd2419f95edb7b438b95e6c). Current LCD/profile corrections remain local.
+
+### 2026-10-13 — C200 rear/ocular audit and rejected coating-only trial
+
+Previous turn retained a concrete 40D seam-profile correction. Shifted this pass to the available C200 + example EF70–200 f/2.8 to cover the broader goal. Confirmed available tab selects the correct body/lens and native EF specs. Compared settled rear and both rear-oblique views with c200-rear.jpg and the operator-side c200.jpg. Main battery, SD slots, audio controls and terminal-cover layout are present, but the ocular still reads as a rectangular window rather than the layered optical appearance of the reference; this is not a full rear fidelity pass. Saved c200-audit-rear.jpg.
+
+Inspected eyecup() and confirmed its front surface already has spherical curvature, with rectangular baffles behind it. Tested a C200-only physical thin-film material (iridescence .65, IOR 1.38, thickness 260–280 nm), preserving geometry. Actual viewer comparison from both rear-oblique angles showed no material improvement toward the reference's layered optical appearance. Rejected the change and restored models.ts exactly; diagnostic source and c200-ocular-coating-test.jpg remain ignored. Do not treat adding tint as a sufficient ocular correction. Next inspect/model the internal ocular group and its occlusion, and compare side housing contours, rather than simply raising reflection intensity. No C200 geometry or shader change retained; full goal remains incomplete.
+
+Rechecked Canon Australia's C200 technical sheet (https://www.canon.com.au/-/media/images/canon/products/eos-c200/c200-tech-sheet.ashx): built-in EVF is electronic, 1.77M dots. Existing shared eyecup comment referring to an optical finder must not be interpreted as the C200's actual architecture.
+
+### 2026-10-13 — C200 circular ocular differential test rejected
+
+The previous turn's coating-only test did not improve the reference match. A focused C200 model/eyepiece search found no verified downloadable replacement; the Sketchfab tag result was inaccessible and is not evidence of an available camera asset. Do not substitute unrelated Canon eyepiece teardown results.
+
+Tested replacing only the rounded-rectangular C200 optical face with a .195-radius spherical circular face, keeping its rectangular carrier. Full C200 generator dimension checks passed and the asset exported/compressed. In the actual viewer close-up, the first candidate's reflection extended over the carrier because the optical face was forward of it. Saved forward-placement source/GLB and c200-round-ocular-forward-closeup.jpg.
+
+Moved the circular face .05 inward and rebuilt. This fixed the frame overlap in close-up; checked the opposite rear angle as well. However the result still reads as a single window and does not reproduce the reference's layered optical appearance. Rejected the circular-face-only approach rather than retaining an unsupported approximation with no convincing fidelity gain. Saved c200-round-ocular-seated-closeup.jpg, raw/compressed assets and candidate source in ignored output. Restored the exact prior generator and C200 GLB, preserving the retained 40D LCD/seam corrections. No production C200 geometry or shader change retained. Next investigate internal optical groups and their visibility/occlusion; single-surface shape, depth and coating changes alone have not solved the observed mismatch. Goal remains active and incomplete.
+
+### 2026-10-13 — C200 internal ocular reflection retained provisionally
+
+Added a recessed spherical internal surface and retaining rim behind the original rectangular front glass, rather than replacing that glass. This creates a distinct curved reflection and visible internal rim in the actual viewer. Compared close-up, straight rear and both rear-oblique views: the added surface stays inside the carrier and no longer reads solely as a single flat window. Front/side setup views show no new exterior changes; browser error log empty. Evidence: c200-inner-ocular-{closeup,opposite,rear,front,side}.jpg. Refreshed thumbnail.
+
+The opaque near-black dielectric backing approximates the powered-off EVF's internal reflection; it is not a transmitting optical prescription and does not simulate an operating display. Radius (.183), sag (.026), thickness (.008), placement and violet specular tint are photo-derived authoring approximations. Explicit shortcut comment records this limit. Full optical fidelity and the reference's exact reflection/color response remain unproven. No new renderer passes, shaders or viewer material overrides were added. Existing outer glass transmission remains unchanged.
+
+check_c200_ocular.py probes material-selected world-space depth bounds from the generated Blender mesh: inner element lies strictly behind front glass and ahead of finder field. Pass recorded in c200-inner-ocular-seating.txt. C200 dimensional generator checks passed. Compressed asset 4,542,324 bytes; SHA256 ae0fb8428d604c8faa45ccc6b6546da66f92f6cf770a3323537d4a9598c79b1c. Normal-preservation list includes the new polished surface. This is a local incremental visual improvement, not a completed C200 or overall fidelity pass. Next prioritize the larger C200 housing/controls and lens switch profiles against the references rather than treating this eyepiece approximation as completion. No push.
+
+Final validation: site build passed (15 pages, 26.35s) and git diff --check passed. New C200 seating check is an untracked source file to include with this retained change when next committing; ignored Python cache files must not be staged.
+
+### 2026-10-13 — f/4 stabilizer headings scaled to the switch-panel reference
+
+Inspected owned R7 + Control Ring adapter + EF70–200 f/4 in settled side/close-up and oblique views against 70-200-f4-side.jpg. Panel follows the cylindrical barrel and its keys sit within recesses; the original floating-plaque issue is not present in these views. No tripod collar is present on the owned lens. The STABILIZER headings were undersized relative to the panel width in the photo (roughly half its width in the viewer versus about two thirds in the reference).
+
+Increased only the f/4 STABILIZER and STABILIZER/MODE title size from .040 to .055; retained all switch positions and other labels. Rebuilt/compressed and repeated the same close-up: headings are clearer, fit within panel edges, and do not overlap sliders. Oblique view remains seated; browser errors empty. Evidence f4-headings-{before,after,oblique}.jpg. Refreshed f/4 thumbnail. Compressed asset 2,134,320 bytes; SHA256 2a3bbd6f6e2916fbdbcd55b7ad594fd04cd96e3d84541e07ef662ccf100b281c. This is a readability/reference-proportion correction, not a full lens fidelity pass; finish and optics remain imperfect. No f/2.8 or renderer changes. No push.
+
+Validation: site build passed (15 pages, 26.51s); git diff --check passed. Retained locally with earlier 40D and C200 work.
+
+### 2026-10-13 — Consistent telephoto enamel grain
+
+Compared f/4 white finish against the close side photo. Existing White enamel used fine random noise with viewer tiling based on each independently packed part. Switched to subtle cellular orange-peel normal detail and normalized enamel UV area to .22 model units per tile (12.1 mm, roughly .25 mm per cell). The classic loader now repeats enamel normal and roughness maps at the authored scale, preserving authored normal strength. Kept base color and mean roughness; final normal strength .40 is an appearance calibration, not a measured coating profile. A temporary viewer-only strength multiplier was removed after baking the chosen value into both assets.
+
+Rebuilt f/4 and f/2.8, checked f/4 side and grazing close-up and f/2.8 side in the actual selector. Effect is subtle at normal zoom; close-up retains readable print and switch boundaries without gross bump distortion. Rubber geometry unchanged. No browser errors. Evidence f4-enamel-final-closeup.jpg and f28-enamel-final-side.jpg. Both previews refreshed. check_enamel_scale.py checks aggregate world-area/UV-area ratio from each generated Blender mesh; both return .22. This does not prove microscopic coating accuracy or eliminate local UV distortion. Full surface/lighting/optics fidelity remains incomplete. No push.
+
+### 2026-10-13 — User-requested shipping checkpoint
+
+Shipping the retained 40D LCD/seam corrections, C200 internal ocular, f/4 headings and both telephoto enamel finishes, with their refreshed previews and regression checks. Final site build passed (15 pages, 25.12s); git diff --check passed. Actual-viewer inspections are recorded above. Lazy activation/render scheduling remain unchanged; ignored optical experiments are excluded. Full photorealism remains unfinished.
+
+Final telephoto SHA256: f/4 97dae7e684deba1d72890996b91447a1e1bfeed0741360a0c446c6c0ea11069f; f/2.8 51c2efb9f9fa730a51e0dd11377b94a66efdcda7e5c358f5eac6fe55d4147141.

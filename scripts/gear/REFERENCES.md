@@ -3327,3 +3327,15 @@ Reused the Canon white-paper page 14 assembly diagram and the previously inspect
 ### 40D closed flash seam — 2026-10-13
 
 - 103momo, “Canon EOS 40D.jpg” (2007-09-08), own-work oblique photograph: https://commons.wikimedia.org/wiki/File:Canon_EOS_40D.jpg . Page offers CC BY-SA 3.0 and other licenses. Saved unmodified as ignored output/gear-reference/40d-oblique-103momo.jpg for geometry comparison; not bundled into the site. The visible closed flash/casting seam is thin and nearly flush. This supports reducing the cover's lower-edge rounding, not a measured corner-radius claim.
+
+### 40D top LCD spacing — 2026-10-13
+
+Reused the existing 40d-top.jpg reference. Comparing the optical axis, display near edge and body width supports moving the display toward the grip by roughly 5 mm at this model's scale. This is approximate photo alignment, not a Canon dimensioned drawing. Rechecked the actual viewer from above; display stays inside the body and clear of the prism shoulder.
+
+### 40D flash seam side profile — 2026-10-13
+
+Rechecked the existing multi-view 40d.jpg, especially its mode-dial-side image. The closed-cover underside is gently rising toward the front, not strongly arched at the midpoint. Reduced the model's longitudinal sinusoidal relief accordingly; both cover and support use the same profile. Parameters are photo-derived approximations.
+
+### EF70–200 f/4 switch headings — 2026-10-13
+
+Reused 70-200-f4-side.jpg to compare the stabilizer headings' width relative to the switch panel. Enlarged those two headings only; dimensions remain photo-derived. Rechecked label clearance at the same viewer close-up and from an oblique angle.

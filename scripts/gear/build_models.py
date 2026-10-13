@@ -85,6 +85,8 @@ material('Blackened aperture steel',(.006,.007,.008),.42,.35)
 material('Eyepiece optical glass',(.008,.007,.012),.028,0)
 material('40D ocular glass',(.96,.98,.97),.028,0,transmission=1)
 material('C200 ocular glass',(.96,.98,.97),.028,0,transmission=1)
+material('C200 ocular glass inner',(.002,.002,.002),.03,0)
+M['C200 ocular glass inner'].node_tree.nodes.get('Principled BSDF').inputs['Specular Tint'].default_value=(.38,.12,.65,1)
 material('C200 finder field',(.016,.021,.018),.7,0)
 material('40D finder field',(.45,.46,.42),.8,0)
 material('Anodized black',(.009,.01,.011),.28,.55)
@@ -105,7 +107,7 @@ baffle_nodes.links.new(baffle_tex.outputs['Color'],baffle_nodes.nodes.get('Princ
 material('Machined metal',(.45,.47,.48),.25,.85)
 material('Tamron satin accent',(.60,.575,.51),.48,.65)
 material('Screw steel',(.09,.1,.11),.28,.85)
-material('White enamel',(.66,.645,.59),.34,0,FINE,.16)
+material('White enamel',(.66,.645,.59),.34,0,PEBBLE,.40)
 material('Red lacquer',(.46,.018,.011),.27,.15)
 material('Gold engraving',(.48,.35,.12),.4,.45)
 material('Yellow marking ink',(.95,.55,.015),.5,0)
@@ -327,6 +329,12 @@ def eyecup(x,y,z,body='c200',housing=()):
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
         rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.35,.30,.003) if body=='c200' else (.29,.21,.003),.018,'C200 finder field' if body=='c200' else '40D finder field')
     if body=='c200':
+        # A recessed coated surface supplies the internal ocular reflection.
+        # shortcut: opaque backing approximates the powered-off EVF; replace
+        # with measured transmitting groups before simulating its display.
+        inner=optical_element('C200 internal ocular',0,.183,.026,.008,'C200 ocular glass inner',spherical=True)
+        inner.rotation_euler.y=pi;inner.location=(optical_x,y,z+.034)
+        ring('C200 ocular retaining rim',z+.020,.202,.184,.010,'Anodized black',center=(optical_x,y))
         box('C200 eye sensor bezel',(x+.244,y,z-.067),(.074,.169,.018),'Deep black',.013)
         box('C200 eye sensor window',(x+.244,y,z-.079),(.046,.136,.006),'Sensor coating',.009)
         return
@@ -844,9 +852,9 @@ def body(which):
             for x,y in section:
                 upper=max(0,min(1,(y-.80)/.275))
                 crown=-.03*(1-t)-.09*t+.035*sin(pi*t)
-                # The side reference has a relieved, curved underside between
-                # the rear seat and front lip, rather than a straight slab.
-                underside=-.025*(1-t)+.065*sin(pi*t)
+                # The side reference has a gentle rise toward the front lip.
+                # A large midpoint arch made the closed seam look notched.
+                underside=-.025*(1-t)+.012*sin(pi*t)
                 yy=y+crown*upper+underside*(1-upper)
                 verts.append((x*(1-.32*t)*(1-end_round/.49),yy+( .925-yy)*end_round/.125,-.36+.915*t))
         for row in range(len(stations)-1):
@@ -863,7 +871,7 @@ def body(which):
             t=row/24;z=-.36+.68*t
             cover_t=(z+.36)/.915
             half=.49*(1-.32*cover_t)*.988
-            seat_y=.80-.025*(1-cover_t)+.065*sin(pi*cover_t)+.008
+            seat_y=.80-.025*(1-cover_t)+.012*sin(pi*cover_t)+.008
             support_verts.extend([(-half,.64,z),(half,.64,z),(half,seat_y,z),(-half,seat_y,z)])
             if row:
                 for i in range(4):
@@ -1044,21 +1052,22 @@ def body(which):
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
 
     if dslr:
-        # The status window is recessed into the continuous shoulder casting.
-        opening=box('Top LCD cutter',(-.87,.685,-.27),(.744,.22,.394),None,.028)
+        # Keep the status window away from the prism wall, as in the top reference.
+        lcd_dx=-.09
+        opening=box('Top LCD cutter',(-.87+lcd_dx,.685,-.27),(.744,.22,.394),None,.028)
         cut=shell.modifiers.new('Recessed top status display','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(shell,cut)
         OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
-        bezel=box('Top LCD surround',(-.87,.659,-.27),(.736,.028,.386),'Deep black',.028)
-        window=box('Top LCD bezel opening',(-.87,.659,-.27),(.68,.08,.33),None,.019)
+        bezel=box('Top LCD surround',(-.87+lcd_dx,.659,-.27),(.736,.028,.386),'Deep black',.028)
+        window=box('Top LCD bezel opening',(-.87+lcd_dx,.659,-.27),(.68,.08,.33),None,.019)
         cut=bezel.modifiers.new('Open status display bezel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=window;apply(bezel,cut)
         OBJECTS.remove(window);bpy.data.objects.remove(window,do_unlink=True)
-        box('Top LCD',(-.87,.665,-.27),(.67,.008,.32),'LCD display',.019)
+        box('Top LCD',(-.87+lcd_dx,.665,-.27),(.67,.008,.32),'LCD display',.019)
         # Faint inactive segment outlines, as in the powered-off reference.
         for name,points in [
             ('Left status field',[(-.58,-.13),(-.73,-.13),(-.73,-.25),(-.80,-.25),(-.80,-.36),(-.58,-.36),(-.58,-.13)]),
             ('AF status field',[(-.83,-.15),(-.99,-.15),(-.99,-.23),(-.83,-.23),(-.83,-.15)]),
             ('Right status field',[(-1.04,-.13),(-1.16,-.13),(-1.16,-.40),(-1.04,-.40),(-1.04,-.13)]),
-        ]:line(name,[(x,.670,z) for x,z in points],.0012,'Inactive LCD segments')
+        ]:line(name,[(x+lcd_dx,.670,z) for x,z in points],.0012,'Inactive LCD segments')
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         top_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
@@ -2305,7 +2314,7 @@ def lens(which):
                 text('Manual focus legend','MF',(.055,y+.090,.018),.042,'Deep black')
             else:
                 title='STABILIZER\nMODE' if 'MODE' in label_ else 'STABILIZER'
-                text('Stabilizer legend',title,(0,y+.180,.018),.040,'Deep black')
+                text('Stabilizer legend',title,(0,y+.180,.018),.055 if f4 else .040,'Deep black')
                 if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black')
                 else:
                     text('Stabilizer on legend','ON',(-.055,y+.126,.018),.041,'Deep black')
@@ -3365,7 +3374,7 @@ def export_asset(name,objects):
         active(o)
         if not o.get('preserve_face_orientation'):
             bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
-        if o.data.materials and o.data.materials[0].name in ['Optical glass','Inner optical glass','Inner optical glass rear','40D ocular glass','C200 ocular glass']:
+        if o.data.materials and o.data.materials[0].name in ['Optical glass','Inner optical glass','Inner optical glass rear','40D ocular glass','C200 ocular glass','C200 ocular glass inner']:
             # Meshopt's high preset filters NORMAL down to 8-bit octahedral
             # values. Preserve polished-face normals as a custom attribute;
             # the viewer promotes it back to NORMAL after decoding.
@@ -3373,7 +3382,7 @@ def export_asset(name,objects):
             for vertex,value in zip(o.data.vertices,normals.data):value.vector=vertex.normal
         if len(o.data.polygons)>0 and not o.get('preserve_uv'):
             bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT');bpy.ops.uv.smart_project(angle_limit=1.15,island_margin=.01);bpy.ops.object.mode_set(mode='OBJECT')
-        if o.data.materials and any(finish in o.data.materials[0].name for finish in ['Scanned grip rubber','Molded grip rubber','Crinkle painted metal','C200 Magnesium shell']):
+        if o.data.materials and any(finish in o.data.materials[0].name for finish in ['Scanned grip rubber','Molded grip rubber','Crinkle painted metal','C200 Magnesium shell','White enamel']):
             # Smart projection packs each part independently. Normalize density
             # so a small thumb pad does not have larger grain than the hand grip.
             transform=o.matrix_world.to_3x3();normal_transform=transform.inverted().transposed()
@@ -3392,6 +3401,7 @@ def export_asset(name,objects):
             elif name=='c200':
                 if 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.26
                 elif 'Magnesium shell' in o.data.materials[0].name:tile_span=.22
+            if 'White enamel' in o.data.materials[0].name:tile_span=.22
             density=math.sqrt(world_area/uv_area)/tile_span
             for loop in uv:loop.uv*=density
     # Merge by material so detailed geometry remains inexpensive to draw in WebGL.

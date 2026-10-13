@@ -25,3 +25,11 @@ for z in [-.2,0,.2]:
   if gap is None or gap<.001:fail.append((x,z,gap))
 print('CLEARANCE', 'PASS' if not fail else 'FAIL',fail)
 if fail:raise RuntimeError('Intersecting flash seat')
+
+# The status-display pocket previously cut the adjacent prism shoulder down
+# to its .575 floor. Probe both the bridge and the actual pocket independently.
+bridge=groups['shell'].ray_cast(Vector((-.54,2,-.27)),Vector((0,-1,0)))[0]
+recess=groups['shell'].ray_cast(Vector((-.96,2,-.27)),Vector((0,-1,0)))[0]
+assert bridge is not None and bridge.y>.68,'LCD recess cuts into prism bridge'
+assert recess is not None and recess.y<.661,'Casting obstructs the status LCD'
+print('LCD BRIDGE PASS',tuple(bridge),'RECESS',tuple(recess))
