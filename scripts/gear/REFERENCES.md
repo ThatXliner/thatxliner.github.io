@@ -3312,3 +3312,13 @@ Reused Canon's optical section from https://global.canon/en/c-museum/product/ef3
 ### EF50mm f/1.8 II group count and transmission diagnosis — 2026-10-11
 
 Rechecked https://global.canon/en/c-museum/product/ef295.html: six elements in five groups, five diaphragm blades. Compared the saved 50-optics.gif with the three simplified glass meshes in fifty_prime(). Inspected the installed Three transmission shader to distinguish geometry omissions from missing sequential refraction; see FIDELITY_AUDIT.md and the ignored numerical diagnostic. Canon's block diagram is not a measured optical prescription.
+
+
+### 40D mirror and focusing-screen assembly — 2026-10-11
+
+Rechecked Canon's EOS 40D specifications (https://global.canon/en/c-museum/product/dslr795.html): 22.2 × 14.8 mm sensor, Ef-A focusing screen and a half mirror. Canon's EOS 40D White Paper, page 14, shows the screen above the main mirror, below the SI plate and pentaprism. Retrieved the Canon-authored document from https://media.the-digital-picture.com/Information/Canon-EOS-40D-White-Paper.pdf into ignored 40d-whitepaper.pdf; rendered page 14 as 40d-viewfinder-diagram.png. This establishes assembly topology, not exact component dimensions or measured optical response.
+
+
+### 40D folded screen plane and open mirror passage — 2026-10-13
+
+Reused the Canon white-paper page 14 assembly diagram and the previously inspected 40d-mount.jpg. The diagram places the screen above the mirror; our cylindrical liner wrongly closed that optical passage. Screen position is derived from the project's 44 mm EF register and existing nominal mirror plane, not dimensioned from the diagram. The sensor dimensions follow Canon's EOS 40D specification. Screen margins, frame details and matte finish remain provisional. See the secondary-ray before/after evidence in FIDELITY_AUDIT.md.

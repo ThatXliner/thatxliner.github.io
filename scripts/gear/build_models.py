@@ -136,6 +136,8 @@ material('Inactive LCD segments',(.040,.056,.038),.34,0)
 material('Sensor filter edge',(.018,.04,.09),.17,.3)
 material('Sensor coating',(.004,.018,.013),.065,.25)
 material('Reflex mirror',(.62,.64,.63),.045,1)
+# shortcut: provisional matte transmission; calibrate against Ef-A Fresnel optics before a fidelity claim.
+material('Focusing screen matte',(.65,.66,.64),.45,0,transmission=.65)
 material('Optical glass',(.88,.98,.94),.045,0,transmission=1)
 material('Inner optical glass',(.65,.78,.95),.07,0,transmission=.94)
 material('Inner optical glass rear',(.65,.78,.95),.07,0,transmission=.94)
@@ -537,8 +539,16 @@ def dial(p,r=.19,axis='y',mode=False,width=.085):
     rot=Matrix.Rotation(-pi/2,4,'X') if axis=='y' else Matrix.Rotation(pi,4,'Y') if axis=='rear' else Matrix.Rotation(pi/2,4,'Y') if axis=='x' else Matrix.Identity(4)
     for o in OBJECTS[start:]:o.matrix_world=Matrix.Translation(Vector(p))@rot@o.matrix_world
 
+def open_focusing_screen_path(obj):
+    # The mirror box opens upward into the screen, not into a closed cylinder.
+    bpy.ops.mesh.primitive_cube_add(size=1,location=(0,.40,.1901213203));cutter=bpy.context.object
+    cutter.scale=(.46,.24,.33);active(cutter);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    cut=obj.modifiers.new('Focusing screen light passage','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(obj,cut)
+    bpy.data.objects.remove(cutter,do_unlink=True)
+
 def mount(z=.48,mirror=False,rf=False,cinema=False):
-    ring('Mount casting boss',z-.105,.641,.435,.215,'Graphite polymer')
+    boss=ring('Mount casting boss',z-.105,.641,.435,.215,'Graphite polymer')
+    if mirror:open_focusing_screen_path(boss)
     ring('Mount gasket',z,.655,.455,.075,'Deep black')
     # The 40D EF seating face is almost covered by the attached rear shoulder.
     # The previous oversized face left a broad silver annulus in side views.
@@ -551,7 +561,7 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
         box('RF red mount index',(0,.601,z+.052),(.014,.042,.002),'Red lacquer',.002)
     else:
         cyl('Red mount index',(0,.659,z+.053),.018,.014,'Red lacquer',vertices=24)
-    sensor_z=z+.051-20/55 if rf else z+.051-44/55 if cinema else z-.84 if mirror else z-.195
+    sensor_z=z+.051-20/55 if rf else z+.051-44/55 if cinema or mirror else z-.195
     if cinema:
         # The C200 front reference shows a clipped-corner filter cassette,
         # retaining screws and a blue filter surround inside the EF throat.
@@ -570,7 +580,7 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
     else:
         box('Sensor frame',(0,0,sensor_z-.015),(.48,.33,.025) if rf else (.53,.36,.025),'Anodized black',.018)
         if rf:box('Sensor filter surround',(0,0,sensor_z-.003),(.421,.285,.006),'Sensor filter edge',.003)
-        box('APS-C sensor',(0,0,sensor_z),(22.3/55,14.8/55,.004) if rf else (.46,.30,.004),'Sensor coating' if rf else 'LCD glass',.002)
+        box('APS-C sensor',(0,0,sensor_z),((22.3 if rf else 22.2)/55,14.8/55,.004),'Sensor coating' if rf else 'LCD glass',.002)
     if rf:
         # Matte chamber lining masks the exposed grey casting behind the RF throat.
         rear=sensor_z-.030;front_wall=z+.033
@@ -578,7 +588,8 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
         cyl('RF sensor chamber rear baffle',(0,0,rear),.433,.006,'Optical barrel flocking',vertices=128,bevel=.001)
     if mirror:
         rear=sensor_z-.018;front_wall=z+.033
-        ring('EF mirror chamber lining',(rear+front_wall)/2,.444,.423,front_wall-rear,'Optical barrel flocking')
+        lining=ring('EF mirror chamber lining',(rear+front_wall)/2,.444,.423,front_wall-rear,'Optical barrel flocking')
+        open_focusing_screen_path(lining)
         cyl('Mirror chamber rear baffle',(0,0,rear),.443,.006,'Optical barrel flocking',vertices=128,bevel=.001)
         carrier=rounded_panel('Mirror box front carrier',(0,0,.390),(.70,.65,.025),.035,'Graphite polymer')
         opening=rounded_panel('Mirror box aperture cutter',(0,0,.390),(.61,.47,.10),.018,None)
@@ -586,6 +597,14 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
         OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
         frame=box('Reflex mirror frame',(0,0,.17),(.56,.50,.018),'Anodized black',.008);frame.rotation_euler.x=-pi/4
         glass=box('Reflex mirror surface',(0,.009,.179),(.52,.46,.003),'Reflex mirror',.002);glass.rotation_euler.x=-pi/4
+        # Reflect the EF sensor plane across the front mirror face; the optical
+        # screen underside must lie at the same folded path length.
+        mirror_plane=.009+.179+math.sqrt(2)*.0015
+        screen_y=mirror_plane-sensor_z
+        box('Ef-A focusing screen',(0,screen_y+.003,mirror_plane),(.44,.006,.31),'Focusing screen matte',.001)
+        for x in [-.236,.236]:box('Screen side retainer',(x,screen_y+.004,mirror_plane),(.024,.016,.35),'Anodized black',.002)
+        for zz in [-.166,.166]:box('Screen end retainer',(0,screen_y+.004,mirror_plane+zz),(.46,.016,.022),'Anodized black',.002)
+
     for i in range(12 if rf else 10):
         a=pi*(1.18 if rf else 1.20)+i*(.18 if rf else .059);cyl('Gold electrical contact',(cos(a)*.455,sin(a)*.455,z+(.070 if rf else .032)),.012,.006,'Gold engraving',vertices=16)
 
@@ -617,6 +636,7 @@ def body(which):
         shell.data.update()
         bpy.ops.mesh.primitive_cylinder_add(vertices=96,radius=.445,depth=.88,location=(0,0,.05));bore=bpy.context.object
         cut=shell.modifiers.new('Open reflex mirror chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
+        open_focusing_screen_path(shell)
     if not dslr:
         for v in shell.data.vertices:
             x,y,z=v.co
