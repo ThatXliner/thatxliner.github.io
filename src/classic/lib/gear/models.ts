@@ -4,7 +4,7 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { type Body, type Lens } from "@/classic/lib/gear/catalog";
 
 /** Blender-authored meshes with optical elements, surface normals and engraved controls. */
-export async function loadModelLibrary(initialIds: string[]) {
+export async function loadModelLibrary(initialIds: string[], urls: Record<string,string> = {}) {
   // Decode compressed meshes off the UI thread when workers are available.
   if (typeof Worker !== "undefined") MeshoptDecoder.useWorkers(1);
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
@@ -37,7 +37,7 @@ export async function loadModelLibrary(initialIds: string[]) {
         const existing = pending.get(id);
         if (existing) return existing;
         const request = (async () => {
-          const { scene } = await loader.loadAsync(`/models/gear/${id}.glb`);
+          const { scene } = await loader.loadAsync(urls[id] ?? `/models/gear/${id}.glb`);
           scene.traverse((object) => {
             if (!(object instanceof THREE.Mesh)) return;
             geometries.add(object.geometry);
@@ -131,6 +131,7 @@ export async function loadModelLibrary(initialIds: string[]) {
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
                 material.transmission > 0 &&
+                !material.name.startsWith("Patent Optical") &&
                 !/^(40D|C200) ocular glass/.test(material.name)
               ) {
                 material.iridescence = 1;

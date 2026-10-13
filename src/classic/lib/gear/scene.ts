@@ -14,7 +14,14 @@ export async function createStudio(
     lens.id,
     ...(body.id === "r7" ? ["adapter"] : []),
   ];
-  const factory = await loadModelLibrary(setupIds(initialBody, initialLens));
+  const reviewOptics = import.meta.env.DEV && new URLSearchParams(location.search).get("optics") === "1";
+  const factory = await loadModelLibrary(setupIds(initialBody, initialLens), reviewOptics ? {"70-200-f4":"/models/gear/70-200-f4-prescription.glb"} : {});
+  const opticalModule = reviewOptics ? await import("./optics/studio") : undefined;
+  let optics: Awaited<ReturnType<NonNullable<typeof opticalModule>["createF4Optics"]>> | undefined;
+  let opticsPending: AbortController | undefined;
+  function stopOptics(){opticsPending?.abort();opticsPending=undefined;optics?.dispose();optics=undefined;}
+  let opticsFailed = false;
+  let lastMotion = performance.now();
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({
@@ -190,6 +197,8 @@ export async function createStudio(
   let needsRender = true;
   controls.addEventListener("change", () => {
     needsRender = true;
+    lastMotion = performance.now();
+    optics?.invalidate();
   });
   let animationStart = 0;
   let lensOffset = 0;
@@ -228,31 +237,42 @@ export async function createStudio(
             Math.abs(offset.dot(up)) / tanV + offset.dot(defaultDirection),
           );
         }
+    // Narrow screens need room for the full assembly as it rotates, not just
+    // its initial oblique silhouette. Manual zoom remains available.
+    const fitDistance = camera.aspect < 1
+      ? Math.max(distance * 0.96, radius / Math.sin(Math.atan(tanH)) * 1.04)
+      : distance * 0.96;
     controls.target.copy(center);
     camera.position
       .copy(center)
-      .addScaledVector(defaultDirection, distance * 0.96);
+      .addScaledVector(defaultDirection, fitDistance);
     controls.update();
   };
   let selectionVersion = 0;
+  let selectionLoading = false;
   async function select(body: Body, lens: Lens, animate = true) {
     const version = ++selectionVersion;
     if (animate && currentBody.id === body.id && currentLens.id === lens.id) {
+      selectionLoading = false;
       status.hidden = true;
       return;
     }
+    selectionLoading = true;
+    stopOptics();
     status.textContent = "Loading selected equipment…";
     status.hidden = false;
     try {
       await factory.load(setupIds(body, lens));
     } catch (error) {
       if (disposed || version !== selectionVersion) return;
+      selectionLoading = false;
       console.error("Equipment could not load", error);
       status.textContent =
         "This setup could not load. Select it again to retry.";
       return;
     }
     if (disposed || version !== selectionVersion) return;
+    selectionLoading = false;
     status.hidden = true;
     const setupChanged =
       currentBody.id !== body.id || currentLens.id !== lens.id;
@@ -284,6 +304,7 @@ export async function createStudio(
   function resize() {
     const { width, height } = host.getBoundingClientRect();
     if (!width || !height) return;
+    stopOptics();
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -308,6 +329,19 @@ export async function createStudio(
       renderer.render(scene, camera);
       needsRender = false;
     }
+    if (!selectionLoading && visible && !document.hidden && !opticsFailed && opticalModule && currentLens.id === "70-200-f4" && lensOffset === 0 && performance.now()-lastMotion>120) {
+      try {
+        if(!optics&&!opticsPending){
+          const pending=new AbortController();opticsPending=pending;
+          void opticalModule.createF4Optics(renderer,camera,env.texture,lensModel,assembly,()=>{needsRender=true;console.debug("Optical refinement complete",currentBody.id,currentLens.id);},pending.signal).then(created=>{
+            if(pending.signal.aborted||disposed){created.dispose();return;}
+            optics=created;needsRender=true;
+          }).catch(error=>{if(!pending.signal.aborted){console.error("Optical setup failed",error);opticsFailed=true;}}).finally(()=>{if(opticsPending===pending)opticsPending=undefined;});
+        }
+        const activeOptics=optics;
+        void activeOptics?.refine().catch(error=>{if(optics!==activeOptics)return;console.error("Optical refinement failed",error);activeOptics.dispose();optics=undefined;opticsFailed=true;needsRender=true;});
+      } catch(error) {console.error("Optical setup failed",error);opticsFailed=true;}
+    }
     if (lensOffset > 0 && t === 1) {
       lensOffset = 0;
       renderer.render(scene, camera);
@@ -324,6 +358,7 @@ export async function createStudio(
   const observer = new IntersectionObserver(
     ([entry]) => {
       visible = entry.isIntersecting && !document.hidden;
+      if (!visible) {opticsPending?.abort();opticsPending=undefined;optics?.invalidate();}
       cancelAnimationFrame(frame);
       if (visible) frame = requestAnimationFrame(loop);
     },
@@ -335,6 +370,7 @@ export async function createStudio(
       !document.hidden &&
       host.getBoundingClientRect().bottom > 0 &&
       host.getBoundingClientRect().top < innerHeight;
+    if (!visible) {opticsPending?.abort();opticsPending=undefined;optics?.invalidate();}
     cancelAnimationFrame(frame);
     if (visible) frame = requestAnimationFrame(loop);
   };
@@ -407,6 +443,7 @@ export async function createStudio(
       "The 3D view was interrupted. Reload to reopen the studio. You can still explore the equipment specs.";
     status.hidden = false;
     visible = false;
+    stopOptics();
     cancelAnimationFrame(frame);
   };
   renderer.domElement.addEventListener("webglcontextlost", contextLost);
@@ -419,6 +456,7 @@ export async function createStudio(
     reset,
     dispose() {
       disposed = true;
+      stopOptics();
       cancelAnimationFrame(frame);
       observer.disconnect();
       sizeObserver.disconnect();

@@ -88,7 +88,6 @@ material('C200 ocular glass',(.96,.98,.97),.028,0,transmission=1)
 material('C200 ocular glass inner',(.002,.002,.002),.03,0)
 M['C200 ocular glass inner'].node_tree.nodes.get('Principled BSDF').inputs['Specular Tint'].default_value=(.38,.12,.65,1)
 material('C200 finder field',(.016,.021,.018),.7,0)
-material('40D finder field',(.45,.46,.42),.8,0)
 material('Anodized black',(.009,.01,.011),.28,.55)
 material('Deep black',(.002,.0024,.003),.55,0)
 material('Optical barrel flocking',(.003,.0035,.004),.84,0)
@@ -327,7 +326,12 @@ def eyecup(x,y,z,body='c200',housing=()):
             for face in baffle.data.polygons:
                 if abs(face.normal.z)>.999:face.use_smooth=False
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-        rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.35,.30,.003) if body=='c200' else (.29,.21,.003),.018,'C200 finder field' if body=='c200' else '40D finder field')
+        if body=='c200':
+            rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.35,.30,.003),.018,'C200 finder field')
+        # The 40D is an optical finder. A diffuse panel facing the eye is not
+        # its focusing screen (which sits horizontally below the pentaprism).
+        # shortcut: the folded prism/three-element ocular path still needs
+        # reconstruction; leave the existing dark chamber behind the opening.
     if body=='c200':
         # A recessed coated surface supplies the internal ocular reflection.
         # shortcut: opaque backing approximates the powered-off EVF; replace
