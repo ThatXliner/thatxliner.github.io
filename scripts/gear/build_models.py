@@ -428,7 +428,9 @@ def profile(name,points,back,front,mat='Magnesium shell',bevel=.035,rounding=.10
     # Boolean cutters require outward-facing solids before export's normal pass.
     # Accept either outline winding without creating an inside-out casting.
     points=list(points)
-    if sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))<0:points.reverse()
+    if sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))<0:
+        points.reverse()
+        if isinstance(rounding,(list,tuple)):rounding=rounding[::-1]
     points=smooth_outline(points,radius=rounding);n=len(points);verts=[(x,y,z) for z in [back,front] for x,y in points];faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]
     faces.extend([(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)])
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o);register(o,name,mat);return finish(o,bevel,4)
@@ -2543,12 +2545,28 @@ def cinema():
     front=profile('Cinema front fascia',[(-.91,-.95),(-.94,-.72),(-.94,.66),(-.80,1.09),(-.54,1.13),(-.42,1.01),(.39,1.01),(.51,1.12),(.77,1.07),(.93,.67),(.94,-.70),(.81,-.97)],.33,.405,'Graphite polymer',.044)
     # Large circular structural casting dominates the real C200 front face.
     casting_start=len(OBJECTS)
-    ring('Circular mount casting',.409,.984,.432,.115,'Crinkle painted metal')
-    ring('Casting perimeter seam',.469,.945,.928,.012,'Deep black')
+    # The outer casting rolls toward the inner seam; a flat washer produced
+    # an all-or-nothing planar highlight instead of the reference's curved band.
+    outer_section=[(.432,.3515),(.94,.3515),(.975,.365),(.984,.390),
+                   (.977,.415),(.956,.432),(.910,.451),(.850,.466),(.432,.466)]
+    segments=160;vertices=[];faces=[]
+    for radius,z in outer_section:
+        vertices.extend((radius*cos(i*2*pi/segments),radius*sin(i*2*pi/segments),z) for i in range(segments))
+    for row in range(len(outer_section)):
+        nxt=(row+1)%len(outer_section)
+        for i in range(segments):
+            j=(i+1)%segments
+            faces.append((row*segments+i,row*segments+j,nxt*segments+j,nxt*segments+i))
+    mesh=bpy.data.meshes.new('Rolled outer mount casting');mesh.from_pydata(vertices,[],faces);mesh.update()
+    outer=bpy.data.objects.new('Circular mount casting',mesh);scene.collection.objects.link(outer);register(outer,'Circular mount casting','Crinkle painted metal')
+    for face in mesh.polygons:face.use_smooth=True
+    ring('Casting perimeter seam',.469,.842,.825,.012,'Deep black')
     # The inner casting has a rolled outer shoulder and a broad shallow
     # crown, not the sharp cylindrical edge of a constant-depth washer.
-    casting_section=[(.436,.427),(.902,.427),(.922,.443),(.925,.459),
-                     (.916,.477),(.893,.493),(.862,.501),(.72,.505),
+    # The front reference places this seam at about .84 of the outer radius.
+    # A .925 inner radius left an implausibly thin outer structural band.
+    casting_section=[(.436,.427),(.802,.427),(.819,.443),(.822,.459),
+                     (.813,.477),(.790,.493),(.759,.501),(.67,.505),
                      (.60,.505),(.436,.493)]
     segments=160;vertices=[];faces=[]
     for radius,z in casting_section:
@@ -2563,20 +2581,34 @@ def cinema():
     for face in mesh.polygons:face.use_smooth=True
     # The front reference places the release in a vertical recessed seat
     # immediately outside the EF flange on the operator side.
-    rounded_panel('Cinema lens release seat',(.745,0,.507),(.136,.275,.014),.050,'Deep black')
-    sphere('Cinema lens release button',(.746,0,.516),(.048,.116,.017),'Graphite polymer')
+    rounded_panel('Cinema lens release seat',(.688,0,.507),(.136,.275,.014),.050,'Deep black')
+    sphere('Cinema lens release button',(.689,0,.516),(.048,.116,.017),'Graphite polymer')
     for a in [pi/2,pi/6,-pi/6,-pi/2,pi*7/6,pi*5/6]:
-        screw((cos(a)*.938,sin(a)*.938,.478),r=.025)
+        x,y=cos(a)*.938,sin(a)*.938
+        # Recess the fastener into the sloping casting instead of leaving
+        # the old flat-face screw floating above the new shoulder.
+        bpy.ops.mesh.primitive_cone_add(vertices=48,radius1=.025,radius2=.040,depth=.080,location=(x,y,.440))
+        bore=bpy.context.object
+        cut=outer.modifiers.new('Casting screw counterbore','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(outer,cut);bpy.data.objects.remove(bore,do_unlink=True)
+        screw_start=len(OBJECTS)
+        screw((x,y,.430),r=.025)
+        for o in OBJECTS[screw_start:]:
+            if o.data.materials[0]==M['Screw steel']:o.data.materials[0]=M['Anodized black']
     circular_casting=set(OBJECTS[casting_start:])
     for target in [chassis,front]:
         bpy.ops.mesh.primitive_cylinder_add(vertices=96,radius=.438,depth=.86,location=(0,0,.14));bore=bpy.context.object
         cut=target.modifiers.new('Open cinema mount chamber','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(target,cut);bpy.data.objects.remove(bore,do_unlink=True)
-    profile('Canon crest',[(-.50,1.10),(-.43,1.24),(-.26,1.29),(.32,1.29),(.47,1.22),(.51,1.10),(.36,1.00),(-.36,1.00)],.35,.422,'Graphite polymer',.033)
+    # The crest is a shallow tapered housing, not a bulbous applied badge.
+    # Preserve its lower corners and keep the front nearly flush with the fascia.
+    profile('Canon crest',[(-.50,1.11),(-.475,1.19),(-.41,1.26),(-.28,1.29),
+                           (.28,1.29),(.41,1.26),(.475,1.19),(.50,1.11),
+                           (.35,1.00),(-.35,1.00)],.35,.410,'Graphite polymer',.007,
+            rounding=[.018,.05,.07,.08,.08,.07,.05,.018,.018,.018])
     for x,n,label_ in [(-.60,'10','PUSH AUTO IRIS'),(.60,'11','ONE-SHOT AF')]:
         cyl('Front function bezel '+n,(x,-.88,.475),.114,.032,'Anodized black')
         sphere('Front function button '+n,(x,-.88,.499),(.087,.087,.024),'Graphite polymer')
         text('Front function number '+n,n,(x,-.88,.526),.066)
-        text('Front function label '+n,label_,(x,-1.006,.443),.030)
+        text('Front function label '+n,label_,(x,-1.006,.4365),.045)
     cyl('VIDEO terminal surround',(-.73,.92,.425),.189,.05,'Deep black')
     # Product front photograph: a rolled cap shoulder with a broad flat face
     # and a pull tab rising from its upper edge, rather than a thin flat disk.
@@ -2609,11 +2641,20 @@ def cinema():
     front.data.normals_split_custom_set(normals)
     box('Cinema front badge',(.68,.91,.439),(.145,.168,.018),'Red lacquer',.012)
     text('Cinema front C','C',(.68,.91,.451),.133,font='Canon')
-    box('Base rail',(0,-.99,-.65),(1.97,.11,2.33),'Anodized black',.055)
+    # Keep the lower housing behind its printed face; the former projecting
+    # metal rail covered both front function labels and read as an accessory.
+    lower_lip=profile('Lower chassis lip',[(-.96,-.935),(-.93,-1.00),(-.87,-1.045),
+                                 (.77,-1.045),(.85,-.99),(.89,-.935)],
+            -1.815,.435,'Graphite polymer',.004,rounding=.02)
+    # The central relief clears the bottom casting fastener; the label-bearing
+    # side wings keep their flat face and support beneath both function buttons.
+    relief=box('Lower central relief cutter',(0,-.99,.460),(.70,.23,.12),None,.04)
+    cut=lower_lip.modifiers.new('Lower central relief','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=relief;apply(lower_lip,cut)
+    OBJECTS.remove(relief);bpy.data.objects.remove(relief,do_unlink=True)
     mountStart=len(OBJECTS)
     mount(.48,cinema=True)
     mount_objects=set(OBJECTS[mountStart:])
-    text('Front Canon','Canon',(0,1.135,.429),.18,font='Canon');text('Front EOS','EOS',(.68,1.061,.441),.065)
+    text('Front Canon','Canon',(0,1.145,.4115),.15,font='Canon');text('Front EOS','EOS',(.68,1.061,.441),.065)
     # Left-side operator panel, placed using the C200 reference layout.
     panelStart=len(OBJECTS)
     side_fascia=profile('Side fascia',[(-1,-1.01),(-1,.71),(-.92,.98),(.83,.98),(.96,.82),(1,-.72),(.89,-1.01)],-.035,.055,'Graphite polymer',.035)
@@ -2672,7 +2713,7 @@ def cinema():
     rounded_panel('Power legend field',(-.35,.875,.056),(.215,.049,.0006),.007,'White ink')
     text('Power label','POWER',(-.35,.875,.0567),.045,mat='Deep black')
     line('Power lock arc',[(-.12+.168*cos(a*pi/180),.64+.168*sin(a*pi/180),.058) for a in range(85,146,5)],.0025,'White ink')
-    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.287,y,.0567),.062,align='RIGHT')
+    for y,t in [(.765,'CAMERA'),(.60,'OFF'),(.45,'MEDIA')]:text('Power legend',t,(-.287,y,.0567),.062,font='Bold',align='RIGHT')
     text('Canon side wordmark','Canon',(.58,.55,.0567),.13,font='Canon')
     # Printed markings belong to the upper housing, above the recessed bay.
     # The former 4K box crossed the bay lip and floated above both surfaces.
@@ -2703,11 +2744,28 @@ def cinema():
         offset=-.019 if x==-.78 else -.049
         # Broad, shallow plastic caps with printed numbers; the former small
         # metal domes produced bead-like highlights and undersized lettering.
-        cyl('Function bezel',(x,y,.081+offset),.099,.018,'Deep black')
+        # Photo: the black cap sits within a rolled, textured casting rim.
+        # Its outer/cap diameter ratio is about 1.4 in the operator reference.
+        floor=.061 if x==-.78 else .028
+        section=[(.085,floor),(.109,floor),(.107,floor+.003),
+                 (.103,floor+.009),(.097,floor+.016),(.091,floor+.019),
+                 (.086,floor+.016),(.085,floor+.010)]
+        segments=64;verts=[];faces=[]
+        for radius,z in section:
+            verts.extend((x+radius*cos(i*2*pi/segments),y+radius*sin(i*2*pi/segments),z) for i in range(segments))
+        for row in range(len(section)):
+            nxt=(row+1)%len(section)
+            for i in range(segments):
+                j=(i+1)%segments
+                faces.append((row*segments+i,row*segments+j,nxt*segments+j,nxt*segments+i))
+        mesh=bpy.data.meshes.new('Rolled function casting rim');mesh.from_pydata(verts,[],faces);mesh.update()
+        rim=bpy.data.objects.new('Rolled function casting rim',mesh);scene.collection.objects.link(rim);register(rim,'Rolled function casting rim','Crinkle painted metal')
+        for face in mesh.polygons:face.use_smooth=True
+        cyl('Function bezel',(x,y,.081+offset),.086,.018,'Deep black')
         sphere('Function button',(x,y,.097+offset),(.077,.077,.011),'Graphite polymer')
         text('Function number',n,(x,y,.109+offset),.082)
-        text('Function label',label_,(x,y+.126,.0615 if x==-.78 else .0295),.049 if x==-.78 else .061)
-    cyl('Record bezel',(-.43,-.875,.10),.139,.044,'Anodized black');sphere('Red REC button',(-.43,-.875,.129),(.094,.094,.023),'Red lacquer');text('REC label','REC',(-.24,-.755,.0567),.046)
+        text('Function label',label_,(x,y+.140,.0615 if x==-.78 else .0295),.059 if x==-.78 else .061,font='Bold')
+    cyl('Record bezel',(-.43,-.875,.10),.139,.044,'Anodized black');sphere('Red REC button',(-.43,-.875,.129),(.094,.094,.023),'Red lacquer');text('REC label','REC',(-.24,-.755,.0567),.046,font='Bold')
     box('Control dial recess',(-.77,-.87,.062),(.20,.26,.032),'Deep black',.027)
     dial((-.77,-.87,.082),.118,'y',width=.071)
     rounded_panel('Playback control surround',(.11,-.865,.076),(.37,.178,.028),.071,'Graphite polymer')
@@ -2716,11 +2774,11 @@ def cinema():
     # Recessed WB button and the two dual-purpose playback controls.
     cyl('WB button recess',(-.193,-.815,.058),.031,.006,'Deep black',vertices=48,bevel=.002)
     sphere('WB button',(-.193,-.815,.062),(.022,.022,.005),'Graphite polymer')
-    text('WB button legend','WB',(-.193,-.89,.0567),.031)
+    text('WB button legend','WB',(-.193,-.89,.0567),.039,font='Bold')
     profile('Play symbol',[(-.228,-.966),(-.228,-.936),(-.197,-.951)],.0567,.057,'White ink',0,rounding=.0001)
     line('Play pause separator',[(-.188,-.969,.057),(-.175,-.933,.057)],.0015,'White ink')
     for xx in [-.166,-.152]:box('Pause symbol',(xx,-.951,.0569),(.005,.030,.0004),'White ink',0)
-    text('Index stop legend','INDEX /',(.366,-.95,.0567),.031)
+    text('Index stop legend','INDEX /',(.366,-.95,.0567),.035,font='Bold')
     box('Stop symbol',(.443,-.95,.0569),(.025,.025,.0004),'White ink',0)
     # White balance adjustment symbol printed above the index legend.
     sphere('White balance symbol dot',(.374,-.84,.057),(.009,.006,.0003),'White ink')

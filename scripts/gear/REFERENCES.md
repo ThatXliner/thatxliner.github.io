@@ -3339,3 +3339,27 @@ Rechecked the existing multi-view 40d.jpg, especially its mode-dial-side image. 
 ### EF70–200 f/4 switch headings — 2026-10-13
 
 Reused 70-200-f4-side.jpg to compare the stabilizer headings' width relative to the switch panel. Enlarged those two headings only; dimensions remain photo-derived. Rechecked label clearance at the same viewer close-up and from an oblique angle.
+
+### C200 operator lettering — 2026-10-13
+
+Reused c200.jpg close operator-side product photo. Function captions and power-position legends have visibly heavier strokes than the model's former regular Arial. Used Arial Bold at comparable cap height; this is a visual approximation, not a verified Canon font. ND/WB/INDEX sizes were adjusted and inspected for clearance in the actual viewer.
+
+### C200 formed button surrounds — 2026-10-13
+
+Reused c200.jpg operator-side photograph. Button caps have narrow dark clearance rings within rounded, textured cast surrounds. Outer/cap diameter ratio is approximately 1.4 from the photo. Modeled a rolled annular profile with .109 outer radius around .077 caps; depth is an authoring approximation. Verified curved highlights and caption clearance from both oblique views.
+
+### C200 nested front casting — 2026-10-13
+
+Reused c200-front.jpg, inspecting the uncapped body. Comparing the concentric casting boundaries gives an inner/outer radius ratio around .83-.85; the previous .925/.984 profile was about .94. Narrowed the inner rolled casting to .822 and its surrounding seam to .842, preserving the .984 outer structural casting and native EF flange. These are photo-derived proportions, not Canon CAD dimensions. Shifted the release seat inward so it remains on the flat crown of the narrower inner casting.
+
+### C200 crest — 2026-10-13
+
+Reused c200-front.jpg. The central wordmark housing has a shallow arched top, tapered lower corners and less prominent edge rounding than the prior model. Reduced front-edge bevel and wordmark footprint, inspecting both uncovered front and mounted views. Outline/depth/type scale are photo-derived approximations.
+
+### C200 lower-front housing and labels — 2026-10-13
+
+Reused c200-front.jpg: PUSH AUTO IRIS and ONE-SHOT AF sit below buttons 10/11 on the lower body. The model's projecting base obscured them. Set the lower housing behind the labels and tapered its corners to the body footprint; changed its finish from an exposed metallic rail to body polymer. This restores visibility without treating the still-simplified lower-front relief as a completed reference match.
+
+### C200 outer casting shoulder — 2026-10-13
+
+Reused c200-front.jpg to compare the broad bright outer band and recessed dark fasteners. The old flat annulus produced a planar highlight, unlike the curved shoulder visible in the product photo. Candidate uses a rolled radial profile with the same .984 outer radius and six recessed fasteners. Profile depth and counterbores are photo-derived authoring approximations; the reference lighting is not calibrated.
