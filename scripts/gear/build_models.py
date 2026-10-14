@@ -2490,15 +2490,16 @@ def lens(which):
                 text('Focus limiter legend','1.2m–∞\n3m–∞' if f4 else '1.4m–∞\n2.5m–∞',(0,y+.125,.018),.042,'Deep black')
             elif label_=='AF  MF':
                 text('Autofocus legend','AF',(-.055,y+.118,.018),.042,'Deep black')
-                text('Manual focus legend','MF',(.055,y+.090,.018),.042,'Deep black')
+                text('Manual focus legend','MF',(.095,y+.090,.018),.042,'Deep black')
             else:
                 title='STABILIZER\nMODE' if 'MODE' in label_ else 'STABILIZER'
                 text('Stabilizer legend',title,(0,y+.180,.018),.055 if f4 else .040,'Deep black')
                 if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black')
                 else:
                     text('Stabilizer on legend','ON',(-.055,y+.126,.018),.041,'Deep black')
-                    text('Stabilizer off legend','OFF',(.055,y+.090,.018),.041,'Deep black')
+                    text('Stabilizer off legend','OFF',(.095,y+.090,.018),.041,'Deep black')
             line('First position tick',[(-.050,y+.061,.018),(-.050,y+.081,.018)],.0016,'Deep black')
+            # MF/OFF sit to the right of this bent index, not over its crossbar.
             line('Second position tick',[(.012,y+.061,.018),(.012,y+.081,.018),(.050,y+.081,.018)],.0016,'Deep black')
         elif which=='28-135':
             if label_=='AF  MF':
@@ -2516,17 +2517,18 @@ def lens(which):
             stabilizer=label_.startswith('STABILIZER\nON')
             # The IS on/off key is a taller, raised thumb pad in a broader
             # pocket; the limiter, AF and mode keys have flatter faces.
+            key_y=y-.020 if stabilizer else y
             opening=(.275,.175,.08) if stabilizer else (.25,.13,.08)
-            cutter=rounded_panel('Switch opening cutter',(0,y-.007,0),opening,.060,None)
+            cutter=rounded_panel('Switch opening cutter',(0,key_y-.007,0),opening,.060,None)
             cut=switch_panel.modifiers.new('Recessed switch opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(switch_panel,cut)
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-            rounded_panel('Switch recess floor',(0,y-.007,.009),(opening[0]-.002,opening[1]-.002,.001),.059,'Deep black' if f4 else 'Telephoto switch seat')
+            rounded_panel('Switch recess floor',(0,key_y-.007,.009),(opening[0]-.002,opening[1]-.002,.001),.059,'Deep black' if f4 else 'Telephoto switch seat')
             # Keys occupy roughly four fifths of the opening in the reference.
             # Keep their left stop fixed while extending the face toward the slot.
-            rounded_panel('Switch slider',(-.010 if stabilizer else -.020,y-.007,.017 if stabilizer else .012),(.225,.145,.020) if stabilizer else (.205,.116,.010),.048,'White enamel')
+            rounded_panel('Switch slider',(-.010 if stabilizer else -.020,key_y-.007,.017 if stabilizer else .012),(.225,.145,.020) if stabilizer else (.205,.116,.010),.048,'White enamel')
             for dx in ([.045,.059,.073,.087] if stabilizer else [-.074,-.055,.049,.068]):
-                box('Slider grip ridge',(dx,y-.014 if stabilizer else y-.007,.030 if stabilizer else .018),(.006,.084,.007) if stabilizer else (.005,.080,.002),'White enamel',.001)
-            box('Slider position mark',(-.059 if stabilizer else -.016,y+.019 if stabilizer else y+.012,.0275 if stabilizer else .0175),(.008,.070 if stabilizer else .065,.001),'Deep black',.0004)
+                box('Slider grip ridge',(dx,key_y-.014 if stabilizer else key_y-.007,.030 if stabilizer else .018),(.006,.084,.007) if stabilizer else (.005,.080,.002),'White enamel',.001)
+            box('Slider position mark',(-.059 if stabilizer else -.016,key_y+.019 if stabilizer else key_y+.012,.0275 if stabilizer else .0175),(.008,.070 if stabilizer else .065,.001),'Deep black',.0004)
         elif which=='28-135':
             af=label_=='AF  MF'
             box('Switch slot',(0,y-.007,.011),(.185,.089,.018) if af else (.235,.130,.018),'Deep black',.030)
@@ -2963,7 +2965,8 @@ def cinema():
         text('Function label',label_,(x,y+.140,.0615 if x==-.78 else .0295),.059 if x==-.78 else .061,font='Bold')
     cyl('Record bezel',(-.43,-.875,.10),.139,.044,'Anodized black');sphere('Red REC button',(-.43,-.875,.129),(.094,.094,.023),'Red lacquer');text('REC label','REC',(-.24,-.755,.0567),.046,font='Bold')
     box('Control dial recess',(-.77,-.87,.062),(.20,.26,.032),'Deep black',.027)
-    dial((-.77,-.87,.082),.118,'y',width=.071)
+    # The operator-side control wheel exposes a vertical knurled edge.
+    dial((-.77,-.87,.082),.118,'x',width=.071)
     rounded_panel('Playback control surround',(.11,-.865,.076),(.37,.178,.028),.071,'Graphite polymer')
     rounded_panel('Playback shared recess',(.11,-.865,.093),(.327,.139,.010),.060,'Deep black')
     for x in [.02,.20]:sphere('Playback button',(x,-.865,.106),(.055,.055,.020),'Anodized black')
@@ -3554,6 +3557,72 @@ def cinema():
             low,high=bounds([o]);center=(low+high)*.5
         keep_round=Matrix.Translation(center)@Matrix.Diagonal((1,factors.z/factors.y,1,1))@Matrix.Translation(-center)
         o.matrix_world=keep_round@o.matrix_world
+    # Canon manual pp.16/42: recessed underside panel, TB-1 insert and
+    # separate mounting sockets. Build after the body fit so bores and
+    # their hardware can share inverse scaling and retain physical diameters.
+    # Layout is estimated from the parts drawing.
+    base_start=len(OBJECTS)
+    socket_checks=[]
+    base_pose=Matrix.Translation(Vector((0,-1.045,0)))@Matrix.Rotation(pi/2,4,'X')
+    inverse_fit=Matrix.Diagonal((1/factors.x,1/factors.z,1/factors.y,1))
+    base_outline=[(-.58,-1.20),(.58,-1.20),(.58,.025),(.31,.16),(.27,.36),(-.27,.36),(-.31,.16),(-.58,.025)]
+    seat=profile('Base panel seat cutter',base_outline,-.022,.025,None,.002,rounding=.035)
+    seat.matrix_world=calibration@base_pose@seat.matrix_world
+    cut=lower_lip.modifiers.new('Recessed base panel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=seat;apply(lower_lip,cut)
+    OBJECTS.remove(seat);bpy.data.objects.remove(seat,do_unlink=True)
+    panel=profile('Underside mounting panel',base_outline,-.021,-.003,'Graphite polymer',.002,rounding=.032)
+    plate=rounded_panel('TB-1 mounting insert',(0,-.13,-.001),(.39,.74,.012),.026,'Anodized black')
+    # Keep the insert flush with the surrounding base plane.
+    for v in plate.data.vertices:v.co.z-=.006
+    socket_layout=[(0,.275,6.35),(-.43,-.32,6.35),(.43,-.32,6.35),(-.115,.075,6.35),(0,-.075,9.525),(0,-.315,9.525)]
+    for x,z,diameter in socket_layout:
+        rr=diameter/110
+        center=Vector((x,z,0))
+        preserve_size=Matrix.Translation(center)@inverse_fit@Matrix.Translation(-center)
+        bore=cyl('Base socket cutter',(x,z,-.09),rr,.24,None,vertices=64,bevel=0)
+        bore.matrix_world=preserve_size@bore.matrix_world
+        for target in [panel,plate]:
+            cut=target.modifiers.new('Open mounting socket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(target,cut)
+        bore.matrix_world=calibration@base_pose@bore.matrix_world
+        world_center=calibration@base_pose@center
+        radii=[math.hypot(p.x-world_center.x,p.z-world_center.z) for p in (bore.matrix_world@v.co for v in bore.data.vertices)]
+        assert max(radii)-min(radii)<1e-5 and abs(sum(radii)/len(radii)*110-diameter)<.001
+        socket_checks.append((diameter,round(min(radii)*110,5),round(max(radii)*110,5)))
+        for target in [lower_lip,chassis]:
+            cut=target.modifiers.new('Mounting socket depth','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(target,cut)
+        OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True)
+        socket_start=len(OBJECTS)
+        ring('Base socket rim',-.004,rr+.012,rr,.008,'Machined metal',center=(x,z),segments=64)
+        for depth in [-.021,-.038,-.055]:ring('Base socket thread',depth,rr,rr-.006,.004,'Anodized black',center=(x,z),segments=48)
+        cyl('Base socket interior',(x,z,-.075),rr-.001,.002,'Deep black',vertices=48,bevel=0)
+        for o in OBJECTS[socket_start:]:o.matrix_world=preserve_size@o.matrix_world
+    for x in [-.125,.125]:
+        for z in [.18,-.435]:
+            screw_start=len(OBJECTS);screw((x,z,-.008),r=.025)
+            center=Vector((x,z,0));preserve_size=Matrix.Translation(center)@inverse_fit@Matrix.Translation(-center)
+            for o in OBJECTS[screw_start:]:o.matrix_world=preserve_size@o.matrix_world
+    # The long shallow identification recess is part of the base panel.
+    rounded_panel('Base identification recess',(0,-.94,-.001),(.42,.065,.002),.028,'Deep black')
+    for target in [panel,plate]:
+        normals=[tuple(n.vector) for n in target.data.corner_normals]
+        for face in target.data.polygons:
+            if abs(face.normal.z)>.9999:
+                face.use_smooth=False
+                for loop in face.loop_indices:normals[loop]=tuple(face.normal)
+        target.data.normals_split_custom_set(normals)
+    for o in OBJECTS[base_start:]:o.matrix_world=calibration@base_pose@o.matrix_world
+    bpy.context.view_layer.update()
+    assert bounds(OBJECTS[base_start:])[0].y>=bounds(core_body)[0].y-.001
+    print('C200 mounting socket diameters mm (nominal/min/max)',socket_checks,flush=True)
+    # The relief creates new corners on the flat base; inherited smooth
+    # normals at those corners produce broad triangular highlight bands.
+    base_normals=[tuple(n.vector) for n in lower_lip.data.corner_normals]
+    for face in lower_lip.data.polygons:
+        if face.normal.y<-.9999:
+            face.use_smooth=False
+            for loop in face.loop_indices:base_normals[loop]=tuple(face.normal)
+    lower_lip.data.normals_split_custom_set(base_normals)
+
     anchor=monitor_anchor+Vector((0,.16,0))
     monitor_shift=calibration@anchor-anchor+arm_shift
     line('Monitor cable',[tuple(v+Vector((0,.16,0))+monitor_shift) if i<3 else tuple(calibration@(v+Vector((0,.16,0)))) for i,v in enumerate(monitor_cable_points)],.024,'Focus rubber',smooth=True)

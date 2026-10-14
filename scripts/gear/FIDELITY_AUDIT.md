@@ -1423,3 +1423,61 @@ Export/compression succeeds: 4817644bytes, SHA-256 0eec7f50de8783658d7f7f3a65b32
 Removed the f/2.8 generic joint at .90 barrel length, which crossed the Canon/ULTRASONIC markings; the saved 70-200-f28.jpg and controls photograph show a continuous white band there. Other lens joints remain unchanged. Optimized export: 2294036 bytes, SHA-256 f2afe6d2228d0ef6e2da3cb0a43c85305afd8d7d06b126ba48eec9ca4cb3f2c3. Refreshed the lens thumbnail and inspected the actual /classic available setup; the lettering is no longer crossed by the seam, and console errors are empty. Evidence: output/gear-modeling/f28-seam-checkpoint.png.
 
 User requested shipping the current checkpoint. Includes the C200 bay/label changes above and this lens correction. Six tests /101 assertions and the15-page production build pass; diff check passes. Optical-cache experiments remain local and are not enabled for visitors. Full photorealistic acceptance remains incomplete.
+
+
+### 2026-10-13 — f/2.8 switch legends and index clearance
+
+Previous turn made progress by shipping checkpoint9ea557b. Deployment38500342691 is authoritatively still in progress at this check; no success claim. Compared the saved 70-200-f28-controls.jpg and inspected switch markings in /classic. An unmerged radial ray diagnostic found the bent second-position ticks covered9/31 MF glyph faces and27/136 OFF glyph faces. Other printed legends in this diagnostic were unobstructed.
+
+Lowered the f/2.8 MF/OFF bent index from localY+.081 to+.063, retaining its .020 vertical length and material. This is an image-derived spacing correction, not a manufacturer dimension. f/4 remains unchanged pending its own check. Rebuilt and compressed the lens; 2293940bytes, SHA-256 d0a48587cc11bdc10e6ba80ecf5f28e75443e7fae79f62e504afc4a520dca026. Refreshed thumbnail. Rechecked both glyph meshes from a3×3 grid of radial/tangential/axial directions: all1503 rays first-hit their intended glyph, with zero external occlusions. Evidence f28-switch-label-before.json, f28-switch-label-check.json and f28-label-oblique.json.
+
+Actual /classic close side and adjacent oblique views show separated MF/OFF lettering and ticks; saved f28-switch-spacing-live.png and f28-switch-spacing-oblique.png. Console errors empty. This establishes that specific marking correction, not full lens fidelity. A few side faces of the raised slider-position bars self-occlude against their keys in the radial diagnostic; those are separate from the printed legends and remain to inspect. Generator/export/compression and diff check pass. No runtime code changes, so the prior checkpoint application tests/build were not repeated. These changes remain local/unpushed. The full goal remains incomplete.
+
+
+### 2026-10-13 — shared telephoto label layout and switch clearance
+
+Previous turn made progress by removing f/2.8 tick/label overlap. Checked f/4 independently: radial rays reproduced9/31 MF and27/136 OFF glyph faces intersected by the second-position tick. The sharper 70-200-f4-side.jpg, corroborated by 70-200-f28-controls.jpg, shows the lower labels to the right of the bent index. Replaced the prior local f/2.8 downward-index adjustment with shared label positioning: MF/OFF localX .055→.095 and original index heights. This supersedes the preceding audit entry's retained layout.
+
+Actual close-up additionally showed OFF partly over the taller IS switch opening. Lowered that pocket, floor, key, ribs and indicator together by .020 authoring units while retaining all sizes; printed text remains fixed. The photographed layout has solid panel between OFF and the opening. Positions are photographic estimates. Rebuilt both lenses, compressed and refreshed both thumbnails.
+
+Final unmerged geometry: each lens passes1503 glyph-centroid rays across nine directions (3006 combined), with no occlusions of MF/OFF. Saved f4/f28-label-oblique.json. Actual /classic verified40D+f/4 side and adjacent oblique, then C200+f/2.8 close side; console errors empty. Saved f4-label-layout-live.png, f4-label-layout-oblique.png, f28-label-layout-live.png. The f/4 remains without a collar. These views establish marking placement, not full contour/material/optical acceptance.
+
+70-200-f4: 2429176bytes, SHA-256 8d7e2f1bdca2b4a831bd52b13b2b25560221ce27d7d8d0c115a6818980326242; 70-200-f28: 2296452bytes, SHA-256 f6c72af4c4e17174ba9a133c53aa41be7d9680aee2224322e6bcbe4058fd28f6. Export/compression and diff check pass. No runtime source changes; previous checkpoint application tests/build not repeated. All changes remain local/unpushed. GitHub deployment38500342691 was still in progress at the final authoritative check; no restart or completion claim. Full goal remains incomplete.
+
+
+### 2026-10-13 — C200 operator control wheel axis
+
+Previous turn made progress on telephoto control layouts. Compared c200.jpg operator-side photograph against actual /classic side view. The lower control wheel beside REC exposed a horizontal rim instead of the reference's vertical knurled edge. The authoring call incorrectly used axisY in the local side-panel frame. Changed it to axisX; retained center, radius, width and recess. No new mesh or material added.
+
+Rebuilt/exported/compressed C200 and refreshed its thumbnail. 4828272bytes, SHA-256 95e9798a4e1fae5c1a904d2f92173cbdc261ebe41cedce09c112887fd6c411f7. Generator dimensional assertions pass: core144×146×137mm, body/EVF144×153×179mm, handle44×81×156mm. Actual viewer side and oblique show the vertical wheel and its seating; front/rear checks confirm the assembly still renders. Saved c200-control-wheel-{before,side,oblique,front,rear}.png. Console errors empty. The present recess and wheel dimensions remain photographic approximations; this is orientation acceptance, not full side-housing fidelity. Build/export/compression and diff check pass; no runtime source changes, so application tests/build were not repeated. Local/unpushed; full goal remains incomplete.
+
+
+### 2026-10-13 — C200 flat-base shading defect
+
+Previous turn corrected the control-wheel orientation. Rotated underneath the actual /classic C200 and found broad diagonal triangular highlight bands across the otherwise flat base. Compared c200-right-used.jpg (camera laid on its side, underside visible): no such folded surface. Unmerged geometry inspection identified Lower chassis lip's large planar12-vertex face atY-1.045, area3.5683, with inherited corner normals deviating up to.924419radians (52.965degrees). The Boolean central relief introduced corners whose interpolated normals no longer represented the base plane.
+
+After the Boolean, set the flat bottom faces to flat shading and explicitly copy their face normal into each loop; preserve the existing normals elsewhere, including rounded edges. Rebuilt/exported/compressed C200: 4806000bytes, SHA-256 544393b2894a6ae45c3b80918a7b43c1223f73d47f95f1ce5ee4f17b79f74bfa. Calibrated dimensional assertions remain unchanged/pass. The actual exported editable scene's identified base face has zero corner-normal deviation. The initial diagnostic over-selected other downward-facing surfaces and failed; the final assertion identifies this base by its original area and plane, and makes no claim about unrelated surfaces. Evidence c200-base-normal-check.json, c200-base-export-check.json.
+
+Actual viewer before/after at matching orbit/pan shows removal of triangular bands; a second oblique view confirms stable flat shading. Saved c200-base-before.png, c200-base-after.png, c200-base-oblique.png. Console errors empty; export/compression and diff check pass. No runtime source changes or repeated app tests. The underside is still missing its reference mounting plate, sockets and other details; these remain unaccepted. This is a shading fix, not full underside/body fidelity. Changes local/unpushed; full goal incomplete.
+
+Separately, shipped checkpoint9ea557b deployment38500342691 is now successful. Downloaded live C200 and f/2.8 assets and compared their SHA-256 values with git show9ea557b: both match. Subsequent local corrections are not deployed.
+
+
+### 2026-10-13 — C200 underside mounting layout
+
+Previous turn fixed base shading. Inspected Canon manual pp.16/42 visually using pdftoppm, alongside c200-right-used.jpg. Added the previously missing recessed shoulder-shaped base panel, TB-1 rectangular insert, six open mounting sockets, four retaining screws and a shallow identification recess. Cut actual pockets through the lip/chassis and panel/insert, with dark recessed floors and annular thread approximations. Parts positions/profile are drawing estimates. Diameters start at nominal6.35/9.525mm before body calibration; see unresolved scaling below.
+
+The first viewer check revealed Boolean corner-normal artifacts on the new insert. Set the planar panel/insert faces to explicit face normals after all cuts; rebuilt and verified stable shading in /classic. Saved c200-base-details-live.png. Mount holes and insert are visible at the viewer's lower orbit limit; this does not establish a full normal-to-base inspection (viewer polar angle is capped at.65π). Console errors empty. Refreshed thumbnail. Generator/export/compression and dimensional assertions pass; diff check passes. No runtime changes or repeated app tests.
+
+Export 5089812bytes, SHA-256 e8576ec703eef0248b2cd7abab02940c3407c341c9b92213e5308d31b3e6bd26. Remaining defect identified from actual exported scene transform: Xscale1.1493429 versus Zscale.9547371 stretches these new socket circles by about20.4%. Socket dimensions/roundness are NOT accepted; need construct the mounting geometry after dimensional calibration, or compensate both bores and inserts together. Do not fix only the visible rim over an elliptical hole. Exact recess depths, plate fastener spacing, remaining base markings and full body/lens photographic acceptance also remain open. Local/unpushed; goal incomplete.
+
+
+### 2026-10-13 — C200 mounting socket calibration and clearance
+
+Previous turn added the underside layout but identified anisotropic socket scaling. Moved base construction after body calibration. Keep panel positions/profile in the calibrated layout, while applying inverse per-axis scaling around each bore center to cutters, rims, threads and floors together. This avoids a circular rim masking an elliptical cut. Retaining hardware receives the same size preservation. Recessed screw tops remain inside the existing body envelope; an assertion checks all new base details against the core bottom.
+
+Generator checks actual transformed cutter vertices: all four6.35mm and two9.525mm bores retain their nominal diameters to.001mm tolerance and radial spread below1e-5 authoring units. Independent check-c200-sockets.py builds final unmerged geometry: all54 center/interior rays first-hit the correct recessed floor, whose X/Z diameters agree within1e-5 units. Floor diameters are6.24/9.415mm, intentionally slightly smaller than the bore. Saved c200-socket-check.json and c200-base-unmerged.blend.
+
+A separate opening-edge check casts at95% and105% nominal radius from16 angles, limited to the mouth region above the threads. Initially two inward samples hit an upper retaining screw. Moved upper screws from localZ.15 to.18; rebuilt geometry and repeated both diagnostics. Final192 edge rays pass: inside remains open and outside meets rim/panel. Evidence c200-socket-openings.json. These checks establish roundness/clearance at the sampled locations, not exact manufacturer fastener spacing or thread helix fidelity.
+
+Final optimized C200 5102124bytes, SHA-256 64ad99f722dc9de5afa3b5920ebbcdba910201805ef4a150a276ac1bc155223f. Dimensional assertions pass unchanged. Actual /classic underside oblique shows the panel and sockets with stable shading; saved c200-base-calibrated-live.png. Front/rear assembly renders checked, console errors empty, thumbnail refreshed. Generator/export/compression and diff check pass. No runtime source changes or repeated application tests. Local/unpushed. Remaining plate contours, exact depths/spacing, markings, materials and complete body/lens optics/reference checks remain incomplete; do not declare the full goal achieved.

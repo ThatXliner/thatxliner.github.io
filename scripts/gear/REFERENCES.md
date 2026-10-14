@@ -3485,3 +3485,23 @@ Reused the rear product photograph, output/gear-reference/c200-rear.jpg. The low
 ### C200 rear label clearance — 2026-10-13
 
 The same rear reference places SLOT SELECT below its button and above the battery, and BATTERY RELEASE in the exposed strip left of the connector covers. Ray tests on the final authoring geometry showed the independently fitted battery covering the former and the USB/PHONES cover hiding the latter. Kept battery dimensions and lowered its entire assembly about1.69mm to retain.66mm clearance below the legend, within the existing lower body envelope. Shifted the release legend left into the visible strip. These clearances are authoring constraints derived from the visible layout, not measured Canon dimensions.
+
+
+### EF70–200mm f/2.8 switch index spacing — 2026-10-13
+
+Reused output/gear-reference/70-200-f28-controls.jpg. Its bent position marks sit below MF/OFF, while the previous model intersected those glyphs. Lowered these two index marks within the existing panel; exact spacing is a photographic estimate, checked for actual mesh visibility and in the interactive viewer.
+
+
+### Shared telephoto control typography — 2026-10-13
+
+Reused 70-200-f4-side.jpg (4750×2970) and 70-200-f28-controls.jpg. MF/OFF sit to the right of their bent indexes; the stabilizer opening sits below OFF with a solid painted gap. Shifted the labels right and the taller switch assembly down. This supersedes the previous f/2.8 downward-tick trial. Geometry spacings remain photographic estimates.
+
+
+### C200 operator-side control wheel — 2026-10-13
+
+Reused c200.jpg, the operator-side product photograph. The wheel left of REC presents a vertical knurled edge in a tall recess. Corrected its local rotation axis fromY toX, preserving existing estimated dimensions. Verified orientation and seating from side and oblique views in /classic.
+
+
+### C200 underside mounting system — 2026-10-13
+
+Canon C200/C200B instruction manual, saved c200-manual.pdf, pp.16 and42. Parts diagram identifies TB-1 tripod base, separate1/4-inch and3/8-inch mounting sockets and retaining screws. Rendered c200-bottom-parts.png and c200-tripod-manual.png. Cross-checked c200-right-used.jpg showing underside. Added a recessed panel/insert and holes; positions and profiles estimated from drawings. Nominal diameters are not yet preserved through the global body calibration, so these sockets are not dimensionally accepted.
