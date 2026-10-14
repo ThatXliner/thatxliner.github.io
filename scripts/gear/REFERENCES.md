@@ -3475,3 +3475,13 @@ Reused 40d-rear-photo.jpg. Its lower rear switch shows a broad fan-shaped base, 
 ### 40D quick-control wheel detail — 2026-10-13
 
 Charles Lanteigne's own rear photograph (2008), https://commons.wikimedia.org/wiki/File:Canon_EOS_40D_back.jpg , downloaded from https://upload.wikimedia.org/wikipedia/commons/c/cb/Canon_EOS_40D_back.jpg as 40d-rear-lanteigne.jpg (3000 × 2275). Commons identifies CC BY-SA 3.0; reference retained in ignored output only, not embedded into the site or its textures. The sharper image shows roughly 45 broad, tapered, rounded ribs and dark molded SET lettering. Count, profiles, relief and finish are image-derived estimates. Local wheel crops and an angular unwrap support comparison, not a manufacturer measurement.
+
+
+### C200 battery bay — 2026-10-13
+
+Reused the rear product photograph, output/gear-reference/c200-rear.jpg. The lower rear battery is bordered by raised protective side and bottom walls; the previous model put it on a dark flat plate. Added an open-topped, rounded protective bay with a real cutout. The upper wall of an initial closed-frame candidate obscured SLOT SELECT and was rejected. Retained the original battery size; housing profiles and clearances are photographic estimates, not manufacturer CAD dimensions.
+
+
+### C200 rear label clearance — 2026-10-13
+
+The same rear reference places SLOT SELECT below its button and above the battery, and BATTERY RELEASE in the exposed strip left of the connector covers. Ray tests on the final authoring geometry showed the independently fitted battery covering the former and the USB/PHONES cover hiding the latter. Kept battery dimensions and lowered its entire assembly about1.69mm to retain.66mm clearance below the legend, within the existing lower body envelope. Shifted the release legend left into the visible strip. These clearances are authoring constraints derived from the visible layout, not measured Canon dimensions.

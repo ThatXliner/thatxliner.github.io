@@ -2393,7 +2393,10 @@ def lens(which):
             ring('Manual focus grip',l*.48,r*.974,r*.88,l*.11,'Focus rubber');radial_ribs('Fine focus ribs',l*.48,r*.975,l*.10,144)
             ring('Ultrasonic gold line',l*.915,r*.978,r*.94,.018,'Gold engraving')
         if which=='35':ring('Tamron accent ring',.24,r*.86,r*.82,.016,'Machined metal')
-    for z in [l*.68,l*.9,l-.04]:ring('Machined barrel joint',z,r*.977,r*.954,.012,'Anodized black')
+    # The f/2.8 front white band is continuous behind the red ring. A generic
+    # joint at .90 length cuts directly through its Canon/ULTRASONIC markings.
+    joint_positions=[l*.68,l-.04] if which=='70-200-f28' else [l*.68,l*.9,l-.04]
+    for z in joint_positions:ring('Machined barrel joint',z,r*.977,r*.954,.012,'Anodized black')
     # Recessed distance-scale window and fine barrel lettering.
     wz=l*.20 if not white else l*.57
     telephoto_window=white
@@ -3134,8 +3137,17 @@ def cinema():
     for o in OBJECTS[gripStart:]:o.matrix_world=tr@grip_pose@o.matrix_world
     rearStart=len(OBJECTS)
     box('Rear control fascia',(0,.02,0),(1.77,1.91,.07),'Graphite polymer',.07)
-    box('Battery bay',(-.23,-.60,.042),(1.19,.68,.035),'Deep black',.045)
     battery_start=len(OBJECTS)
+    box('Battery bay backing',(-.23,-.645,.042),(1.21,.65,.035),'Deep black',.045)
+    # Rear reference: the BP-A30 nests inside a raised protective bay, rather
+    # than projecting from a flat plate. Leave the upper edge open beneath the
+    # controls, without shrinking the removable battery to fit a closed frame.
+    bay=box('Battery bay protective housing',(-.23,-.645,.151),(1.23,.65,.244),'Graphite polymer',.055)
+    opening=box('Battery bay opening cutter',(-.23,-.59,.23),(1.095,.623,.40),None,.035)
+    cut=bay.modifiers.new('Recessed battery pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(bay,cut)
+    OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
+    for face in bay.data.polygons:
+        if abs(face.normal.z)>.999:face.use_smooth=False
     box('BP-A30 battery',(-.23,-.59,.16),(1.05,.57,.25),'Anodized black',.055)
     box('Battery label',(-.23,-.59,.289),(.86,.40,.006),'Graphite polymer',.018)
     text('Battery Canon','Canon',(-.23,-.48,.295),.064,font='Canon')
@@ -3151,7 +3163,7 @@ def cinema():
     battery_objects=set(OBJECTS[battery_start:])
     box('Battery release recess',(.398,-.425,.067),(.105,.22,.040),'Deep black',.024)
     box('Battery release tab',(.405,-.415,.095),(.068,.129,.029),'Graphite polymer',.016)
-    text('Battery release legend','BATTERY\nRELEASE',(.388,-.261,.070),.026)
+    text('Battery release legend','BATTERY\nRELEASE',(.30,-.261,.070),.026)
     for x in [-.20,.12]:
         box('SD card slot frame',(x,.22,.052),(.23,.67,.039),'Deep black',.025)
         box('SD card door',(x,.22,.082),(.19,.61,.033),'Graphite polymer',.021)
@@ -3523,6 +3535,16 @@ def cinema():
             o.matrix_world=circular@o.matrix_world
         elif o not in mount_objects:o.matrix_world=calibration@o.matrix_world
     bpy.context.view_layer.update()
+    # The accessory's independent height fit must not lift the battery over
+    # SLOT SELECT. Keep its original shape and a small printed-label clearance.
+    slot_legend=next(o for o in OBJECTS[rearStart:] if o.name.endswith(' / Slot select label'))
+    battery_shell=next(o for o in battery_objects if o.name.endswith(' / BP-A30 battery'))
+    legend_low,_=bounds([slot_legend]);_,battery_high=bounds([battery_shell])
+    battery_drop=min(0,legend_low.y-.012-battery_high.y)
+    for o in battery_objects:o.matrix_world=Matrix.Translation((0,battery_drop,0))@o.matrix_world
+    bpy.context.view_layer.update()
+    assert bounds([battery_shell])[1].y <= bounds([slot_legend])[0].y-.0119
+    assert bounds(battery_objects)[0].y >= bounds(core_body)[0].y-.001
     for o in operator_objects:
         label=o.name.split(' / ',1)[-1]
         printed=o.data.materials and o.data.materials[0].name=='White ink'
