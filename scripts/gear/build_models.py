@@ -39,9 +39,22 @@ def surface_maps():
     fine=image('magnesium-normal',normal(rng.random((n,n))*.17,1.3))
     # Molded leatherette has adjoining rounded cells separated by creases,
     # rather than isolated bell-shaped bumps. F2-F1 gives their boundaries.
-    cell=1-np.exp(-(np.sqrt(second)-np.sqrt(dist))*10)
-    grip=image('molded-grip-cell-normal',normal(cell,2.8))
-    grip_rough=image('molded-grip-cell-roughness',np.repeat((.64+.055*(1-cell))[:,:,None],3,axis=2))
+    # Warp a separate higher-resolution field so molded cell boundaries curve
+    # rather than forming the straight polygon network of the casting grain.
+    gy,gx=np.mgrid[:1024,:1024].astype(float)/1024
+    u=gx*48+.24*np.sin(2*pi*(gx*19+gy*13))+.13*np.sin(2*pi*(gx*31-gy*23))
+    v=gy*48+.24*np.sin(2*pi*(gx*11-gy*17))+.13*np.sin(2*pi*(gx*29+gy*31))
+    nearest=np.full(u.shape,100.);runner_up=nearest.copy()
+    for dx in [-1,0,1]:
+        for dy in [-1,0,1]:
+            ix=np.floor(u).astype(int)+dx;iy=np.floor(v).astype(int)+dy
+            sx=ix+seeds[iy%48,ix%48,0];sy=iy+seeds[iy%48,ix%48,1]
+            candidate=(u-sx)**2+(v-sy)**2
+            runner_up=np.minimum(runner_up,np.maximum(nearest,candidate))
+            nearest=np.minimum(nearest,candidate)
+    cell=1-np.exp(-(np.sqrt(runner_up)-np.sqrt(nearest))*10)
+    grip=image('molded-grip-cell-normal',normal(cell,5.6))
+    grip_rough=image('molded-grip-cell-roughness',np.repeat((.78*(.64+.055*(1-cell)))[:,:,None],3,axis=2))
     return pebble,fine,grip,grip_rough
 PEBBLE,FINE,GRIP_CELL,GRIP_ROUGH=surface_maps()
 LEATHER=bpy.data.images.load(os.path.join(ROOT,'scripts/gear/textures/Leather037_NormalGL.png'));LEATHER.colorspace_settings.name='Non-Color';LEATHER.pack()
@@ -1890,7 +1903,7 @@ def body(which):
         card_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         card_start=len(OBJECTS)
         card_outline=[(-.35,.20),(.15,.20),(.15,-.60),(.10,-.64),(-.32,-.64),(-.35,-.58)]
-        panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.012,rounding=.018)
+        panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.001,rounding=.018)
         panel.rotation_euler.y=-pi/2
         # Canon's side close-up shows staggered round bumps on a rounded pad.
         latch=rounded_panel('SD door finger grip',(0,0,0),(.13,.36,.018),.040,'Focus rubber')
@@ -1898,21 +1911,54 @@ def body(which):
         for zz,count,offset in [(.084,5,0),(.039,4,.030)]:
             for j in range(count):
                 sphere('SD door finger grip bump',(-.022,-.30+j*.060+offset,zz),(.004,.008,.009),'Graphite polymer')
-        label=text('SD door CARD OPEN','CARD OPEN',(0,0,0),.041,'Deep black')
+        # Recess the molded legend into the door so the edges catch light.
+        label=text('SD door engraving cutter','CARD OPEN',(0,0,0),.041,'Graphite polymer')
         label.matrix_world=Matrix.Translation((-.0095,-.18,-.055))@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(-pi/2,4,'Z')
-        line('SD door opening arrow',[(-.0095,-.18,-.154),(-.0095,-.156,-.128),(-.0095,-.204,-.128),(-.0095,-.18,-.154)],.0015,'Deep black')
+        depth=label.modifiers.new('Engraving depth','SOLIDIFY');depth.thickness=.007;depth.offset=0;apply(label,depth)
+        cut=panel.modifiers.new('Recessed CARD OPEN','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=label;apply(panel,cut)
+        OBJECTS.remove(label);bpy.data.objects.remove(label,do_unlink=True)
+        arrow_points=[(-.18,-.154),(-.156,-.128),(-.204,-.128)]
+        center=np.mean(arrow_points,axis=0)
+        arrow_inner=[tuple(center+(np.array(p)-center)*.70) for p in arrow_points]
+        def arrow_ring(name,front,back,mat):
+            vertices=[(x,y,z) for x in [front,back] for y,z in arrow_points+arrow_inner]
+            faces=[]
+            for i in range(3):
+                j=(i+1)%3
+                faces.extend([(i,j,j+3,i+3),(i+6,i+9,j+9,j+6),(i,i+6,j+6,j),(i+3,j+3,j+9,i+9)])
+            mesh=bpy.data.meshes.new(name);mesh.from_pydata(vertices,[],faces);mesh.update()
+            obj=bpy.data.objects.new(name,mesh);scene.collection.objects.link(obj);register(obj,name,mat)
+            import bmesh
+            bm=bmesh.new();bm.from_mesh(mesh);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(mesh);bm.free()
+            return obj
+        arrow=arrow_ring('SD door arrow cutter',-.012,-.006,'Graphite polymer')
+        cut=panel.modifiers.new('Recessed opening arrow','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=arrow;apply(panel,cut)
+        OBJECTS.remove(arrow);bpy.data.objects.remove(arrow,do_unlink=True)
+        edge=panel.modifiers.new('Engraving edge radius','BEVEL');edge.width=.00035;edge.segments=2;apply(panel,edge)
+        # shortcut: the shared AO atlas cannot resolve these tiny cavity floors.
+        # A recessed dark floor approximates their occlusion until a detail bake is used.
+        floor=text('SD door engraving floor','CARD OPEN',(0,0,0),.041,'Deep black')
+        floor.matrix_world=Matrix.Translation((-.0061,-.18,-.055))@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(-pi/2,4,'Z')
+        floor['skip_baked_ao']=True
+        arrow_floor=arrow_ring('SD door arrow floor',-.0061,-.0059,'Deep black')
+        arrow_floor['skip_baked_ao']=True
         for o in OBJECTS[card_start:]:
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             for v in o.data.vertices:v.co.z=v.co.z*.82+.147
-            import bmesh
-            bm=bmesh.new();bm.from_mesh(o.data)
-            bmesh.ops.triangulate(bm,faces=list(bm.faces))
-            for _ in range(5):
-                edges=[edge for edge in bm.edges if edge.calc_length()>.045]
-                if not edges:break
-                bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
-                bmesh.ops.triangulate(bm,faces=list(bm.faces))
-            bm.to_mesh(o.data);bm.free()
+            # Shared triangle refinement preserves the thin door bevel; partial
+            # bmesh subdivisions created collapsed faces and overconnected edges.
+            if o==panel:
+                import bmesh
+                bm=bmesh.new();bm.from_mesh(o.data)
+                bmesh.ops.triangulate(bm,faces=list(bm.faces),quad_method='BEAUTY',ngon_method='BEAUTY')
+                bm.to_mesh(o.data);bm.free()
+            refine_surface(o,lambda a,b:(a-b).length>.045,5)
+            if o==panel:
+                # Boolean intersections leave sub-micron slivers around the engraving.
+                bm=bmesh.new();bm.from_mesh(o.data)
+                bmesh.ops.dissolve_degenerate(bm,dist=1e-6,edges=list(bm.edges))
+                bm.to_mesh(o.data);bm.free();o.data.update()
+                card_flat_faces={f.index for f in o.data.polygons if f.normal.x<-.9999}
             for v in o.data.vertices:
                 hit,_,_,_=card_surface.ray_cast(Vector((-3,v.co.y,v.co.z)),Vector((1,0,0)),4)
                 if hit is None:raise RuntimeError('SD door missed casting: '+o.name)
@@ -1924,6 +1970,11 @@ def body(which):
             for mat in old.materials:formed.materials.append(mat)
             for face in formed.polygons:face.use_smooth=True
             formed.update();o.data=formed;bpy.data.meshes.remove(old)
+        import bmesh
+        door_mesh=bmesh.new();door_mesh.from_mesh(panel.data)
+        assert all(e.is_manifold for e in door_mesh.edges),'R7 card door must remain manifold'
+        assert all(f.calc_area()>1e-12 for f in door_mesh.faces),'R7 card door contains collapsed faces'
+        door_mesh.free()
         points=[]
         rim_outline=smooth_outline(card_outline,radius=.018)
         for a,b in zip(rim_outline,rim_outline[1:]+rim_outline[:1]):
@@ -2006,6 +2057,14 @@ def body(which):
                 # Keep crown shaping ahead of the rear panel; rear controls are rigid.
                 deck=max(0,min(1,(z-back)/.20));deck=deck*deck*(3-2*deck)
                 v.co.y+=.045 if rigid_shoe else .045*crown*deck*math.exp(-((z+.06)/.26)**4)
+                # Raise the shutter shoulder toward the side-reference silhouette.
+                # Fade below the deck and behind the grip; attached top controls
+                # are fitted rigidly to the resulting casting below.
+                shoulder_height=max(0,min(1,(y-.28)/.31))
+                shoulder_height=shoulder_height*shoulder_height*(3-2*shoulder_height)
+                shoulder_front=max(0,min(1,(z+.10)/.45))
+                shoulder_front=shoulder_front*shoulder_front*(3-2*shoulder_front)
+                v.co.y+=.12*grip_weight*shoulder_height*shoulder_front
                 v.co.y*=.87
                 if v.co.x>.45 and 'Lens release' not in o.name:
                     v.co.x=.45+(v.co.x-.45)*.65
@@ -2132,6 +2191,25 @@ def body(which):
         # wall normals separately after rebuilding the deformed cover mesh.
         edge=casting.modifiers.new('Separate hard pocket edges','EDGE_SPLIT')
         edge.split_angle=pi/3;edge.use_edge_angle=True;apply(casting,edge)
+    if not dslr:
+        # Cavity walls must not pull the door face into triangular highlights.
+        # Transfer the formed casting's interpolated normals only to the door's
+        # front and engraving floors; retain bevel and wall shading separately.
+        from mathutils.geometry import barycentric_transform
+        shell.data.calc_loop_triangles();triangles=list(shell.data.loop_triangles)
+        surface=BVHTree.FromPolygons([v.co for v in shell.data.vertices],[list(t.vertices) for t in triangles],all_triangles=True)
+        normals=[tuple(n.vector) for n in panel.data.corner_normals];sampled={}
+        for fi in card_flat_faces:
+            for li in panel.data.polygons[fi].loop_indices:
+                vi=panel.data.loops[li].vertex_index
+                if vi not in sampled:
+                    p=panel.data.vertices[vi].co
+                    hit,_,ti,_=surface.ray_cast(Vector((-3,p.y,p.z)),Vector((1,0,0)),4)
+                    assert hit is not None,'R7 card-door normal missed casting'
+                    vertices=[shell.data.vertices[i] for i in triangles[ti].vertices]
+                    sampled[vi]=tuple(barycentric_transform(hit,*[v.co for v in vertices],*[v.normal for v in vertices]).normalized())
+                normals[li]=sampled[vi]
+        panel.data.normals_split_custom_set(normals)
     return OBJECTS[start:]
 
 def fifty_prime():
@@ -4047,10 +4125,10 @@ def export_asset(name,objects):
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             if uv_area<1e-9:raise RuntimeError('Textured finish has no usable surface UVs: '+o.name)
             # Calibrated camera grain is authored here without viewer tiling:
-            # about .4-.46 mm rubber cells and .2 mm painted-shell cells.
+            # about .63 mm R7 rubber cells, .46 mm 40D rubber cells and .2 mm painted-shell cells.
             tile_span=1.4
             if name in ['r7','40d']:
-                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.35 if name=='r7' else .40
+                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55 if name=='r7' else .40
                 elif 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.18
             elif name=='c200':
                 if 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.26

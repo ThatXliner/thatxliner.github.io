@@ -1814,3 +1814,64 @@ Production change only: four MSAA samples for fine-pointer devices, existing two
 Canon's full-resolution EOS R7 body side gallery image shows staggered round card-door grip bumps and CARD OPEN marking/arrow. Replaced the five transverse ribs with nine staggered bumps on a rounded pad and added surface lettering/arrow, projected onto the existing shell. Markings approximate the photographed recessed detail; they are not physically engraved. Rebuilt and meshopt-compressed R7, refreshed thumbnail and setup poster, and verified the compressed asset in the actual /classic side view without console errors. Grip shoulder height, material response and full photographic acceptance remain unfinished.
 
 User requested shipping the current checkpoint, including preceding C200, Tamron and desktop antialiasing changes. Lazy loading, DPR limits and offscreen pause remain in place.
+
+
+### 2026-10-14 — R7 shutter-shoulder height
+
+Previous turn shipped f0d8ad4 (progress). Compared saved full-resolution Canon r7-right-canon-hires.png with the orthographic model side view. The hot-shoe-to-shutter-shoulder vertical gap was about17% of total body height; reference is about10%. Added a .12-unit lift before the existing .87 height scaling, smoothly weighted across the upper forward grip. This shares the body deformation with attached details; existing rigid top-control fitting then seats circular controls onto the final casting. Fixed mount, lower body and rear region fall outside this lift. Dimensions are photographic estimates, not manufacturer CAD.
+
+Rebuilt and meshopt-compressed R7. Existing assertions verify all four top-button diameters remain6.6mm and command-wheel diameter11.66mm. Orthographic side screenshot now measures roughly10% for the same gap. Actual /classic compressed asset inspected in side, front-oblique and rear views: continuous shoulder surface, seated visible controls, no console errors. Evidence r7-shoulder-height-{side,build,optimize} files and r7-shoulder-live-{side,oblique,rear}.png in ignored output. Thumbnail and setup poster refreshed.
+
+Public R7 4131484bytes SHA256 7844756e6689c7a2396b64170c1990e100149d35180ec888e0433aa29a4885d7. Local/unpushed. Rubber grain scale/shape, remaining silhouette differences and full photographic acceptance remain unfinished; this is not a full-body acceptance. Runtime/loading unchanged.
+
+
+### 2026-10-14 — R7 molded grip grain
+
+Previous turn raised the shoulder (progress). Compared the full-resolution Canon side reference with the actual viewer. Existing 512px normal map had straight Voronoi boundaries and nominal .40mm cells. Replaced only the R7 cell field with a periodic domain-warped 1024px field using the same48x48seed layout; scaled derivatives for resolution, retained material normal strength, and increased tile span from .35 to .55 model units (nominal cell width .63mm). Casting/40D/C200 texture fields and materials are unchanged. Size and shape are reference-guided estimates.
+
+Independent saved-blend check passes:1024x1024, all finite forward normals, vector lengths .99347–1.00658 after image quantization. Average normal-vector step across wrap edges .29291 versus .31293 interior, no abnormal seam discontinuity. Evidence check-r7-grip-map.py and r7-grip-map-check.json/log in ignored output. Rebuilt/compressed R7 and inspected actual /classic side, close side, front-oblique and rear views without console errors. Saved r7-grip-grain-{side,close,front,rear}.png. Curved larger grain reads more clearly; highlights remain flatter than reference and full material/reference matching is incomplete.
+
+Refreshed thumbnail and default poster. Asset 4398004bytes (previous 4131484; delta +266520), SHA256 b020aac7b250c51d2c8adfd25586680510b32461bf5ac54116f7ccc28d64ce56. No geometry count or runtime/loading changes this turn. Local/unpushed; goal active.
+
+
+### 2026-10-14 — R7 grip reflectance comparison
+
+Previous turn revised molded grain (progress). Used an ignored development copy of the current production scene to compare only R7 grip roughness at factors1 and.78 under identical lighting and camera pose. The lower roughness exposes clearer cell-edge highlights closer to the saved Canon side reference; retained it in the authored R7 roughness map. No global lighting, exposure, casting material or runtime overrides retained. Reference photography is not a measured BRDF; full physical material accuracy remains unproven.
+
+Independent saved-blend check confirms linear Non-Color roughness data, finite values, quantized range.49804–.54118, mean.50857. Rebuilt/compressed asset checked in actual /classic side, front-oblique and rear views without console errors. Evidence grip-reflectance-scene.ts/html, r7-grip-roughness-{baseline,078}.png, check-r7-grip-reflectance.py/JSON/log, and r7-grip-reflectance-{side,front,rear}.png in ignored output. Refreshed thumbnail/poster. Public R7 4388540bytes SHA256 09184ad1fb6cf0daea41198f07770613733167822bc06552379f732e01626519. Local/unpushed; remaining body/control fit, materials, optics and photographic acceptance still incomplete. Prior shipped checkpoint f0d8ad4 Pages run38527600488 independently verified completed/success this turn.
+
+
+### 2026-10-14 — R7 card-door topology repair
+
+Previous turn improved grip reflectance (progress). Close side comparison showed a swollen door edge. Independent unmerged mesh check found785zero-area faces and7non-manifold edges in the door skin; pad and all9bumps passed. Replacing partial bmesh subdivision with shared triangle refinement removed the overconnected edges but still collapsed bevel slivers. Isolated construction test identified oversized bevel .012 on .006-thick panel: its minimum original face area was1.16e-12; refinement created1193degenerate faces. Bevel .001 produces healthy faces before and after refinement.
+
+Retained both fixes: .001door bevel and shared refine_surface for projected card details. Final independently checked door has9229vertices18454faces, zero boundary/non-manifold edges, zero degenerate faces, minimum area6.11e-8. Pad/bumps also pass. Added manifold and positive-area assertions to the generator for the door. Evidence check-card-construction.py/card-construction.log, r7-card-door-before.json, check-r7-card-door-after.py, r7-card-door-check.json and final build/optimize logs in ignored output.
+
+Actual compressed /classic asset checked in close side and oblique views, no console errors. Saved r7-card-door-fixed-{side,oblique}.png. Lower-edge highlight remains rounded; clean topology does not establish full reference-matched shading or panel form. Marking readability, contour/material/optics and broader photographic acceptance remain incomplete. Refreshed thumbnail/poster. Public R7 4407116bytes SHA256 476262a3fe94774f8d6e3e701cd74cb63bced3233909014a0567389f3806efed. Local/unpushed; runtime/loading unchanged.
+
+
+### 2026-10-14 — door shading investigation and flat-label occlusion
+
+Previous turn repaired topology (progress). Independent unmerged door/casting normal comparison found interior deviations up to2.22degrees, with much larger boundary deviations. Tried custom front-face normals isolated from the bevel. Corrected an initially stale before-file capture using the timestamped prior .blend1 backup; final corner-normal comparisons were mixed (90th percentile3.74→2.72degrees, maximum51.19→75.83degrees), and actual viewer showed no clear improvement. Rejected and fully reverted that source/asset experiment. Current public asset rebuilt from reverted source; rejected GLB retained only in ignored output. Lower-edge shading remains unresolved.
+
+Matched development renders with and without baked AO show the tiny flat CARD OPEN label casts a broad false halo. Excluded only this surface lettering from AO using existing skip_baked_ao support; no global AO/lighting override retained. Raw GLB check confirms one570-vertex unbaked Deep black primitive within the door-label bounds; other body materials retain occlusion textures. Evidence check-card-label-ao.py/r7-card-label-ao-check.json, r7-door-{no-ao,with-ao}.png, and final build/compression logs.
+
+Actual compressed /classic side and oblique views load without console errors; halo removed but lettering remains subtle and is still flat geometry, not reference-matched recessed engraving. Saved r7-card-label-no-halo-{side,oblique}.png, refreshed thumbnail/poster. This adds one small material draw group, with no runtime/loading-policy change. Public R7 4424876bytes SHA256 58b1ed724ff199600977de14875ac98107b44d4815e485ca9da46f547c1294ec. Local/unpushed; broad goal incomplete.
+
+
+### 2026-10-14 — physically recessed CARD OPEN legend
+
+Previous turn removed the flat label's false AO halo (progress). Replaced the front-surface label with a Boolean recess in the door. Solidified glyph cutter reaches .002model units below the face; .00035edge radius provides a narrow lip. Isolated prototype and final fitted-door checks pass:14742vertices29480faces, no non-manifold/boundary edges or zero-area faces. Independent ray sampling at564glyph interior points confirms median depth.109998mm and minimum.10072mm. These are photographic estimates, not measured manufacturer engraving dimensions.
+
+First render showed triangular smooth-normal bands pulled from cavity walls into the broad face. Final source tracks front/floor faces before projection, then transfers final casting normals by barycentric interpolation while retaining cavity-wall/bevel normals. Actual compressed /classic close side and oblique checks show no broad triangular bands. Shared AO atlas does not resolve the tiny letter floors consistently, so a570-vertex dark floor lies inside the recess at .10448–.10452mm below the face and skips AO baking. This approximates cavity shadow; documented shortcut in source. It is not a front-surface decal or a full physical micro-occlusion solution.
+
+Saved r7-card-engraving-final-{close,oblique}.png; no console errors. Evidence prototype-card-engraving.py, check-card-engraving-depth.py/card-engraving-depth.json, final topology JSON and r7-card-engraving-floor-build/optimize logs in ignored output. Thumbnail/poster refreshed. Public R7 4477004bytes (prior 4424876; delta +52128), SHA256 fd7cbac4435c3cfb9032e58f54b6fb83683a70312936e1688235565ee0e93ad1. Local/unpushed. Arrow still uses raised line geometry, normal-distance lettering remains subtle, and full camera/lens photographic matching remains incomplete. Runtime/loading unchanged.
+
+
+### 2026-10-14 — recessed card-door arrow
+
+Previous turn engraved CARD OPEN (progress). Replaced the raised triangle stroke with a closed triangular-ring Boolean cutter and a small dark floor inside the resulting recess. Initial tube cutter failed face-area checks and was rejected. Flat cutter remained closed but produced two6.05e-13area slivers after refinement; simple dissolution alone produced non-manifold edges. Isolated construction confirmed BEAUTY triangulation before shared refinement, then1e-6-unit degenerate-edge cleanup, preserves manifold topology and removes the slivers. Applied only to this panel; no global line-helper change retained.
+
+Final unmerged door:12983vertices25954faces, zero boundary/non-manifold edges and zero faces below1e-12 area; minimum1.90e-12. These are source geometry checks, not a claim that compression preserves every microscopic triangle. Independent24-point arrow ray sample measures.10998–.11059mm recess; arrow-floor minimum recess.10449mm. Existing564letter-depth samples and570floor-vertex checks still pass. Evidence prototype-card-arrow.py/log, check-card-arrow-engraving.py/card-arrow-engraving-depth.json, final topology JSON and build/optimize logs in ignored output.
+
+Actual compressed /classic close side and oblique views show recessed arrow/legend without new broad shading bands or console errors. Saved r7-arrow-engraving-{side,oblique}.png. Refreshed thumbnail/poster. Cavity shadows remain approximated by recessed dark floors, as documented in source. Public R7 4477580bytes (prior 4477004; delta +576), SHA256 0aac68912e458c7382269a24b1d889ad9e2cb560a32aeac04f5172ad61285d6e. Local/unpushed; runtime/loading unchanged. Full body/lens photographic acceptance remains incomplete.
