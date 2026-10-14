@@ -238,7 +238,7 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                         ? [350, 370]
                         : [220, 240];
                   }
-                  if (id === "70-200-f28" || id === "50") {
+                  if (["70-200-f28", "70-200-f4", "50", "35", "28-135"].includes(id)) {
                     // IBL has no barrel occlusion. Only reflect directions that
                     // can reach the front opening from an internal glass surface.
                     // shortcut: straight rays omit refraction through the front
@@ -246,9 +246,14 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                     object.updateWorldMatrix(true, false);
                     const assetFromMesh = object.matrixWorld.clone();
                     // Z/radius of each lens's front sleeve or retaining lip.
-                    const opening = id === "50"
-                      ? new THREE.Vector2(0.5545, 0.278)
-                      : new THREE.Vector2(3.634, 0.62629);
+                    const apertures: Record<string, [number, number]> = {
+                      "50": [0.5545, 0.278],
+                      "70-200-f4": [3.134, 0.53682],
+                      "70-200-f28": [3.634, 0.62629],
+                      "35": [104.8 / 55 - 0.108, 0.513],
+                      "28-135": [1.777, 0.713 * 0.801],
+                    };
+                    const opening = new THREE.Vector2(...apertures[id]);
                     const assetFromWorld = { value: new THREE.Matrix4() };
                     material.onBeforeRender = (_renderer, _scene, _camera, _geometry, mesh) => {
                       assetFromWorld.value.copy(mesh.matrixWorld).invert().premultiply(assetFromMesh);

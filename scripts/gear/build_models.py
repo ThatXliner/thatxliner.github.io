@@ -1414,7 +1414,10 @@ def body(which):
         for face in mesh.polygons:face.use_smooth=True
         cyl('SET button recess',(x,y,rz-.069),.079,.012,'Deep black')
         cyl('SET button',(x,y,rz-.085),.064,.018,'Satin control plastic',vertices=64,bevel=.005)
-        text('Q SET','Q\nSET',(x,y,rz-.096),.043,rotation=(0,pi,0))
+        # Canon's rear close-up uses a reversed Q badge above the SET word.
+        rounded_panel('Quick control Q background',(x,y+.022,rz-.0957),(.041,.038,.0004),.004,'White ink')
+        text('Quick control Q','Q',(x,y+.022,rz-.0965),.039,'Deep black',rotation=(0,pi,0))
+        text('SET printed legend','SET',(x,y-.022,rz-.096),.040,rotation=(0,pi,0))
         for a in [0,pi/2,pi,3*pi/2]:
             # Follow the dish slope so each printed direction notch stays flush.
             points=[]
@@ -1543,6 +1546,8 @@ def body(which):
         elif t=='▥':
             line('Erase icon',[(x-.018,y+.014,rz-.086),(x-.014,y-.021,rz-.086),(x+.014,y-.021,rz-.086),(x+.018,y+.014,rz-.086)],.0025,'Blue ink')
             line('Erase lid',[(x-.023,y+.023,rz-.086),(x+.023,y+.023,rz-.086)],.003,'Blue ink')
+            line('Erase handle',[(x-.007,y+.024,rz-.086),(x-.006,y+.031,rz-.086),(x+.007,y+.031,rz-.086),(x+.008,y+.024,rz-.086)],.002,'Blue ink')
+            for dx in [-.006,.006]:line('Erase inner rib',[(x+dx,y+.008,rz-.086),(x+dx,y-.015,rz-.086)],.002,'Blue ink')
         else:
             label_x=x-.087 if dslr and y<0 else x
             label_y=y+(.033 if y<0 else .086) if dslr else y if on_button else y-.09
@@ -3767,6 +3772,15 @@ def export_asset(name,objects):
                     if name=='r7' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE':
                         node.image=GRIP_CELL if node.image==PEBBLE else GRIP_ROUGH
                         node.image.colorspace_settings.name='Non-Color'
+                if name=='r7' and source.name=='Crinkle painted metal':
+                    # Canon's reference finish has broader painted highlights.
+                    # Appearance estimate; retain the existing grain and variation.
+                    for node in finish.node_tree.nodes:
+                        if node.type=='TEX_IMAGE' and 'roughness' in node.image.name:
+                            original=node.image
+                            values=np.array(original.pixels[:],dtype=np.float32).reshape(original.size[1],original.size[0],4)[:,:,:3]
+                            node.image=image('r7-casting-roughness',np.clip(values+.12,0,1))
+                            node.image.colorspace_settings.name='Non-Color'
                 if name=='c200' and source.name=='Crinkle painted metal':
                     # The cast operator panel has sharper broken highlights than
                     # the smooth shell. Keep its physical grain pitch unchanged.

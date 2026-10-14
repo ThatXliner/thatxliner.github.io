@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { type Body, type Lens } from "@/classic/lib/gear/catalog";
 import { loadModelLibrary } from "@/classic/lib/gear/models";
@@ -40,6 +41,21 @@ export async function createStudio(
       matchMedia("(pointer: coarse)").matches ? 1.25 : 1.5,
     ),
   );
+  // Composite optical reflections in linear HDR before tone mapping once.
+  const linearTarget = renderer.extensions.has("EXT_color_buffer_float") || renderer.extensions.has("EXT_color_buffer_half_float")
+    ? new THREE.WebGLRenderTarget(1, 1, {
+    type: THREE.HalfFloatType,
+    samples: 2,
+  }) : undefined;
+  const outputPass = new OutputPass();
+  outputPass.renderToScreen = true;
+  function renderStudio() {
+    // Retain the basic viewer on GPUs without renderable HDR attachments.
+    if (!linearTarget) { renderer.render(scene, camera); return; }
+    renderer.setRenderTarget(linearTarget);
+    renderer.render(scene, camera);
+    outputPass.render(renderer, linearTarget, linearTarget);
+  }
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true;
@@ -310,6 +326,8 @@ export async function createStudio(
     if (!width || !height) return;
     stopOptics();
     renderer.setSize(width, height, false);
+    const pixels = renderer.getDrawingBufferSize(new THREE.Vector2());
+    linearTarget?.setSize(pixels.x, pixels.y);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     reset();
@@ -330,7 +348,7 @@ export async function createStudio(
     lensModel.rotation.z = lensOffset * 0.12 * (1 - ease);
     controls.update();
     if (needsRender || (lensOffset > 0 && t < 1)) {
-      renderer.render(scene, camera);
+      renderStudio();
       needsRender = false;
     }
     if (!selectionLoading && visible && !document.hidden && !opticsFailed && opticalModule && currentLens.id === "70-200-f4" && lensOffset === 0 && performance.now()-lastMotion>120) {
@@ -348,7 +366,7 @@ export async function createStudio(
     }
     if (lensOffset > 0 && t === 1) {
       lensOffset = 0;
-      renderer.render(scene, camera);
+      renderStudio();
     }
   }
   function loop(now: number) {
@@ -477,6 +495,8 @@ export async function createStudio(
       tickGeo.dispose();
       orbitMat.dispose();
       env.dispose();
+      linearTarget?.dispose();
+      outputPass.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     },
