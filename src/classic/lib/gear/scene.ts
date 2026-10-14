@@ -45,7 +45,7 @@ export async function createStudio(
   const linearTarget = renderer.extensions.has("EXT_color_buffer_float") || renderer.extensions.has("EXT_color_buffer_half_float")
     ? new THREE.WebGLRenderTarget(1, 1, {
     type: THREE.HalfFloatType,
-    samples: 2,
+    samples: matchMedia("(pointer: coarse)").matches ? 2 : 4,
   }) : undefined;
   const outputPass = new OutputPass();
   outputPass.renderToScreen = true;

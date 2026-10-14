@@ -516,7 +516,7 @@ def loft_grip(name,rows,mat,closed=True):
         skin.thickness=.004;skin.offset=-1;apply(o,skin)
     return o
 
-def radial_ribs(name,z,r,length,count=120,mat='Focus rubber',segments=1,stagger=True,break_gap=.007):
+def radial_ribs(name,z,r,length,count=120,mat='Focus rubber',segments=1,stagger=True,break_gap=.007,depth=.007):
     # Join the molded lands into one mesh, including staggered breaks on the f/4.
     verts=[];faces=[]
     for i in range(count):
@@ -531,7 +531,7 @@ def radial_ribs(name,z,r,length,count=120,mat='Focus rubber',segments=1,stagger=
             hi=z+ends[j+1]-(gap/2 if j<len(ends)-2 else 0)
             k=len(verts)
             for zz in [lo,hi]:
-                for rr,aa in [(r,angle-da),(r+.007,angle-da),(r+.007,angle+da),(r,angle+da)]:verts.append((rr*cos(aa),rr*sin(aa),zz))
+                for rr,aa in [(r,angle-da),(r+depth,angle-da),(r+depth,angle+da),(r,angle+da)]:verts.append((rr*cos(aa),rr*sin(aa),zz))
             faces.extend([tuple(k+n for n in ids) for ids in [(0,1,2,3),(4,7,6,5),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)]])
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o);register(o,name,mat);finish(o,.0025 if segments>1 else .0018,2);return o
 
@@ -1892,13 +1892,15 @@ def body(which):
         card_outline=[(-.35,.20),(.15,.20),(.15,-.60),(.10,-.64),(-.32,-.64),(-.35,-.58)]
         panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.012,rounding=.018)
         panel.rotation_euler.y=-pi/2
-        # Small molded finger grip near the forward edge, with transverse ribs.
-        latch=box('SD door finger grip',(.055,-.18,.011),(.13,.29,.018),'Focus rubber',.020)
-        latch.rotation_euler.y=-pi/2
-        # Rotate about the origin, keeping local coordinates in the side plane.
-        latch.location=(-.011,-.18,.055)
-        for j in range(5):
-            ridge=box('SD door finger grip rib',(-.023,-.28+j*.045,.055),(.006,.008,.085),'Graphite polymer',.002)
+        # Canon's side close-up shows staggered round bumps on a rounded pad.
+        latch=rounded_panel('SD door finger grip',(0,0,0),(.13,.36,.018),.040,'Focus rubber')
+        latch.rotation_euler.y=-pi/2;latch.location=(-.011,-.18,.055)
+        for zz,count,offset in [(.084,5,0),(.039,4,.030)]:
+            for j in range(count):
+                sphere('SD door finger grip bump',(-.022,-.30+j*.060+offset,zz),(.004,.008,.009),'Graphite polymer')
+        label=text('SD door CARD OPEN','CARD OPEN',(0,0,0),.041,'Deep black')
+        label.matrix_world=Matrix.Translation((-.0095,-.18,-.055))@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(-pi/2,4,'Z')
+        line('SD door opening arrow',[(-.0095,-.18,-.154),(-.0095,-.156,-.128),(-.0095,-.204,-.128),(-.0095,-.18,-.154)],.0015,'Deep black')
         for o in OBJECTS[card_start:]:
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             for v in o.data.vertices:v.co.z=v.co.z*.82+.147
@@ -2282,7 +2284,8 @@ def tamron_prime():
     housing=ring('Smooth rear barrel',.81,.722,.59,.69,'Graphite polymer')
     ring('Focus ring rear seam',1.17,.723,.70,.015,'Deep black')
     ring('Manual focus grip',1.46,radius-.01,.68,.55,'Focus rubber')
-    radial_ribs('Fine focus grip lands',1.46,radius-.008,.53,180)
+    # Molded ribs overlap the sleeve while preserving the measured outer diameter.
+    radial_ribs('Fine focus grip lands',1.46,radius-.012,.53,180,depth=.011)
     ring('Front focus seam',1.75,.724,.70,.011,'Deep black')
     ring('Hood bayonet base',1.805,.716,.651,.09,'Graphite polymer')
     ring('Front filter socket',length-.033,.697,.651,.066,'Anodized black')
@@ -2360,8 +2363,8 @@ def tamron_prime():
     rounded_panel('AF MF inset',(0,0,.008),(.255,.56,.005),.042,'Deep black')
     rounded_panel('Switch slot',(0,0,.012),(.11,.25,.006),.043,'Deep black')
     rounded_panel('AF slider',(0,.047,.017),(.076,.125,.010),.032,'Graphite polymer')
-    text('AF legend','AF',(0,.19,.012),.034)
-    text('MF legend','MF',(0,-.19,.012),.034)
+    text('AF legend','AF',(0,.19,.012),.050)
+    text('MF legend','MF',(0,-.19,.012),.050)
     text('Manufacturing origin','MADE IN JAPAN',(-.025,-.61,.006),.026,rotation=(0,0,pi/2))
     for o in OBJECTS[detail_start:]:
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -3284,45 +3287,51 @@ def cinema():
     strap_outline=[(-.45,-.04),(-.36,-.11),(.28,-.11),(.43,-.04),(.40,.23),(.25,.30),(-.32,.30),(-.46,.22)]
     pad_outline=[(x*.72 if x<0 else x,y) for x,y in strap_outline]
     pad=profile('Padded Canon hand strap',pad_outline,.52,.58,'C200 strap leather',.040)
-    text('Hand strap Canon','Canon',(-.02,.10,.587),.087,font='Canon')
+    # The logo belongs to the separate leather fastening flap beside the buckle.
+    flap_outline=[(-.30,.135),(-.20,.155),(.20,.145),(.37,.10),(.37,.205),(.235,.278),(-.23,.278),(-.30,.215)]
+    flap=profile('Canon strap fastening flap',flap_outline,.568,.597,'C200 strap leather',.012,rounding=.025)
+    text('Hand strap Canon','Canon',(-.02,.225,.598),.075,font='Canon')
     # Stitching follows the pad perimeter and is seated on its actual bevel,
     # rather than floating in two straight rows above the leather.
     bpy.context.view_layer.update()
     from mathutils.bvhtree import BVHTree
-    pad_surface=BVHTree.FromObject(pad,bpy.context.evaluated_depsgraph_get())
-    contour=[Vector((p[0],p[1])) for p in smooth_outline(pad_outline)]
-    def seam_path(inset):
+    def seam_path(contour,inset):
         points=[]
         for i,p in enumerate(contour):
             tangent=(contour[(i+1)%len(contour)]-contour[i-1]).normalized()
             points.append(p+Vector((-tangent.y,tangent.x))*inset)
         return points
-    def seated_seam(p,offset):
-        hit=pad_surface.ray_cast(Vector((p.x,p.y,1)),Vector((0,0,-1)),.5)[0]
-        assert hit is not None, 'Strap seam missed leather pad'
-        return (hit.x,hit.y,hit.z+offset)
-    welt=seam_path(.015)
-    line('Leather pad edge binding',[seated_seam(p,-.002) for p in welt+[welt[0]]],.005,'C200 strap leather')
-    stitch_path=seam_path(.034);stitch_path.append(stitch_path[0])
-    lengths=[(b-a).length for a,b in zip(stitch_path,stitch_path[1:])]
-    perimeter=sum(lengths);count=round(perimeter/.025);pitch=perimeter/count
-    def stitch_point(distance):
-        for i,length in enumerate(lengths):
-            if distance<=length:return stitch_path[i].lerp(stitch_path[i+1],distance/length)
-            distance-=length
-        return stitch_path[0]
-    for i in range(count):
-        line('Strap perimeter stitch',[seated_seam(stitch_point((i+t)*pitch),.0005) for t in [.15,.45,.75]],.0015,'Graphite polymer')
-    print('C200 strap perimeter stitches',count,'pitch',round(pitch,6),'surface samples',len(welt)+1+count*3,flush=True)
-    buckle=rounded_panel('Strap adjustment buckle',(.26,.12,.613),(.18,.23,.032),.026,'Graphite polymer')
-    opening=rounded_panel('Buckle opening cutter',(.26,.12,.613),(.128,.174,.10),.012,None)
+    for leather,outline,rounding,inset,label in [(pad,pad_outline,.10,.034,'Strap perimeter'),(flap,flap_outline,.025,.014,'Flap perimeter')]:
+        surface=BVHTree.FromObject(leather,bpy.context.evaluated_depsgraph_get())
+        contour=[Vector((p[0],p[1])) for p in smooth_outline(outline,radius=rounding)]
+        def seated_seam(p,offset):
+            hit=surface.ray_cast(Vector((p.x,p.y,1)),Vector((0,0,-1)),.5)[0]
+            assert hit is not None, label+' seam missed leather'
+            return (hit.x,hit.y,hit.z+offset)
+        if leather==pad:
+            welt=seam_path(contour,.015)
+            line('Leather pad edge binding',[seated_seam(p,-.002) for p in welt+[welt[0]]],.005,'C200 strap leather')
+        stitch_path=seam_path(contour,inset);stitch_path.append(stitch_path[0])
+        lengths=[(b-a).length for a,b in zip(stitch_path,stitch_path[1:])]
+        perimeter=sum(lengths);count=round(perimeter/.025);pitch=perimeter/count
+        def stitch_point(distance):
+            for i,length in enumerate(lengths):
+                if distance<=length:return stitch_path[i].lerp(stitch_path[i+1],distance/length)
+                distance-=length
+            return stitch_path[0]
+        for i in range(count):
+            line(label+' stitch',[seated_seam(stitch_point((i+t)*pitch),.0005) for t in [.15,.45,.75]],.0015,'Graphite polymer')
+        print('C200',label,'stitches',count,'pitch',round(pitch,6),flush=True)
+    # The long buckle runs beside the logo and seats on the leather pad.
+    buckle=rounded_panel('Strap adjustment buckle',(.06,.015,.596),(.30,.18,.032),.026,'Graphite polymer')
+    opening=rounded_panel('Buckle opening cutter',(.06,.015,.596),(.244,.126,.10),.012,None)
     cut=buckle.modifiers.new('Open webbing passage','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(buckle,cut)
     OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
     for face in buckle.data.polygons:
         if abs(face.normal.z)>.999:face.use_smooth=False
-    box('Buckle center bar',(.26,.12,.613),(.024,.178,.026),'Graphite polymer',.008)
+    box('Buckle center bar',(.06,.015,.596),(.024,.130,.026),'Graphite polymer',.008)
     # The web crosses the center bar, leaving both passages visibly open.
-    threaded=box('Buckle threaded web',(.26,.12,.634),(.22,.105,.012),'C200 woven webbing',.005)
+    threaded=box('Buckle threaded web',(.06,.015,.617),(.34,.095,.012),'C200 woven webbing',.005)
     web_uv=threaded.data.uv_layers.active or threaded.data.uv_layers.new(name='UVMap')
     for face in threaded.data.polygons:
         for li in face.loop_indices:
@@ -4010,12 +4019,6 @@ def export_asset(name,objects):
         active(o)
         if not o.get('preserve_face_orientation'):
             bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
-        if o.data.materials and o.data.materials[0].name in ['Optical glass','Inner optical glass','Inner optical glass rear','40D ocular glass','C200 ocular glass','C200 ocular glass inner']:
-            # Meshopt's high preset filters NORMAL down to 8-bit octahedral
-            # values. Preserve polished-face normals as a custom attribute;
-            # the viewer promotes it back to NORMAL after decoding.
-            normals=o.data.attributes.new('_OPTICAL_NORMAL','FLOAT_VECTOR','POINT')
-            for vertex,value in zip(o.data.vertices,normals.data):value.vector=vertex.normal
         if len(o.data.polygons)>0 and not o.get('preserve_uv'):
             bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT');bpy.ops.uv.smart_project(angle_limit=1.15,island_margin=.01);bpy.ops.object.mode_set(mode='OBJECT')
         # The C200 palm shares a mesh with its polymer shell. Normalize only
@@ -4068,6 +4071,16 @@ def export_asset(name,objects):
     bpy.ops.object.select_all(action='DESELECT')
     for o in joined:o.select_set(True)
     if name in ['r7','40d','c200']:joined=bake_occlusion(name,joined)
+    # Generic vector attributes do not follow object rotations during joining.
+    # Preserve optical normals only after every assembly transform is resolved.
+    optical_materials=('Optical glass','Inner optical glass','40D ocular glass','C200 ocular glass')
+    for o in joined:
+        optical_vertices={vi for face in o.data.polygons
+                          if o.data.materials[face.material_index].name.startswith(optical_materials)
+                          for vi in face.vertices}
+        if optical_vertices:
+            normals=o.data.attributes.new('_OPTICAL_NORMAL','FLOAT_VECTOR','POINT')
+            for vi in optical_vertices:normals.data[vi].vector=o.data.vertices[vi].normal
     filepath=os.path.join(OUT,name+'.glb')
     bpy.ops.export_scene.gltf(filepath=filepath,export_format='GLB',use_selection=True,export_yup=False,export_apply=True,export_cameras=False,export_lights=False,export_materials='EXPORT',export_animations=False,export_attributes=True)
     print('EXPORTED',name,os.path.getsize(filepath),sum(len(o.data.polygons) for o in joined),flush=True)

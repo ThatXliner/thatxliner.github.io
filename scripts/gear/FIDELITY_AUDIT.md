@@ -1754,3 +1754,63 @@ Compared with saved50ii-canon.jpg and50ii.jpg. Actual /classic settled side and 
 Replaced four hairline direction marks with short rounded molded ribs following the actual rocker dish. Reference: saved Canon R7 rear close-up. First candidate used corner radius equal to half the width and produced zero-area faces; rejected. Final radius .004 passes independent closed/manifold and face-area checks. All 2744 rib-vertex projections hit the dish, with clearance spanning -.0015683 to .00348574 model units, confirming embedded bases and raised faces. Evidence: check-r7-rocker-ribs.py, r7-rocker-ribs-check.json and final build/compression logs in ignored output. Actual /classic rear and adjacent oblique views show the ribs, with no console errors. They remain subtle under current lighting; full material/reference matching is incomplete. Refreshed R7 thumbnail and default setup poster.
 
 Public R7: 4186804 bytes, SHA256 af3cf0ff7c9c2fbd818f3392f8aedb5e14dbfb4108c17691ed8fe993d8b1f7c5. User requested shipping the current checkpoint, including the preceding C200 changes. Six tests / 101 assertions pass. No renderer or loading changes; photographic acceptance remains incomplete.
+
+
+### 2026-10-13 — C200 buckle and logo layout
+
+Previous turn shipped be2f335 (progress). Canon's saved gr-v1-canon.png shows a long buckle beside the Canon logo, whereas the model stacked a short buckle below it. Moved buckle center from(.26,.12) to(.06,.015), changed footprint from(.18,.23) to(.30,.18), and matched its opening, center bar and web. Moved logo to y=.225 with font size .075. Lowered buckle center z from .613 to .596 so its base reaches the pad at .58; threaded web lowered equally. Dimensions are reference-guided estimates, not measured CAD.
+
+Independent unmerged check passes: buckle closed/manifold, no zero-area faces, all288vertices project onto the leather footprint, minimum signed surface clearance -1.19e-7 (effectively contact). Bounds separate the buckle from the logo. Evidence check-c200-buckle-layout.py and c200-buckle-layout-check.json, plus final build/compression logs in ignored output. Actual /classic side and oblique views confirm adjacent readable logo/buckle and seated base; no console errors. Saved c200-buckle-layout-{side,oblique}.png and refreshed thumbnail. Layered leather flap construction, pad contours, other body/material/optics accuracy and complete photographic acceptance remain unfinished. No runtime/loading changes.
+
+Public C200 5113864 bytes, SHA256 5823f20f80d5854d913a116f864d0875e9fac2693f8861c2700093b812836451. Local/unpushed; goal active.
+
+
+### 2026-10-13 — separate C200 leather fastening flap
+
+Previous turn corrected buckle/logo layout (progress). Added the separate narrow leather flap visible beside the buckle in saved Canon GR-V1 reference. Used a beveled outline overlapping the main pad, with 58 evenly spaced stitches projected onto its actual surface. Retained the main pad's73stitches and edge binding. Logo moved from z=.587 to .598, just above the flap front .597. Outline/thickness are photographic estimates, not measured construction dimensions.
+
+Independent unmerged geometry check confirms closed/manifold flap and no zero-area faces. All560flap vertices project onto the underlying pad, signed clearance range[-.0137922,.0205110] shows embedded base and raised face. Every logo vertex projects onto the flap with .00114942 world clearance. Buckle contact/topology and logo separation checks still pass. Source assertions verify every stitch placement. Evidence check-c200-leather-flap.py, c200-leather-flap-check.json, build/compression logs and unmerged blend in ignored output.
+
+Actual /classic side and both adjacent oblique views show a distinct leather layer with readable logo; console errors empty. Saved c200-leather-flap-{side,oblique,front-oblique}.png; refreshed thumbnail. Pad curvature, leather deformation, grip proportions/material response, other bodies and optics are not fully reference accepted. No runtime/loading changes. Public C200 5127180bytes, SHA256 2a208c7ec06afdb56173e7f03dc7722527ce49965a7c097791e87ad6a5b43c8f. Local/unpushed; full goal active.
+
+
+### 2026-10-13 — assembled ocular normals
+
+Previous turn added the leather flap (progress). Whole rear-body comparison against c200-rear.jpg led to the dark/flat ocular. Temporarily disabling C200 ocular baked AO only produced a gray opening; reverted that runtime diagnostic. Independent raw-GLB comparison found the internal element's _OPTICAL_NORMAL disagreed with NORMAL:4370vertices, mean dot-.907889, minimum-1, maximum angle180degrees. The outer element had a smaller1.73degree discrepancy. Custom generic vector attributes were created before rotated objects were joined, so they did not follow assembly transforms like normals do.
+
+Moved preserved-normal creation to after material joining and body AO assembly. It now uses final assembled vertex normals for vertices belonging to optical materials. This fixes the exporter without changing runtime lighting, AO or material settings. Rebuilt C200: both ocular primitives now agree with geometric normals to float tolerance (min dot .99999988; max .028degrees). Independent assert check in check-ocular-normals.py passes; before/after JSON/logs and build/compression logs in ignored output. Existing40D raw ocular audit already agrees to the same tolerance; did not regenerate40D. Other assets are not yet exhaustively audited for this issue.
+
+Actual compressed /classic model checked from rear and two adjacent angles; reflections change direction and the inverted-normal gray contribution is gone, with no console errors. Saved c200-ocular-normals-{rear,oblique,other-oblique}.png. Full coating color/reflectance and internal optical stack remain approximate, as do broader photographic acceptance requirements. Thumbnail refreshed. Public C200 5165428bytes, SHA256 adb3171eaa69289d90ecd2bed445af3fcf746db4e85a5be09b0e1b415b0e232c. Local/unpushed; goal active. Earlier shipped be2f335 deployment38521666801 independently verified completed/success this turn.
+
+
+### 2026-10-13 — lens normal audit and Tamron AF/MF lettering
+
+Previous turn fixed C200 ocular normals (progress). Audited preserved optical normals against geometric normals in all five current uncompressed lens assets. All agree to float tolerance (minimum dot .99999988, max angle .028degrees); no equivalent reversed-normal defect. R7 has no matching transmitting ocular primitive under this material set, so empty R7 output is not verification of all its optical surfaces. Evidence audit-all-optical-normals.py/all-optical-normal-audit.json in ignored output.
+
+Compared actual Tamron35 side view with saved35-side.jpg. AF/MF caps were too small relative to the switch panel; enlarged only those two fonts from .034 to .050. Panel border looked uneven, but independent topology checks of its six solid details (distance surround/glass, AF/MF panel/inset, slot/slider) found zero boundary edges, overconnected edges or zero-area faces. Did not rewrite sound geometry. Evidence check-35-panel-topology.py and35-panel-topology-before.json; border shading/aliasing is not fully resolved.
+
+Rebuilt and compressed35; actual /classic side and oblique views confirm larger readable AF/MF legends, unchanged switch placement, and no console errors. Saved35-switch-lettering-{before,after,oblique}.png; thumbnail refreshed. Other print scale, material response, focus-ring appearance, optics and full photographic matching remain incomplete. No runtime/loading changes. Public35 1043424bytes SHA256 01dc66fc83c0be22714634d1ca3b7b8f9d016743aa4f29472b5dfc696fc2a03d. Local/unpushed; goal active.
+
+
+### 2026-10-13 — seat Tamron molded focus ribs
+
+Previous turn improved switch lettering (progress). Inspected the rough focus-ring edges against35-side.jpg. Independent BVH projection found all10080rib vertices above the rubber sleeve: minimum clearance .00199758, maximum .00920974 model units, zero embedded vertices. The rib base radius was .002 outside the sleeve. Added optional depth to radial_ribs (default .007 preserves other callers); Tamron alone now starts .004 farther inward with depth .011. Visible crown radius is unchanged.
+
+Rebuilt/exported/compressed35. Final clearance minimum-.00200263, maximum unchanged .00920974;4496vertices buried. A separate connected-component check verifies all180individual ribs intersect the sleeve and extend above it; shallowest embedded base-.00179654. Evidence check-35-rib-contact{,-after}.py, check-35-each-rib.py and JSON/logs in ignored output.
+
+Actual /classic side and oblique views load without console errors and preserve raised rib detail. Fine edge aliasing remains visible at this zoom; the geometric contact fix does not establish that rendering issue is solved. Saved35-rib-contact-{side,oblique}.png, refreshed thumbnail. Other material, optical and photographic acceptance work remains. No runtime changes. Public35 1042840bytes SHA256 da7d9eac79d44967908392fc2da62e7430581721a11a89fcfcb090ab3d3cdfba. Local/unpushed; goal active.
+
+### 2026-10-14 — desktop antialiasing comparison
+
+Previous turn seated Tamron ribs (progress). Disabled shadow maps temporarily in the actual viewer; edge roughness remained, so restored shadows. Compared four-sample HDR target against existing two samples. Four samples smooth small text and some edges, but dense rib patterns remain imperfect. Saved35-rib-no-shadow-diagnostic.png and35-rib-four-sample-diagnostic.png. No shadow/material changes retained.
+
+Added a development-only copy of current scene with EXT_disjoint_timer_query_webgl2 measurement in ignored output. At1050x660 drawing-buffer pixels, R7+Tamron setup,20samples per setting in blocks2/4/4/2 after warmups: median2-sample4.23375ms,4-sample4.39712ms. Timing drift exists between blocks; this is a local measurement, not a cross-device guarantee. Evidence msaa-benchmark-scene.ts/html and msaa-gpu-timings.json. Diagnostic renderer code is not imported into production.
+
+Production change only: four MSAA samples for fine-pointer devices, existing two for coarse-pointer devices. DPR caps, lazy asset loading, on-demand rendering, offscreen pause and HDR fallback remain unchanged. Actual final C200 setup and earlier four-sample R7+Tamron views load without errors. Six tests/101assertions and15-page production build pass; these do not prove photographic accuracy or mobile performance. Existing build warnings remain. Saved msaa-final-c200.png. Local/unpushed; full photographic acceptance still incomplete.
+
+
+### 2026-10-14 — R7 card door and shipping checkpoint
+
+Canon's full-resolution EOS R7 body side gallery image shows staggered round card-door grip bumps and CARD OPEN marking/arrow. Replaced the five transverse ribs with nine staggered bumps on a rounded pad and added surface lettering/arrow, projected onto the existing shell. Markings approximate the photographed recessed detail; they are not physically engraved. Rebuilt and meshopt-compressed R7, refreshed thumbnail and setup poster, and verified the compressed asset in the actual /classic side view without console errors. Grip shoulder height, material response and full photographic acceptance remain unfinished.
+
+User requested shipping the current checkpoint, including preceding C200, Tamron and desktop antialiasing changes. Lazy loading, DPR limits and offscreen pause remain in place.
