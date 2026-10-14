@@ -1627,3 +1627,67 @@ Retained16-bit candidate:2288796bytes versus2296452before (-7656bytes). No mater
 ### 2026-10-13 — ship verified C200 and lens checkpoint
 
 User requested shipping the current snapshot. Includes the preceding C200 cap, thumb-deck and strap corrections, updated thumbnail, and f/2.8 16-bit position compression. Confirmed public asset hashes match the viewer-verified artifacts above. Six tests/101 assertions and the 15-page production build pass. Existing missing-icon-directory and large-chunk warnings remain. Lazy loading is unchanged. The newer telephoto switch-panel refinement experiment is left unstaged: its latest topology diagnostic passes, but rebuilt public assets and visual acceptance are still pending. Full photographic acceptance remains incomplete.
+
+
+### 2026-10-13 — repair telephoto switch-panel refinement
+
+Previous turn made progress by committing/pushing verified checkpoint 68db191. Continued the local panel investigation. Original f/2.8 panel had680 zero-area faces after bending; stage tracing located156 already after repeated partial subdivision. A first shared-edge candidate still produced3244 collapsed faces and was rejected. Triangulating the Boolean output, merging coincident vertices and dissolving degenerate edges before shared-edge refinement removes the defect. Final independent f/2.8 diagnostic reports20952vertices/41916faces, zero boundary/overconnected edges and zero faces below1e-12area. All four recess floors also pass. Rebuilt normals on both panel and floor surfaces. Added manifold and nonzero-face assertions after forming; both f/4 and f/2.8 production generation pass. Evidence f28-panel-topology-clean.log, f28-panel-topology-after.json, f28-panel-after.blend and telephoto-panel-build.log in ignored output/gear-modeling.
+
+Rebuilt/compressed both public lenses, retaining16-bit position quantization for f/2.8, and refreshed both thumbnails. Actual /classic close side views checked against saved f/4-side and f/2.8-controls reference photos. Checked f/2.8 at an adjacent angle and both front assemblies; console errors empty. Screenshots f4-panel-{after,front}-live.png and f28-panel-{after,oblique,front}-live.png. Panel surfaces render without the collapsed-face defect; thin lettering remains faint at this scale and is not accepted as photographically accurate. No claim of complete switch-shape/material/optical acceptance. Owned f/4 remains collar-free.
+
+70-200-f4: 2440728 bytes, SHA256 503007f6ada75cf4003c16599e7bef41110ab519a388a26c3179dc1a4f043c8f. 70-200-f28: 2298096 bytes, SHA256 693bbbb4ab94a612ecaf1dbf748788e73367358eb99e298cbce1d23c59de8f1f. No runtime changes; lazy loading retained. Generator checks, exports/compression and diff check pass. Application tests/build from the immediately preceding checkpoint remain applicable. Local/unpushed; full goal active.
+
+
+### 2026-10-13 — reference-sized focus-distance legends
+
+Previous turn repaired telephoto panel topology and verified both rebuilt lenses. Investigated faint print further. Independent unmerged f/2.8 triangle-normal diagnostic found outward label faces with at most1.68degree radial deviation, ruling out reversed label faces as the general explanation (f28-legend-normal-check.json). Enlarged actual-viewer inspection showed the distance ranges disproportionately small compared with the saved f/2.8-controls and f/4-side photos. Unmerged measurement: original limiter line axial width .106965 versus .205 slider width, approximately52%. The reference lines are closer to the key width and stagger their second line to the right.
+
+Replaced the centered multiline limiter label with two independently positioned lines: size .066 instead of .042, first center(-.030,y+.171), second(.025,y+.123). This gives approximately82% key width for the longer line; photograph-based estimate, not measured CAD. Preserved correct ranges (f/4 1.2m/3m, f/2.8 1.4m/2.5m), material and all other legend sizes. New outward-ray visibility probes include both newly named lines and all other panel lettering/ticks: f4: 2846 triangle-centroid samples, zero buried; f28: 2794 triangle-centroid samples, zero buried. These are face-centroid radial samples, not proof of every viewing angle or glyph clearance. Evidence probe-telephoto-distance.py, probe-f4-distance.py and their visibility JSON/logs in ignored output.
+
+Both production builds pass the panel assertions and compression; refreshed thumbnails. Actual /classic larger close-ups verify the staggered ranges on each lens, including f/2.8 at a more directly facing angle; console errors empty. Saved f28-distance-legend-{close,facing}.png and f4-distance-legend-live.png. Earlier before-view framing was not saved as a matching comparison. Other small print remains scale-sensitive; full materials, contours, optical and photographic acceptance remains incomplete. No renderer or loading changes. 70-200-f4 2441576bytes SHA256f7b46189156cd9c412a16fa090b3de0db6e4ee023469c1905f2602244509f6fd. 70-200-f28 2298920bytes SHA256e623d70446daaf56771a22ff22857591c1fe005e26209e98fc9c5a0d32e88696. Local/unpushed; goal active.
+
+
+### 2026-10-13 — restore 40D MENU clearance above the LCD
+
+Previous goal turn corrected telephoto distance-legends. Compared the current40D front and rear with40d.jpg and40d-rear-photo.jpg. Actual rear viewer showed MENU partly covered by the LCD frame. Independent unmerged rear-ray probe confirmed55of190front-facing MENU triangle centroids hit the LCD bezel first; Print/Share190of190hit its own face. Evidence40d-menu-clearance-before.json/blend and40d-menu-before-live.png.
+
+Raised MENU and Print/Share centers by.04units (2.2mm). First candidate failed because the relocated MENU legend missed the sloping cover; rejected it. Raised the terminal shoulder outline locally (.65,.61)->(.65,.63),(.94,.53)->(.94,.59),(1.05,.38)->(1.05,.42), retaining overall body dimensions. This provides the continuous shoulder area visible under the mode dial in the rear reference. Geometry changes are photograph-derived estimates, not CAD dimensions.
+
+Expanded probes found one long printer-paper triangle dipping into the curved cover. Refined40D rear printed strokes before fitting them to the surface (shared-edge splitting at.015units,4passes). This exposed four finer printer-case samples obstructed by its own nearby button bezel; raised the Print/Share legend offset from.086to.098. Final614selected rear-facing triangle-centroid rays across both buttons, MENU text and all three printer/share icon components hit their respective objects first. Existing cover-fitting checks pass. This is sampled rear visibility, not proof of arbitrary angles or complete body geometry. Evidence check-40d-menu-clearance.py, check-40d-menu-expanded.py and40d-menu-clearance-expanded-final.log. Rejected intermediate failures retained in ignored output.
+
+Rebuilt/exported/compressed40D and refreshed its thumbnail. Actual /classic matching rear view now shows the complete MENU button; checked rear obliques, mode-dial shoulder and front silhouette. No console errors. Saved40d-menu-{after,oblique,front}-live.png. Broad shoulder shading remains uneven, so full contour/material/rear-control/optical photographic acceptance remains incomplete. No renderer or lazy-loading changes. Generator, visibility checks, export/compression and diff check pass; app tests/build from the preceding shipped checkpoint remain applicable. Local/unpushed; goal active.
+
+Current40D: 3780612bytes, SHA256 d2e92b8a2105731114ea8064d34fa3992236420cd8ecddf9b252af2d39ad7e97.
+
+
+### 2026-10-13 — remove the 40D double-bevel shoulder groove
+
+Previous turn improved MENU visibility. Traced the40D casting through nine stages from profile/refinement/forming and bore/screen cuts through union, voxel remesh, smoothing and reduction. Every stage reports zero boundary edges, overconnected edges and zero-area faces. Thus the tested refinement topology is not the explanation for the visible shoulder bands; did not replace it speculatively. Initial diagnostic anchor matched two sleeve assignments and failed before generation; corrected to the unique DSLR assignment. Evidence trace-40d-casting.py and40d-casting-topology.json/log.
+
+Diagnostic browser render with normal maps and baked AO disabled retains the bands (40d-shoulder-no-textures.png). Independent vertical section rays through the actual unmerged casting and rear cover located the groove at their overlapping bevels. At z=-.54, the old upper envelope sits .28–.65mm below the adjoining crest across six sampled x sections. Rear cover's front bevel began before the shell's rear bevel ended, exposing both roundovers. Extended its hidden front overlap from back+.065 to back+.12, preserving the rear face, overall silhouette and material parameters. New sampled join heights meet the cover crest; no change to casting topology. Evidence check-40d-cover-transition{,-after}.py and corresponding JSON files. These sampled sections establish the join correction, not an exhaustive surface smoothness proof.
+
+Reran the614rear-control/legend visibility samples from the preceding turn: all hit their own surfaces. Rebuilt/compressed40D and refreshed thumbnail. Same diagnostic lighting shows reduced duplicate shoulder/prism bands (40d-shoulder-overlap-no-textures.png); actual /classic rear-oblique, rear and front views checked, no console errors. Saved40d-cover-overlap-{oblique,rear,front}.png. No runtime or loading changes. Broader contours, materials and optical/reference acceptance remain incomplete. Local/unpushed; goal active.
+
+Current40D 3777188bytes, SHA256210c9bde6117c3a1d0eed00a235d6c7258d519a769187ed377b7c9db4778599f.
+
+
+### 2026-10-13 — rounded 40D command-wheel rib crowns
+
+Previous turn removed the double-bevel shoulder groove. Compared the rear command wheel with40d-rear-lanteigne.jpg. The existing45rib count is supported by an angular-brightness spectrum sampled around an estimated image ellipse: strongest tested frequency45, with a strong90second harmonic (measure-40d-wheel-ribs.py and40d-wheel-rib-spectrum.json). The ellipse is manually estimated, so this supports the count rather than proving exact geometric pitch. Did not change the count. Close diagnostic rendering showed broad flat bars unlike the reference's rounded crowns.
+
+Replaced the flat profile ribs with closed rounded crowns. Rejected the first tall/narrow ellipsoids as bead-like, then rejected shallower/wider plain ellipsoids for the same shape mismatch. Final crowns use UV spheres transformed with signed power.6 on normalized coordinates, extents(.027,.014,.009), center radius.273 and depthrz-.091. This retains rounded rectangular faces with softened edges and buried bases. Material unchanged. Dimensions are photo-derived estimates, not manufacturer measurements. Saved the two rejected close-ups and final40d-wheel-crowns-close.png under identical diagnostic lighting.
+
+Independent unmerged verification:45closed/manifold ribs;135actual-mesh ray-interval samples across their center and radial offsets all overlap the rubber face, minimum0.5880mm and maximum0.6325mm. This checks sampled joins, not complete volume intersection or exact photographic shape. Evidence check-40d-wheel-domes.py,40d-wheel-domes-check.json and40d-wheel-crowns-check.log; final unmerged blend saved. Rebuilt/exported/compressed40D and refreshed thumbnail. Actual /classic rear and rear-oblique checked with no console errors; saved40d-wheel-crowns-live-{rear,oblique}.png. The center SET marking remains muddy in the close-up and needs separate diagnosis. Full material, contour, optical and all-angle photographic acceptance remains incomplete. Local/unpushed; goal active.
+
+Current40D 3758580bytes, SHA256f62c610738a542510a95eda21262a6860b0007fb96ed5e30a08219ff414de2e3. Generator, contact/manifold checks, export/compression and diff check pass. No renderer/loading changes.
+
+
+### 2026-10-13 — 40D SET relief shading and shipping checkpoint
+
+Disabling baked AO isolated the muddy SET marking to undersampled relief shadows in the shared 2048px body atlas. Excluded only the SET relief from that bake and kept it as a separate material group; geometry and direct lighting remain. Export verification reports 26 primitives instead of 25, with exactly one unbaked primitive (1320 vertices / 868 triangles). All other body primitives retain AO. This is a small-detail shading approximation, not complete physical shadow reproduction. Surrounding ring AO artifacts remain unresolved. Diagnostic evidence: 40d-set-noao-diagnostic.png, 40d-set-ao-after-close.png, check-40d-set-export.py and 40d-set-export-check.json in ignored output/gear-modeling.
+
+Actual /classic close view confirms readable SET lettering with surrounding contact shading retained; console errors empty. Saved 40d-set-ao-live-close.png and refreshed the 40D thumbnail. Public 40D: 3766832 bytes, SHA256 ab879aae523d7357616b45cf201f33a2e2c864d515b33614743d77065f938f2a.
+
+User requested shipping the current checkpoint, including the preceding 40D and telephoto corrections. Six tests / 101 assertions pass. No renderer or lazy-loading changes. Full photographic acceptance remains incomplete.
+
+Shipping validation: production build succeeds (15 pages); existing missing-icon-directory and large-chunk warnings remain. Diff check passes.

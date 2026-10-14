@@ -668,7 +668,7 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
 
 def body(which):
     global current;current=which;start=len(OBJECTS);dslr=which=='40d'
-    outline=[(-1.43,-.83),(-1.48,-.68),(-1.48,.38),(-1.41,.60),(-1.2,.69),(-.84,.66),(-.64,.64),(-.44,.78),(-.30,1.03 if dslr else .91),(.27,1.03 if dslr else .91),(.42,.77),(.65,.61),(.94,.53),(1.05,.38),(1.07,-.65),(.98,-.83)]
+    outline=[(-1.43,-.83),(-1.48,-.68),(-1.48,.38),(-1.41,.60),(-1.2,.69),(-.84,.66),(-.64,.64),(-.44,.78),(-.30,1.03 if dslr else .91),(.27,1.03 if dslr else .91),(.42,.77),(.65,.63),(.94,.59),(1.05,.42),(1.07,-.65),(.98,-.83)]
     if not dslr:
         outline=[(-1.43,-.83),(-1.48,-.65),(-1.48,.40),(-1.39,.65),(-1.19,.73),(-.83,.77),(-.48,.78),(-.34,.94),(.28,.94),(.43,.73),(.65,.64),(.92,.59),(1.05,.40),(1.07,-.65),(.98,-.83)]
     back=-.58 if dslr else -.18;front=.28 if dslr else .25
@@ -1261,7 +1261,8 @@ def body(which):
     # previously suspended in front of the main casting's flat back plane.
     # The DSLR cover must overlap the casting's rounded back edge. A shallow
     # overlap exposed both bevels as a separate slab along the body sides.
-    rear_cover=profile('Rear control cover',outline,back-.083,back+(.065 if dslr else .012),'Crinkle painted metal',.055 if dslr else .030)
+    # Reach beyond the shell's rear bevel so their crests do not form a trough.
+    rear_cover=profile('Rear control cover',outline,back-.083,back+(.12 if dslr else .012),'Crinkle painted metal',.055 if dslr else .030)
     bpy.ops.mesh.primitive_cube_add(size=1,location=(screenX,screenY,back-.06))
     opening=bpy.context.object;opening.scale=(screenW-.06,screenH-.08,.30)
     active(opening);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
@@ -1326,12 +1327,17 @@ def body(which):
         cyl('Quick control recess',(-.73,-.32,rz-.031),.355,.035,'Deep black')
         ring('Quick wheel rim',rz-.063,.315,.292,.037,'Graphite polymer',center=(-.73,-.32))
         ring('Quick wheel rubber face',rz-.079,.301,.244,.029,'Focus rubber',center=(-.73,-.32))
-        # Lanteigne's high-resolution rear photo resolves about 45 rounded ribs.
-        # Their soft radial ends are unlike the old densely spaced flat bars.
+        # The reference resolves 45 short domed ribs, not flat radial bars.
+        # Bury their bases in the rubber face so the rounded ends blend into it.
         for i in range(45):
             a=i*2*pi/45
-            tooth=profile('Rear wheel radial grip',[(-.027,-.002),(-.025,-.008),(-.020,-.011),(.026,-.014),(.030,-.009),(.030,.009),(.026,.014),(-.020,.011),(-.025,.008),(-.027,.002)],rz-.102,rz-.091,'Satin control plastic',.003,rounding=.005)
-            tooth.location.x=-.73+cos(a)*.278;tooth.location.y=-.32+sin(a)*.278;tooth.rotation_euler.z=a
+            tooth=sphere('Rear wheel radial grip',(-.73+cos(a)*.273,-.32+sin(a)*.273,rz-.091),(.027,.014,.009),'Satin control plastic')
+            # Rounded rectangular crowns retain a broad grip face; ellipsoids
+            # alone read as isolated beads instead of the molded reference ribs.
+            for vertex in tooth.data.vertices:
+                for axis,extent in enumerate((.027,.014,.009)):
+                    q=vertex.co[axis]/extent;vertex.co[axis]=math.copysign(abs(q)**.6*extent,q)
+            tooth.data.update();tooth.rotation_euler.z=a
         # A shallow continuous face joins the grip ring to the narrow SET
         # collar visible in the rear reference, without a broad annular step.
         segments=128;rows=20;verts=[];faces=[]
@@ -1351,6 +1357,8 @@ def body(which):
         cyl('SET button',(-.73,-.32,rz-.091),.095,.016,'Graphite polymer',vertices=96,bevel=.004)
         legend=text('SET molded legend','SET',(-.73,-.32,rz-.099),.062,'Satin control plastic',rotation=(0,pi,0))
         raised=legend.modifiers.new('Molded lettering relief','SOLIDIFY');raised.thickness=.002;raised.offset=1;apply(legend,raised)
+        # Subpixel relief casts a blurred blotch into the shared body AO atlas.
+        legend['skip_baked_ao']=True
         # The unlit card-access window sits outside the quick-control wheel
         # at its lower right in the rear product reference (negative model X).
         access_socket=rounded_panel('Card access lamp socket',(0,0,0),(.038,.078,.009),.015,'Deep black')
@@ -1513,7 +1521,7 @@ def body(which):
         bpy.context.view_layer.update()
         rear_surfaces=[BVHTree.FromObject(o,bpy.context.evaluated_depsgraph_get()) for o in [rear_cover,rear_thumb]]
     rear_buttons=[(-1.36,.51,'*'),(-1.36,.35,'▣'),(-1.0,.52,'AF-ON'),(-.78,.08,'INFO'),(-.87,-.66,'▶'),(-1.07,-.66,'▥'),(.83,.52,'MENU')]
-    if dslr:rear_buttons=[(-.89,.55,'AF-ON'),(-1.08,.53,'*'),(-1.27,.48,'▣'),(.85,.42,'MENU'),(.65,.45,'Print/Share'),(.84,-.73,'▶'),(.62,-.73,'▥'),(.40,-.73,'JUMP'),(.18,-.73,'INFO'),(-.05,-.73,'Picture Style')]
+    if dslr:rear_buttons=[(-.89,.55,'AF-ON'),(-1.08,.53,'*'),(-1.27,.48,'▣'),(.85,.46,'MENU'),(.65,.49,'Print/Share'),(.84,-.73,'▶'),(.62,-.73,'▥'),(.40,-.73,'JUMP'),(.18,-.73,'INFO'),(-.05,-.73,'Picture Style')]
     for x,y,t in rear_buttons:
         rear_button_start=len(OBJECTS)
         if dslr:
@@ -1556,7 +1564,7 @@ def body(which):
             cyl('Rear button '+t,(x,y,rz-.068),.055,.030,'Satin control plastic',vertices=64,bevel=.006)
         if dslr and t in ['▶','▥','Print/Share','Picture Style']:
             # Bottom-row legends sit above and to the right of each button.
-            ix=x-.087 if y<0 else x;iy=y+.033 if y<0 else y+.086
+            ix=x-.087 if y<0 else x;iy=y+.033 if y<0 else y+.098
             if t=='▶':
                 rear_rectangle('Playback frame',ix,iy,.056,.038)
                 rear_ink('Playback triangle',ix,iy,[(-.011,-.012),(.015,0),(-.011,.012)],filled=True)
@@ -1612,6 +1620,9 @@ def body(which):
         for o in OBJECTS[start:]:
             if not any(part in o.name for part in ['Rear legend','Rear label','Rear power markings','AF point frame','AF point.',' / AF point']):continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            # Sample the curved shoulder within each printed stroke so long
+            # triangles cannot cut back through the cover between fitted vertices.
+            refine_surface(o,lambda a,b:(a-b).length>.015,4)
             backmost=max(v.co.z for v in o.data.vertices)
             for v in o.data.vertices:
                 hits=[bvh.ray_cast(Vector((v.co.x,v.co.y,-3)),Vector((0,0,1)),4)[0] for bvh in rear_surfaces]
@@ -2598,7 +2609,10 @@ def lens(which):
         if white:
             # Match the stacked labels and two position ticks in the side photo.
             if label_.startswith(('1.2m','1.4m')):
-                text('Focus limiter legend','1.2m–∞\n3m–∞' if f4 else '1.4m–∞\n2.5m–∞',(0,y+.125,.018),.042,'Deep black')
+                # The distance ranges are larger than AF/MF and stagger toward
+                # their two index marks in both telephoto reference photographs.
+                text('Focus limiter near legend','1.2m–∞' if f4 else '1.4m–∞',(-.030,y+.171,.018),.066,'Deep black')
+                text('Focus limiter far legend','3m–∞' if f4 else '2.5m–∞',(.025,y+.123,.018),.066,'Deep black')
             elif label_=='AF  MF':
                 text('Autofocus legend','AF',(-.055,y+.118,.018),.042,'Deep black')
                 text('Manual focus legend','MF',(.095,y+.090,.018),.042,'Deep black')
@@ -2662,29 +2676,35 @@ def lens(which):
         # cylinder at its center as well as at all four corners.
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         if 'panel' in o.name or (white and 'Switch recess floor' in o.name):
-            import bmesh
-            bm=bmesh.new();bm.from_mesh(o.data)
             if white:
-                # Panel openings and recess floors contain broad n-gons.
-                # Sample their interiors before bending: an unsampled floor
-                # becomes a chord that sinks through the cylindrical housing.
-                for _ in range(6):
-                    bmesh.ops.triangulate(bm,faces=list(bm.faces))
-                    edges=[e for e in bm.edges if e.calc_length()>.035]
-                    if not edges:break
-                    bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
-            else:bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=6 if which=='28-135' else 12,use_grid_fill=True)
-            bm.to_mesh(o.data);bm.free()
+                # Refine shared triangle edges before bending. Repeated partial
+                # n-gon subdivision creates collapsed faces around the cutouts.
+                import bmesh
+                bm=bmesh.new();bm.from_mesh(o.data)
+                bmesh.ops.triangulate(bm,faces=list(bm.faces))
+                bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=1e-6)
+                bmesh.ops.dissolve_degenerate(bm,dist=1e-6,edges=list(bm.edges))
+                bm.to_mesh(o.data);bm.free()
+                refine_surface(o,lambda a,b:(a-b).length>.035,6)
+            else:
+                import bmesh
+                bm=bmesh.new();bm.from_mesh(o.data)
+                bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=6 if which=='28-135' else 12,use_grid_fill=True)
+                bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,depth=v.co;angle=vv/(r*.97);radius=r*.97+depth-.008
             v.co=(-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
         o.data.update()
-        if white and 'panel' in o.name:
+        if white and ('panel' in o.name or 'Switch recess floor' in o.name):
             old_mesh=o.data;formed=bpy.data.meshes.new('Formed telephoto switch panel')
             formed.from_pydata([v.co[:] for v in old_mesh.vertices],[],[tuple(f.vertices) for f in old_mesh.polygons])
             for mat in old_mesh.materials:formed.materials.append(mat)
             formed.update();o.data=formed;bpy.data.meshes.remove(old_mesh)
             finish(o)
+            bm=bmesh.new();bm.from_mesh(o.data)
+            assert all(e.is_manifold for e in bm.edges), 'Telephoto switch surface must stay closed'
+            assert all(f.calc_area()>1e-12 for f in bm.faces), 'Telephoto switch surface has collapsed faces'
+            bm.free()
     mark_start=len(OBJECTS)
     brand=text('Lens side brand','Canon' if which!='35' else 'TAMRON',(-r*.97,-.13,l*(.90 if which=='70-200-f28' else .14)),.082,font='Canon' if which!='35' else 'Bold',rotation=(0,-pi/2,pi/2),mat='Deep black' if white else 'White ink')
     if which=='70-200-f28':text('Telephoto USM inscription','ULTRASONIC',(-r*.97,.11,l*.90),.045,'Red lacquer',rotation=(0,-pi/2,pi/2))
@@ -3850,9 +3870,9 @@ def bake_occlusion(name,objects):
     # repeating grain textures. Joining preserves material slots and UV0.
     # The clear audio guard must not become an opaque blocker while the bake
     # temporarily replaces surface shaders with emission.
-    clear_covers=[o for o in objects if o.data.materials[0].name=='C200 clear audio cover']
-    objects=[o for o in objects if o not in clear_covers]
-    for o in clear_covers:o.hide_render=True
+    unbaked=[o for o in objects if o.data.materials[0].name=='C200 clear audio cover' or o.get('skip_baked_ao')]
+    objects=[o for o in objects if o not in unbaked]
+    for o in unbaked:o.hide_render=True
     bpy.ops.object.select_all(action='DESELECT')
     for o in objects:o.select_set(True)
     bpy.context.view_layer.objects.active=objects[0];bpy.ops.object.join()
@@ -3886,8 +3906,8 @@ def bake_occlusion(name,objects):
     obj.data.uv_layers.active_index=0;obj.data.uv_layers[0].active_render=True
     ao_image.filepath_raw=os.path.join(WORK,name+'-occlusion.png');ao_image.file_format='PNG';ao_image.save();ao_image.pack()
     print('BAKED AO',name,flush=True)
-    for o in clear_covers:o.hide_render=False;o.select_set(True)
-    return [obj]+clear_covers
+    for o in unbaked:o.hide_render=False;o.select_set(True)
+    return [obj]+unbaked
 
 def export_asset(name,objects):
     import bmesh
@@ -3966,12 +3986,13 @@ def export_asset(name,objects):
     # Merge by material so detailed geometry remains inexpensive to draw in WebGL.
     grouped={}
     for o in objects:
-        if o.type=='MESH' and len(o.data.polygons):grouped.setdefault(o.data.materials[0].name,[]).append(o)
+        if o.type=='MESH' and len(o.data.polygons):grouped.setdefault((o.data.materials[0].name,bool(o.get('skip_baked_ao'))),[]).append(o)
     joined=[]
-    for mat,items in grouped.items():
+    for (mat,skip_ao),items in grouped.items():
         bpy.ops.object.select_all(action='DESELECT')
         for o in items:o.select_set(True)
         bpy.context.view_layer.objects.active=items[0];bpy.ops.object.join();obj=bpy.context.object;obj.name=name+' | '+mat;joined.append(obj)
+        obj['skip_baked_ao']=skip_ao
     bpy.ops.object.select_all(action='DESELECT')
     for o in joined:o.select_set(True)
     if name in ['r7','40d','c200']:joined=bake_occlusion(name,joined)
