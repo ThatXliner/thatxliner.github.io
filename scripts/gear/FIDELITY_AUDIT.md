@@ -1691,3 +1691,66 @@ Actual /classic close view confirms readable SET lettering with surrounding cont
 User requested shipping the current checkpoint, including the preceding 40D and telephoto corrections. Six tests / 101 assertions pass. No renderer or lazy-loading changes. Full photographic acceptance remains incomplete.
 
 Shipping validation: production build succeeds (15 pages); existing missing-icon-directory and large-chunk warnings remain. Diff check passes.
+
+
+### 2026-10-13 — C200 GR-V1 record key reference choice
+
+Previous turn shipped 35bcdc0 (progress). Compared the saved official gr-v1-canon.png with c200-grip.jpg. They show different key finishes: Canon's product image has a full red face, while the other photo has a black key with a small red dot. Canon's current product page explicitly identifies GR-V1 as an EOS C200 grip (https://www.usa.canon.com/shop/p/gr-v1-camera-grip). Chose that first-party appearance; this does not establish that the other finish is invalid or identify production revisions.
+
+Replaced the separate red pip and black key with one red beveled cylindrical key. Radius .062 instead of .050 inside the existing .073 surround; depth .021 retained, bevel .003. These are photo-derived proportions, not measured CAD. Exported/compressed C200 and refreshed thumbnail. Actual /classic matching side view and adjacent oblique show the full red face, clear of the strap, with a narrow black surround and no console errors. Evidence c200-red-key-{before,after,oblique}-live.png; build and compression logs in ignored output. No runtime changes; lazy loading retained.
+
+Current C200 5057772 bytes, SHA256 f4b652d31eb593640e686d32b6d83cced877426aaa151000b20294a94da776c7. Full grip contour, material and whole-model photographic acceptance remain incomplete. Local/unpushed; goal active.
+
+
+### 2026-10-13 — separate C200 strap textile and leather finishes
+
+Previous turn improved the record key (progress). The saved Canon GR-V1 image shows woven strap ends and threaded buckle webbing, distinct from its leather pad and rubber palm. Replaced generic focus-rubber material on those three web pieces with a 256px seamless alternating warp/weft normal map, authored at .024 model-unit repeat (two yarn crossings). Added a separate leather-pad material with reduced normal strength and area-normalized grain. Geometry is unchanged. The weave is a procedural appearance approximation, not a measured textile scan; final world pitch is affected by the existing grip sizing.
+
+First export check failed: independently named UV layers caused the normal texture to use old/default coordinates (0..1) after joining. Corrected by writing the common active UVMap and preserving it. Final float GLB check follows the material normalTexture texCoord reference and verifies repeated coordinates; exported range U -22.9167..22.9167, V -2.9583..4.9583. Evidence check-c200-webbing-export.py and c200-webbing-export-check.json. Source was rebuilt after the UV correction; raw cache updated before compression.
+
+Actual /classic close and rear-oblique inspection confirms visible woven webbing through the buckle and at the upper attachment, with a separate softer pad finish; console errors empty. Saved c200-webbing-live-{close,oblique}.png and refreshed thumbnail. Public asset 5062048 bytes (previous 5057772), 23 primitives (previous 21); SHA256 2d297316dbe35d87ba387636ad9acc1f958dfa6fe3f1583f4fc8e92a3f56c61e. No renderer/loading changes. Generator/export/compression and diff check pass. Strap silhouette, stitching placement and full photographic acceptance remain incomplete. Local/unpushed; goal active.
+
+
+### 2026-10-13 — C200 leather pad perimeter seam
+
+Previous turn added textile/leather distinction (progress). Compared the pad with saved gr-v1-canon.png: its stitching follows the rounded perimeter, unlike the two floating straight rows in the model. Replaced those rows with an inset contour sampled from the same rounded pad outline, a narrow edge binding and 73 evenly spaced perimeter stitches. Each binding point and each stitch endpoint/midpoint is ray-projected onto the actual beveled pad before the grip transform; all 276 placements hit the pad. Binding center sits .002 units beneath the surface with .005 radius; thread center sits .0005 above with .0015 radius. Pitch .025040 and offsets are visual estimates, not measured manufacturing dimensions.
+
+Rebuilt/exported/compressed C200. Actual /classic close and rear-oblique views show a continuous rounded edge seam and seated thread detail, with no console errors. Saved c200-pad-seam-live-{close,oblique}.png; preceding c200-webbing-live-close.png is matching baseline framing. Retained the corrected webbing UVs and red key. Full pad shape, grip shell, materials and photographic acceptance remain incomplete. No renderer/loading changes. Generator contact assertions, export/compression and diff check pass.
+
+Public C200: 5090792 bytes, SHA256 3cf9d17365cfdd3a72802f534202f7dc9612f67b8550552e03b568da036272f0, 23 primitives. Local/unpushed; goal active.
+
+
+### 2026-10-13 — calibrate C200 rubber on the mixed-material grip
+
+Previous turn improved the pad seam (progress). Saved Canon GR-V1 reference shows finer rubber grain than the large stretched cells in the actual viewer. Found the mixed-material grip was skipped by finish normalization because slot zero is polymer and rubber occupies slot one. Added a dedicated C200 grip rubber material and area-based UV normalization restricted to its 1792 faces; continuous shell geometry stays intact. Existing renderer recognizes the C200 material prefix and preserves authored normal strength/repeat.
+
+First candidate (.60 tile span, .7 normal strength) was too fine and visually smooth; rejected after actual viewer inspection. Decoded the preceding meshopt GLB and measured area/UV-area: old tile span2.31115, effectively1.84892 after viewer repeat1.25; effective normal strength was3*.35=1.05. Revised to1.10 tile span and1.0 normal strength. These are appearance estimates from the reference, not physical scan calibration. Independent final float GLB check includes the exported node scale and measures1.10036 world tile span over3584triangles, versus authored1.10. Polygon-vs-triangle area difference is about.033%; initial1e-5 tolerance was too strict, replaced with.001. Normal scale1 is correctly omitted in glTF; checker uses its defined default. Evidence check-c200-rubber-{old,export}.py and c200-rubber-{old-check.txt,export-check.json}.
+
+Rebuilt/exported/compressed candidate checked in actual /classic close rear-oblique and side views: smaller visible grain retained, no console errors. Saved c200-rubber-final-{oblique,side}.png. Rejected fine candidate is c200-rubber-rejected-fine.png; initial capture caught HMR and is separately labeled invalid-hmr. Full surface/reference match remains incomplete, particularly grip shape and upper transition. Generator/export checks, compression and diff check pass. No runtime/loading changes.
+
+C200 5083404 bytes, SHA256 bc4264718a5958e2e93b5ba6ad50f8053728d01a6a23e324e783bf01c3955bdf, 23 primitives. Local/unpushed; goal active.
+
+
+### 2026-10-13 — broaden the C200 thumb-deck shell transition
+
+Previous turn corrected rubber UV calibration (progress). Independent edge-dihedral inspection of the current unmerged shell found48.719degree bends at the rear-deck shoulder near localx=-.434;154sampled edges exceeded30degrees. This locates a real shell kink rather than only a raised-panel or material artifact. Tested broader blend intervals on the same pre-deformation loft mesh. Retained start blend[-.60,-.32] instead of[-.56,-.44], and end blend[-.16,.10] instead of[-.16,.035]. These are photo-guided contour adjustments, not measured CAD.
+
+Final shell remains closed/manifold; largest checked rear-deck bend28.455degrees, zero candidate edges above30. Final check extends the inspected x region to.10 to include the longer blend.1688of7682vertices move, maxlocaldisplacement.129275. Before/after195front-face control rays are identical: record65self; joystick64self plus1hit on its intended center; FOCUS GUIDE59self plus6blocked by the existing audio-selector housing. The latter is existing directional body occlusion, not proof of visibility at every angle. Evidence check-c200-grip-curvature.py, probe-c200-grip-{blends,wide-blends}.py, check-c200-grip-blend-after.py, compare-c200-grip-controls.py and their JSON/logs in ignored output.
+
+Rebuilt and compressed C200. Actual /classic side, oblique and rear-grip views show a smoother upper sweep; controls remain visible in these views and console errors are empty. Saved c200-deck-blend-{side,oblique,rear}.png. Thumbnail refreshed. Exact grip proportions, control-panel transition, other body contours/materials/optics and full photographic acceptance remain incomplete. No renderer/loading changes. Public C200 5100136bytes, SHA256 0f6d6ded4d14182c314149aab82d6c99f075c9c319a2deebf27e5979ee8df875. Generator checks, export/compression and diff check pass. Local/unpushed; goal active.
+
+
+### 2026-10-13 — resolve 40D/50mm mount and panel suspicions
+
+Previous turn improved the C200 thumb-deck contour (progress). Re-examined the reported exposed silver mount on the40D+50. The first selection screenshot caught the650ms lens-change animation; a subsequent settled view shows the lens fully seated and covering the flange. Source matches this: lens seating plane .088 plus static translation(.53-.088) equals body flange seating .53. Did not alter correct assembly offsets or flange size. Saved40d-50-mount-settled.png.
+
+The50mm switch panel still uses partial bmesh subdivision, so tested whether the telephoto collapsed-face issue reproduced here before changing it. Independent unmerged topology check: AF/MF recess3256vertices5484faces, track614/1224, slider302/600; all zero boundary edges, overconnected edges and zero-area faces. Printed legend has77vertices72faces and76boundary edges, expected for flat glyphs; no overconnected or zero-area faces. Evidence check-50-panel-topology.py,50-panel-topology-before.json/log and50-panel-before.blend. This rules out the tested topology defect here; it does not validate every possible surface issue or justify a speculative rewrite.
+
+Compared with saved50ii-canon.jpg and50ii.jpg. Actual /classic settled side and front-oblique views show readable AF/MF lettering and the inset control assembly; no console errors. Saved50-switch-{side,oblique}-verified.png. No production geometry/runtime change in this turn. These checks remove two suspected defects from the next-action list; material response, optical fidelity and full body/reference matching remain unfinished. Existing local C200 changes remain unpushed; goal active.
+
+
+### 2026-10-13 — R7 molded rocker ribs and shipping checkpoint
+
+Replaced four hairline direction marks with short rounded molded ribs following the actual rocker dish. Reference: saved Canon R7 rear close-up. First candidate used corner radius equal to half the width and produced zero-area faces; rejected. Final radius .004 passes independent closed/manifold and face-area checks. All 2744 rib-vertex projections hit the dish, with clearance spanning -.0015683 to .00348574 model units, confirming embedded bases and raised faces. Evidence: check-r7-rocker-ribs.py, r7-rocker-ribs-check.json and final build/compression logs in ignored output. Actual /classic rear and adjacent oblique views show the ribs, with no console errors. They remain subtle under current lighting; full material/reference matching is incomplete. Refreshed R7 thumbnail and default setup poster.
+
+Public R7: 4186804 bytes, SHA256 af3cf0ff7c9c2fbd818f3392f8aedb5e14dbfb4108c17691ed8fe993d8b1f7c5. User requested shipping the current checkpoint, including the preceding C200 changes. Six tests / 101 assertions pass. No renderer or loading changes; photographic acceptance remains incomplete.

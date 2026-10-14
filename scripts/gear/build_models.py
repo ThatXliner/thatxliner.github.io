@@ -82,6 +82,20 @@ M['Pebbled rubber'].name='Scanned grip rubber'
 material('Molded grip rubber',(.009,.0095,.01),.66,0,PEBBLE,1.4)
 material('Crinkle painted metal',(.010,.011,.013),.48,0,PEBBLE,.48)
 material('Focus rubber',(.011,.011,.012),.56,0,FINE,.35)
+# Two alternating warp/weft crossings per repeat, with rounded yarn crowns.
+yy,xx=np.mgrid[:256,:256].astype(float);wx=xx/128;wy=yy/128
+warp=np.sin(pi*(wx%1))**4*(.65+.35*np.cos(pi*wy)*(-1)**np.floor(wx))
+weft=np.sin(pi*(wy%1))**4*(.65-.35*np.cos(pi*wx)*(-1)**np.floor(wy))
+woven_height=np.maximum(warp,weft)
+dx=(np.roll(woven_height,-1,1)-np.roll(woven_height,1,1))*256*.001/(2*.024)
+dy=(np.roll(woven_height,-1,0)-np.roll(woven_height,1,0))*256*.001/(2*.024)
+woven_normals=np.stack([-dx,-dy,np.ones_like(dx)],axis=-1)
+woven_normals/=np.linalg.norm(woven_normals,axis=-1)[...,None]
+WOVEN=image('c200-webbing-normal',woven_normals*.5+.5)
+material('C200 woven webbing',(.008,.009,.010),.78,0,WOVEN,1)
+material('C200 strap leather',(.010,.011,.012),.60,0,LEATHER,.6)
+material('C200 grip rubber',(.009,.0095,.01),.66,0,LEATHER,1.0)
+
 material('Telephoto grip rubber',(.009,.009,.010),.68,0,FINE,.20)
 M['Telephoto grip rubber'].node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value=.30
 material('Blackened aperture steel',(.006,.007,.008),.42,.35)
@@ -1473,12 +1487,13 @@ def body(which):
         text('Quick control Q','Q',(x,y+.022,rz-.0965),.039,'Deep black',rotation=(0,pi,0))
         text('SET printed legend','SET',(x,y-.022,rz-.096),.040,rotation=(0,pi,0))
         for a in [0,pi/2,pi,3*pi/2]:
-            # Follow the dish slope so each printed direction notch stays flush.
-            points=[]
-            for i in range(6):
-                radius=.130+i*.007;t=(.181-radius)/(.181-.079)
-                points.append((x+cos(a)*radius,y+sin(a)*radius,rz-.093+.018*(2*t-t*t)))
-            line('Rocker direction notch',points,.002,'Deep black')
+            # Canon's rear close-up shows short molded ribs, not hairline ink.
+            rib=rounded_panel('Rocker direction rib',(.150,0,0),(.050,.009,.005),.004,'Graphite polymer')
+            refine_surface(rib,lambda a,b:(a-b).length>.008,4)
+            for vertex in rib.data.vertices:
+                u,v,depth=vertex.co;radius=math.hypot(u,v);t=(.181-radius)/(.181-.079)
+                vertex.co=(x+cos(a)*u-sin(a)*v,y+sin(a)*u+cos(a)*v,rz-.093+.018*(2*t-t*t)+depth)
+            rib.data.update();finish(rib)
         pad_fit=Matrix.Translation(Vector((x,y,0)))@Matrix.Diagonal((.88,.88/.87,1,1))@Matrix.Translation(Vector((-x,-y,0)))
         for o in OBJECTS[four_way_start:]:o.matrix_world=pad_fit@o.matrix_world
     def rear_ink(name,x,y,points,mat='Blue ink',filled=False,width=.003):
@@ -3200,11 +3215,11 @@ def cinema():
     active(grip_shell);bpy.ops.object.transform_apply(location=False,rotation=True,scale=False)
     # Rubber and polymer share one shell; the material boundary is assigned
     # along complete cross-section rings after shaping the rear thumb deck.
-    grip_shell.data.materials.append(M['Pebbled rubber'])
+    grip_shell.data.materials.append(M['C200 grip rubber'])
     profile('Grip rear control panel',[(-.54,.12),(-.44,.29),(-.30,.27),(-.25,.07),(-.33,-.20),(-.49,-.21)],.402,.433,'Graphite polymer',.035)
     cyl('Grip record recess',(-.43,-.10,.449),.073,.029,'Deep black')
-    cyl('Grip record button',(-.43,-.10,.469),.050,.021,'Anodized black')
-    cyl('Grip record red pip',(-.43,-.10,.482),.014,.003,'Red lacquer',vertices=24)
+    # Canon's GR-V1 has a full red key inside a narrow black surround.
+    cyl('Grip record button',(-.43,-.10,.469),.062,.021,'Red lacquer',vertices=64,bevel=.003)
     dial((-.35,.15,.445),.078,'y',width=.095)
     text('Grip start stop','START\nSTOP',(-.54,-.10,.44),.023)
     # Rear thumb controls shown in Canon's GR-V1 parts inset (manual p.18).
@@ -3218,7 +3233,9 @@ def cinema():
     for vertex in grip_shell.data.vertices:
         x,y,z=vertex.co
         if y>=0:continue
-        weight=grip_smoothstep(-.56,-.44,x)*(1-grip_smoothstep(-.16,.035,x))
+        # Spread the deck transition across the rounded palm; the shorter
+        # blend produced a 49-degree kink between neighboring mesh faces.
+        weight=grip_smoothstep(-.60,-.32,x)*(1-grip_smoothstep(-.16,.10,x))
         edge=abs((z-.285)/.185)
         if edge>=1:continue
         rear=-.414*max(0,1-edge**8)**.125
@@ -3254,15 +3271,49 @@ def cinema():
         # Rise from the attachment into the pad; a flat strip left an air gap.
         web_path=([(-.55,.460),(-.46,.460),(-.39,.480),(-.33,.507),(-.25,.515)] if x<0
                   else [(.55,.460),(.44,.460),(.40,.480),(.36,.507),(.30,.515)])
-        web=profile('Strap web',web_path+[(u,v+.018) for u,v in reversed(web_path)],-.095,.095,'Focus rubber',.003,rounding=.008)
+        web=profile('Strap web',web_path+[(u,v+.018) for u,v in reversed(web_path)],-.095,.095,'C200 woven webbing',.003,rounding=.008)
+        web_uv=web.data.uv_layers.active or web.data.uv_layers.new(name='UVMap')
+        for face in web.data.polygons:
+            for li in face.loop_indices:
+                co=web.data.vertices[web.data.loops[li].vertex_index].co
+                web_uv.data[li].uv=(co.x/.024,co.z/.024)
+        web['preserve_uv']=True
         web.matrix_world=Matrix.Translation((0,.10,0))@Matrix.Rotation(pi/2,4,'X')@web.matrix_world
     # Keep the rear pad edge clear of the record control, as in the GR-V1
     # reference. The narrower web still reaches the original attachment.
     strap_outline=[(-.45,-.04),(-.36,-.11),(.28,-.11),(.43,-.04),(.40,.23),(.25,.30),(-.32,.30),(-.46,.22)]
-    profile('Padded Canon hand strap',[(x*.72 if x<0 else x,y) for x,y in strap_outline],.52,.58,'Pebbled rubber',.040)
+    pad_outline=[(x*.72 if x<0 else x,y) for x,y in strap_outline]
+    pad=profile('Padded Canon hand strap',pad_outline,.52,.58,'C200 strap leather',.040)
     text('Hand strap Canon','Canon',(-.02,.10,.587),.087,font='Canon')
-    for y in [-.065,.252]:
-        for i in range(24):line('Strap stitching',[(x*.72 if x<0 else x,y,.587) for x in [-.32+i*.027,-.307+i*.027]],.0015,'Graphite polymer')
+    # Stitching follows the pad perimeter and is seated on its actual bevel,
+    # rather than floating in two straight rows above the leather.
+    bpy.context.view_layer.update()
+    from mathutils.bvhtree import BVHTree
+    pad_surface=BVHTree.FromObject(pad,bpy.context.evaluated_depsgraph_get())
+    contour=[Vector((p[0],p[1])) for p in smooth_outline(pad_outline)]
+    def seam_path(inset):
+        points=[]
+        for i,p in enumerate(contour):
+            tangent=(contour[(i+1)%len(contour)]-contour[i-1]).normalized()
+            points.append(p+Vector((-tangent.y,tangent.x))*inset)
+        return points
+    def seated_seam(p,offset):
+        hit=pad_surface.ray_cast(Vector((p.x,p.y,1)),Vector((0,0,-1)),.5)[0]
+        assert hit is not None, 'Strap seam missed leather pad'
+        return (hit.x,hit.y,hit.z+offset)
+    welt=seam_path(.015)
+    line('Leather pad edge binding',[seated_seam(p,-.002) for p in welt+[welt[0]]],.005,'C200 strap leather')
+    stitch_path=seam_path(.034);stitch_path.append(stitch_path[0])
+    lengths=[(b-a).length for a,b in zip(stitch_path,stitch_path[1:])]
+    perimeter=sum(lengths);count=round(perimeter/.025);pitch=perimeter/count
+    def stitch_point(distance):
+        for i,length in enumerate(lengths):
+            if distance<=length:return stitch_path[i].lerp(stitch_path[i+1],distance/length)
+            distance-=length
+        return stitch_path[0]
+    for i in range(count):
+        line('Strap perimeter stitch',[seated_seam(stitch_point((i+t)*pitch),.0005) for t in [.15,.45,.75]],.0015,'Graphite polymer')
+    print('C200 strap perimeter stitches',count,'pitch',round(pitch,6),'surface samples',len(welt)+1+count*3,flush=True)
     buckle=rounded_panel('Strap adjustment buckle',(.26,.12,.613),(.18,.23,.032),.026,'Graphite polymer')
     opening=rounded_panel('Buckle opening cutter',(.26,.12,.613),(.128,.174,.10),.012,None)
     cut=buckle.modifiers.new('Open webbing passage','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(buckle,cut)
@@ -3271,7 +3322,13 @@ def cinema():
         if abs(face.normal.z)>.999:face.use_smooth=False
     box('Buckle center bar',(.26,.12,.613),(.024,.178,.026),'Graphite polymer',.008)
     # The web crosses the center bar, leaving both passages visibly open.
-    box('Buckle threaded web',(.26,.12,.634),(.22,.105,.012),'Focus rubber',.005)
+    threaded=box('Buckle threaded web',(.26,.12,.634),(.22,.105,.012),'C200 woven webbing',.005)
+    web_uv=threaded.data.uv_layers.active or threaded.data.uv_layers.new(name='UVMap')
+    for face in threaded.data.polygons:
+        for li in face.loop_indices:
+            co=threaded.data.vertices[threaded.data.loops[li].vertex_index].co
+            web_uv.data[li].uv=(co.x/.024,co.y/.024)
+    threaded['preserve_uv']=True
     # Canon's standard 0-degree mounting position is upright (manual p.43),
     # with the REC control above the palm. Rotate about the rosette axis so
     # the mounting center stays fixed while the grip and strap turn together.
@@ -3961,7 +4018,22 @@ def export_asset(name,objects):
             for vertex,value in zip(o.data.vertices,normals.data):value.vector=vertex.normal
         if len(o.data.polygons)>0 and not o.get('preserve_uv'):
             bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT');bpy.ops.uv.smart_project(angle_limit=1.15,island_margin=.01);bpy.ops.object.mode_set(mode='OBJECT')
-        if o.data.materials and any(finish in o.data.materials[0].name for finish in ['Scanned grip rubber','Molded grip rubber','Crinkle painted metal','C200 Magnesium shell','White enamel']):
+        # The C200 palm shares a mesh with its polymer shell. Normalize only
+        # rubber faces; checking material slot zero skipped this finish entirely.
+        rubber_faces=[f for f in o.data.polygons if o.data.materials[f.material_index].name=='C200 grip rubber']
+        if rubber_faces:
+            transform=o.matrix_world.to_3x3();normal_transform=transform.inverted().transposed()
+            world_area=abs(transform.determinant())*sum(f.area*(normal_transform@f.normal).length for f in rubber_faces)
+            uv=o.data.uv_layers.active.data;uv_area=0
+            for face in rubber_faces:
+                points=[uv[i].uv for i in face.loop_indices]
+                uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
+            assert uv_area>1e-9, 'C200 grip rubber needs nonzero UV area'
+            density=math.sqrt(world_area/uv_area)/1.10
+            for face in rubber_faces:
+                for li in face.loop_indices:uv[li].uv*=density
+            print('C200 rubber UV tile span',round(math.sqrt(world_area/(uv_area*density*density)),6),'faces',len(rubber_faces),flush=True)
+        if o.data.materials and any(finish in o.data.materials[0].name for finish in ['Scanned grip rubber','Molded grip rubber','Crinkle painted metal','C200 Magnesium shell','C200 strap leather','White enamel']):
             # Smart projection packs each part independently. Normalize density
             # so a small thumb pad does not have larger grain than the hand grip.
             transform=o.matrix_world.to_3x3();normal_transform=transform.inverted().transposed()
