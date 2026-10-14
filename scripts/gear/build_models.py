@@ -3204,7 +3204,11 @@ def cinema():
         rear=-.414*max(0,1-edge**8)**.125
         # Taper to the original surface at the outer circumference.
         weight*=grip_smoothstep(0,.075,-y)
-        vertex.co.y=y+(min(y,rear)-y)*weight
+        # Blend the thumb deck into the curved palm with a continuous slope.
+        # A hard min left a crease where the two surfaces met.
+        blend=max(.04-abs(y-rear),0)/.04
+        seated=min(y,rear)-blend*blend*.01
+        vertex.co.y=y+(seated-y)*weight
     grip_shell.data.update()
     for face in grip_shell.data.polygons:
         face.material_index=1 if -.12<face.center.x<.42 else 0
@@ -3227,11 +3231,18 @@ def cinema():
     # Strap bridges the hand space; its padded center is distinct from the webs.
     for x in [-.46,.44]:
         box('Strap attachment',(x,.10,.443),(.10,.28,.054),'Anodized black',.015)
-        box('Strap web',(x,.10,.49),(.22,.19,.034),'Focus rubber',.018)
-    profile('Padded Canon hand strap',[(-.45,-.04),(-.36,-.11),(.28,-.11),(.43,-.04),(.40,.23),(.25,.30),(-.32,.30),(-.46,.22)],.52,.58,'Pebbled rubber',.040)
+        # Rise from the attachment into the pad; a flat strip left an air gap.
+        web_path=([(-.55,.460),(-.46,.460),(-.39,.480),(-.33,.507),(-.25,.515)] if x<0
+                  else [(.55,.460),(.44,.460),(.40,.480),(.36,.507),(.30,.515)])
+        web=profile('Strap web',web_path+[(u,v+.018) for u,v in reversed(web_path)],-.095,.095,'Focus rubber',.003,rounding=.008)
+        web.matrix_world=Matrix.Translation((0,.10,0))@Matrix.Rotation(pi/2,4,'X')@web.matrix_world
+    # Keep the rear pad edge clear of the record control, as in the GR-V1
+    # reference. The narrower web still reaches the original attachment.
+    strap_outline=[(-.45,-.04),(-.36,-.11),(.28,-.11),(.43,-.04),(.40,.23),(.25,.30),(-.32,.30),(-.46,.22)]
+    profile('Padded Canon hand strap',[(x*.72 if x<0 else x,y) for x,y in strap_outline],.52,.58,'Pebbled rubber',.040)
     text('Hand strap Canon','Canon',(-.02,.10,.587),.087,font='Canon')
     for y in [-.065,.252]:
-        for i in range(24):line('Strap stitching',[(-.32+i*.027,y,.587),(-.307+i*.027,y,.587)],.0015,'Graphite polymer')
+        for i in range(24):line('Strap stitching',[(x*.72 if x<0 else x,y,.587) for x in [-.32+i*.027,-.307+i*.027]],.0015,'Graphite polymer')
     buckle=rounded_panel('Strap adjustment buckle',(.26,.12,.613),(.18,.23,.032),.026,'Graphite polymer')
     opening=rounded_panel('Buckle opening cutter',(.26,.12,.613),(.128,.174,.10),.012,None)
     cut=buckle.modifiers.new('Open webbing passage','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(buckle,cut)
@@ -3332,8 +3343,26 @@ def cinema():
         cut=housing.modifiers.new('Recessed XLR socket seat','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=pocket;apply(housing,cut);bpy.data.objects.remove(pocket,do_unlink=True)
         cyl('XLR socket dark well',(.57,y,.105),.134,.008,'Deep black',vertices=96,bevel=.002)
         ring('XLR socket metal rim',.131,.130,.117,.012,'Machined metal',center=(.57,y))
-        cyl('XLR dust cap',(.57,y,.145),.114,.035,'Focus rubber',vertices=96,bevel=.009)
-        sphere('XLR cap rounded face',(.57,y,.160),(.109,.109,.007),'Focus rubber')
+        # The rear product view shows a continuous rounded rubber cap. A
+        # cylinder plus intersecting flattened sphere left a flat annular shelf.
+        cap_profile=[(.107,.1275),(.112,.130),(.114,.137),(.114,.149),
+                     (.112,.158),(.105,.167),(.090,.174),(.060,.180),(.030,.183)]
+        segments=96;vertices=[];faces=[]
+        for radius,zz in cap_profile:
+            vertices.extend((.57+radius*cos(i*2*pi/segments),y+radius*sin(i*2*pi/segments),zz) for i in range(segments))
+        faces.append(tuple(reversed(range(segments))))
+        for row in range(len(cap_profile)-1):
+            for i in range(segments):
+                j=(i+1)%segments;faces.append((row*segments+i,row*segments+j,(row+1)*segments+j,(row+1)*segments+i))
+        tip=len(vertices);vertices.append((.57,y,.184))
+        for i in range(segments):faces.append(((len(cap_profile)-1)*segments+i,(len(cap_profile)-1)*segments+(i+1)%segments,tip))
+        mesh=bpy.data.meshes.new('Continuous XLR cap');mesh.from_pydata(vertices,[],faces);mesh.update()
+        cap=bpy.data.objects.new('XLR dust cap',mesh);scene.collection.objects.link(cap);register(cap,'XLR dust cap','Focus rubber')
+        for face in mesh.polygons:face.use_smooth=len(face.vertices)<segments
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(mesh)
+        assert all(edge.is_manifold for edge in bm.edges), 'XLR cap must be closed'
+        bm.free()
         profile('XLR cap retaining tongue',[(.545,y-.095),(.588,y-.095),(.601,y-.121),(.594,y-.147),(.553,y-.147),(.540,y-.125)],.128,.145,'Focus rubber',.004,rounding=.008)
         rounded_panel('XLR release recess',(.787,y,.131),(.062,.167,.011),.010,'Deep black')
         rounded_panel('XLR release',(.787,y,.144),(.045,.14,.020),.008,'White ink')

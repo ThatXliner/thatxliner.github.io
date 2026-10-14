@@ -91,6 +91,15 @@ Compress the exported GLBs with glTF Transform, retaining geometry and material 
 bunx @gltf-transform/cli optimize input.glb output.glb --compress meshopt --simplify false --palette false --texture-compress webp
 ```
 
+For `70-200-f28`, preserve the thin switch lettering with 16-bit positions.
+Run the preparation step from the uncompressed Blender export; increasing the
+precision of an already quantized GLB cannot recover collapsed triangles:
+
+```sh
+bunx @gltf-transform/cli optimize input.glb prepared.glb --compress false --simplify false --palette false --texture-compress webp
+bunx @gltf-transform/cli meshopt prepared.glb output.glb --quantize-position 16
+```
+
 The web viewer loads the compressed GLBs with Three.js and MeshoptDecoder.
 
 ## Wordmark
