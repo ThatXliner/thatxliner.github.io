@@ -3467,3 +3467,11 @@ Canon's technical explanation describes thin-film interference and multilayer co
 ### R7 joystick cap — 2026-10-13
 
 Canon Snapshot, “EOS R7 or Advanced APS-C DSLR? (Part 1): Buttons, Controls, and EVF”: https://snapshot.asia.canon/ph/en/article/eos-r7-or-advanced-aps-c-dslr-part-1-buttons-controls-and-evf . Rear close-up saved locally as r7-rear-snapshot-canon.jpg shows a smooth rim around a flat dotted joystick surface. Cap diameter and depth are visual estimates, not manufacturer dimensions.
+
+### 40D rear power switch — 2026-10-13
+
+Reused 40d-rear-photo.jpg. Its lower rear switch shows a broad fan-shaped base, diagonal raised fin and white index near the right tip. Revised the earlier dome/bar approximation to match those visible features. Profile coordinates, thicknesses and bevels are visual estimates. See FIDELITY_AUDIT.md for matched comparison and actual-viewer evidence.
+
+### 40D quick-control wheel detail — 2026-10-13
+
+Charles Lanteigne's own rear photograph (2008), https://commons.wikimedia.org/wiki/File:Canon_EOS_40D_back.jpg , downloaded from https://upload.wikimedia.org/wikipedia/commons/c/cb/Canon_EOS_40D_back.jpg as 40d-rear-lanteigne.jpg (3000 × 2275). Commons identifies CC BY-SA 3.0; reference retained in ignored output only, not embedded into the site or its textures. The sharper image shows roughly 45 broad, tapered, rounded ribs and dark molded SET lettering. Count, profiles, relief and finish are image-derived estimates. Local wheel crops and an angular unwrap support comparison, not a manufacturer measurement.

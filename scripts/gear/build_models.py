@@ -1280,9 +1280,12 @@ def body(which):
         cyl('Quick control recess',(-.73,-.32,rz-.031),.355,.035,'Deep black')
         ring('Quick wheel rim',rz-.063,.315,.292,.037,'Graphite polymer',center=(-.73,-.32))
         ring('Quick wheel rubber face',rz-.079,.301,.244,.029,'Focus rubber',center=(-.73,-.32))
-        for i in range(88):
-            a=i*2*pi/88
-            tooth=box('Rear wheel radial grip',(-.73+cos(a)*.273,-.32+sin(a)*.273,rz-.101),(.047,.011,.013),'Focus rubber',.004);tooth.rotation_euler.z=a
+        # Lanteigne's high-resolution rear photo resolves about 45 rounded ribs.
+        # Their soft radial ends are unlike the old densely spaced flat bars.
+        for i in range(45):
+            a=i*2*pi/45
+            tooth=profile('Rear wheel radial grip',[(-.027,-.002),(-.025,-.008),(-.020,-.011),(.026,-.014),(.030,-.009),(.030,.009),(.026,.014),(-.020,.011),(-.025,.008),(-.027,.002)],rz-.102,rz-.091,'Satin control plastic',.003,rounding=.005)
+            tooth.location.x=-.73+cos(a)*.278;tooth.location.y=-.32+sin(a)*.278;tooth.rotation_euler.z=a
         # A shallow continuous face joins the grip ring to the narrow SET
         # collar visible in the rear reference, without a broad annular step.
         segments=128;rows=20;verts=[];faces=[]
@@ -1300,7 +1303,8 @@ def body(which):
         ring('SET collar',rz-.078,.132,.107,.012,'Satin control plastic',center=(-.73,-.32),segments=96)
         cyl('SET button socket',(-.73,-.32,rz-.080),.109,.017,'Deep black')
         cyl('SET button',(-.73,-.32,rz-.091),.095,.016,'Graphite polymer',vertices=96,bevel=.004)
-        text('SET legend','SET',(-.73,-.32,rz-.101),.037,rotation=(0,pi,0))
+        legend=text('SET molded legend','SET',(-.73,-.32,rz-.099),.062,'Satin control plastic',rotation=(0,pi,0))
+        raised=legend.modifiers.new('Molded lettering relief','SOLIDIFY');raised.thickness=.002;raised.offset=1;apply(legend,raised)
         # The unlit card-access window sits outside the quick-control wheel
         # at its lower right in the rear product reference (negative model X).
         access_socket=rounded_panel('Card access lamp socket',(0,0,0),(.038,.078,.009),.015,'Deep black')
@@ -1321,10 +1325,14 @@ def body(which):
         ring('Multi controller bezel',rz-.064,.116,.088,.020,'Satin control plastic',center=(-.52,.24),segments=96)
         sphere('Multi controller rubber seat',(-.52,.24,rz-.066),(.085,.085,.025),'Focus rubber')
         cyl('Multi controller thumb pad',(-.52,.24,rz-.094),.064,.014,'Satin control plastic',vertices=64,bevel=.006)
-        sphere('Rear power recess',(-.34,-.74,rz-.032),(.145,.09,.027),'Deep black')
-        lever=box('Rear power lever',(-.35,-.74,rz-.066),(.23,.045,.029),'Graphite polymer',.015);lever.rotation_euler.z=.06
+        # Rear photograph: a fan-shaped switch base with a diagonal raised fin.
+        # Dimensions follow the image silhouette, not a manufacturer drawing.
+        power_outline=[(.135,.064),(.070,.084),(-.075,.073),(-.139,.031),(-.145,-.019),(-.096,-.076),(.078,-.083),(.142,-.048),(.157,.005)]
+        profile('Rear power switch base',[(-.34+x,-.74+y) for x,y in power_outline],rz-.077,rz-.036,'Satin control plastic',.007,rounding=.021)
+        lever_outline=[(.132,.052),(.101,.073),(-.113,-.010),(-.132,-.034),(-.111,-.047),(.117,.024)]
+        profile('Rear power lever',[(-.34+x,-.74+y) for x,y in lever_outline],rz-.110,rz-.071,'Graphite polymer',.007,rounding=.008)
         text('Rear power markings','ON\nOFF',(-.53,-.75,rz-.045),.045,rotation=(0,pi,0))
-        marker=box('Rear power lever index',(-.437,-.745,rz-.0815),(.040,.010,.002),'White ink',.001);marker.rotation_euler.z=.06
+        marker=box('Rear power lever index',(-.449,-.768,rz-.111),(.034,.012,.002),'White ink',.003);marker.rotation_euler.z=.32
         line('Rear power markings quick control position',[(-.492,-.675,rz-.045),(-.548,-.655,rz-.045),(-.548,-.625,rz-.045)],.003,'White ink')
     else:
         # Rear R7 reference: a deeply recessed joystick inside a knurled wheel,
