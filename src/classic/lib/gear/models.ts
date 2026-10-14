@@ -254,6 +254,17 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                       "28-135": [1.777, 0.713 * 0.801],
                     };
                     const opening = new THREE.Vector2(...apertures[id]);
+                    // Stop plane, vertex radius, edge count, rounded blade count.
+                    // Match build_models.py openings; flatten sub-.002 blade offsets
+                    // and soften the boundary across bevels.
+                    const irises: Record<string, [number, number, number, number]> = {
+                      "50": [0.275, 0.185, 5, 0],
+                      "35": [0.726, 0.225, 128, 0],
+                      "70-200-f4": [3.12 * 0.46 + 0.008, 0.69 * 0.24, 96, 8],
+                      "70-200-f28": [3.62 * 0.46 + 0.008, 0.805 * 0.28, 96, 8],
+                      "28-135": [1.76 - 0.90 + 0.008, 0.713 * 0.16, 72, 6],
+                    };
+                    const iris = new THREE.Vector4(...irises[id]);
                     const assetFromWorld = { value: new THREE.Matrix4() };
                     material.onBeforeRender = (_renderer, _scene, _camera, _geometry, mesh) => {
                       assetFromWorld.value.copy(mesh.matrixWorld).invert().premultiply(assetFromMesh);
@@ -262,22 +273,48 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                       shader.uniforms.opticalAssetFromMesh = { value: assetFromMesh };
                       shader.uniforms.opticalAssetFromWorld = assetFromWorld;
                       shader.uniforms.opticalOpening = { value: opening };
+                      shader.uniforms.opticalIris = { value: iris };
                       shader.vertexShader = "uniform mat4 opticalAssetFromMesh;\nvarying vec3 opticalAssetPosition;\n" + shader.vertexShader;
                       shader.vertexShader = shader.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\nopticalAssetPosition = (opticalAssetFromMesh * vec4(position, 1.0)).xyz;");
-                      shader.fragmentShader = "uniform mat4 opticalAssetFromWorld;\nuniform vec2 opticalOpening;\nvarying vec3 opticalAssetPosition;\n" + shader.fragmentShader;
+                      shader.fragmentShader = `uniform mat4 opticalAssetFromWorld;
+                      uniform vec2 opticalOpening;
+                      uniform vec4 opticalIris;
+                      varying vec3 opticalAssetPosition;
+                      float opticalIrisVisibility(vec2 hit) {
+                        if (length(hit) < opticalIris.y * 0.5) return 1.0;
+                        float tau = 6.28318530718;
+                        float edgeAngle = tau / opticalIris.z;
+                        float angle = mod(atan(hit.y, hit.x) + tau, tau);
+                        float a = floor(angle / edgeAngle) * edgeAngle;
+                        vec2 angles = vec2(a, a + edgeAngle);
+                        vec2 bulge = sin(angles * opticalIris.w * 0.5);
+                        vec2 radii = opticalIris.y * (1.0 + 0.025 * bulge * bulge);
+                        vec2 start = radii.x * vec2(cos(angles.x), sin(angles.x));
+                        vec2 end = radii.y * vec2(cos(angles.y), sin(angles.y));
+                        vec2 edge = end - start;
+                        vec2 delta = hit - start;
+                        float outside = dot(delta, vec2(edge.y, -edge.x)) / length(edge);
+                        return 1.0 - smoothstep(-opticalIris.y * 0.008, opticalIris.y * 0.008, outside);
+                      }
+                      ` + shader.fragmentShader;
                       const environment = THREE.ShaderChunk.envmap_physical_pars_fragment.replace(
                         "return envMapColor.rgb * envMapIntensity;",
                         `vec3 apertureRay = normalize(mat3(opticalAssetFromWorld) * reflectVec);
                         float apertureDistance = (opticalOpening.x - opticalAssetPosition.z) / max(apertureRay.z, 0.00001);
                         vec2 apertureHit = opticalAssetPosition.xy + apertureRay.xy * apertureDistance;
                         float apertureVisibility = step(0.00001, apertureRay.z) * (1.0 - smoothstep(opticalOpening.y * 0.992, opticalOpening.y * 1.008, length(apertureHit)));
+                        // The iris only intercepts reflections originating behind it.
+                        if (opticalAssetPosition.z < opticalIris.x) {
+                          float irisDistance = (opticalIris.x - opticalAssetPosition.z) / max(apertureRay.z, 0.00001);
+                          apertureVisibility *= opticalIrisVisibility(opticalAssetPosition.xy + apertureRay.xy * irisDistance);
+                        }
                         return envMapColor.rgb * envMapIntensity * apertureVisibility;`,
                       );
                       if (!environment.includes("apertureVisibility") || !shader.vertexShader.includes("opticalAssetPosition =") || !shader.fragmentShader.includes("#include <envmap_physical_pars_fragment>"))
                         throw new Error("Optical aperture shader integration changed");
                       shader.fragmentShader = shader.fragmentShader.replace("#include <envmap_physical_pars_fragment>", environment);
                     };
-                    material.customProgramCacheKey = () => "internal-aperture-v2";
+                    material.customProgramCacheKey = () => "internal-aperture-v3";
                   }
                   material.blending = THREE.AdditiveBlending;
                 } else material.color.setRGB(0.96, 0.98, 0.97);

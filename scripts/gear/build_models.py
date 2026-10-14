@@ -447,6 +447,41 @@ def profile(name,points,back,front,mat='Magnesium shell',bevel=.035,rounding=.10
     faces.extend([(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)])
     mesh=bpy.data.meshes.new(name);mesh.from_pydata(verts,[],faces);mesh.update();o=bpy.data.objects.new(name,mesh);scene.collection.objects.link(o);register(o,name,mat);return finish(o,bevel,4)
 
+def refine_surface(obj,needs_split,passes):
+    # Split shared triangle edges together. Repeated n-gon triangulation
+    # of this thin bevel creates duplicate faces along partial subdivisions.
+    obj.data.calc_loop_triangles()
+    vertices=[v.co.copy() for v in obj.data.vertices]
+    triangles=[tuple(t.vertices) for t in obj.data.loop_triangles]
+    for _ in range(passes):
+        edges={tuple(sorted((a,b))) for face in triangles for a,b in zip(face,face[1:]+face[:1])
+               if needs_split(vertices[a],vertices[b])}
+        if not edges:break
+        mids={}
+        for a,b in sorted(edges):
+            mids[(a,b)]=len(vertices);vertices.append((vertices[a]+vertices[b])*.5)
+        refined=[]
+        for face in triangles:
+            marks=[mids.get(tuple(sorted((face[i],face[(i+1)%3])))) for i in range(3)]
+            count=sum(m is not None for m in marks)
+            if count==0:refined.append(face);continue
+            if count==3:
+                a,b,c=face;ab,bc,ca=marks
+                refined.extend([(a,ab,ca),(ab,b,bc),(ca,bc,c),(ab,bc,ca)])
+            else:
+                k=next(i for i,m in enumerate(marks) if (m is not None)==(count==1))
+                if count==2:k=(k+1)%3
+                a,b,c=[face[(k+i)%3] for i in range(3)]
+                ab=marks[k]
+                if count==1:refined.extend([(a,ab,c),(ab,b,c)])
+                else:
+                    bc=marks[(k+1)%3];refined.extend([(b,bc,ab),(a,ab,c),(ab,bc,c)])
+        triangles=refined
+    old=obj.data;mesh=bpy.data.meshes.new(old.name+' subdivided')
+    mesh.from_pydata(vertices,[],triangles)
+    for mat in old.materials:mesh.materials.append(mat)
+    mesh.update();obj.data=mesh;bpy.data.meshes.remove(old)
+
 def loft_grip(name,rows,mat,closed=True):
     n=64;verts=[];faces=[]
     for y,cx,cz,rx,rz in rows:
@@ -804,7 +839,7 @@ def body(which):
         rim.matrix_world=pose@rim.matrix_world
         receiver=sphere('Remote control sensor',(0,0,.006),(.056,.056,.004),'Satin control plastic')
         receiver.matrix_world=pose@receiver.matrix_world
-    profile('Front leatherette panel',[(-.77,-.79),(-.75,.25),(-.58,.38),(-.52,.13),(-.5,-.4),(-.28,-.67),(.28,-.68),(.64,-.38),(.66,.35),(.96,.32),(.98,-.75)],front+.002,front+.016,'Molded grip rubber',.012)
+    front_skin=profile('Front leatherette panel',[(-.77,-.79),(-.75,.25),(-.58,.38),(-.52,.13),(-.5,-.4),(-.28,-.67),(.28,-.68),(.64,-.38),(.66,.35),(.96,.32),(.98,-.75)],front+.002,front+.016,'Molded grip rubber',.012)
     # Main body seam, shutter bezel, front lamp and release controls.
     # Form a shallow planar seat in the crown before cutting the button
     # pocket. The old ellipsoids intersected the crown centrally while
@@ -816,11 +851,16 @@ def body(which):
     if seat is None:raise RuntimeError(which+' shutter seat missed grip')
     # Sink the angled R7 seat into the convex crown rather than lifting its
     # rear edge into a peak above the original silhouette.
-    if not dslr:seat-=normal*.012
-    seat_floor=seat.y-.14 if dslr else .50
-    seat_fade=.14 if dslr else .12
-    seat_radius_z=.180 if dslr else .160
-    pocket_radius_z=.120 if dslr else .105
+    if not dslr:
+        seat-=normal*.012
+        seat.y-=.075
+        # Front/top Canon views show a forward-facing shutter crown. The loft's
+        # local normal was too upright, hiding most of the button from the front.
+        normal=Vector((0,.55,.835)).normalized()
+    seat_floor=seat.y-.14 if dslr else .42
+    seat_fade=.14 if dslr else .10
+    seat_radius_z=.180 if dslr else .190
+    pocket_radius_z=.120 if dslr else .130
     if not dslr:
         # Sample the nonlinear seat fade before bending the reduced casting.
         # Long triangles otherwise turn its smooth falloff into highlight bands.
@@ -866,7 +906,7 @@ def body(which):
     cut=shell.modifiers.new('Recessed shutter seat','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(shell,cut)
     OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
     shutter_disc('Shutter pocket floor',-.031,-.027,.119,pocket_radius_z-.001,'Deep black')
-    sh=sphere('Shutter button',(0,-.001,0),(.105,.013,.105 if dslr else .092),'Satin control plastic');sh.matrix_world=pose@sh.matrix_world
+    sh=sphere('Shutter button',(0,-.001,0),(.105,.013,.105 if dslr else .114),'Satin control plastic');sh.matrix_world=pose@sh.matrix_world
     sphere('Self-timer lamp' if dslr else 'AF assist lamp',(-.69,.49,front+.053),(.046,.046,.02),'Frosted indicator lens')
     if dslr:
         # Loft regular longitudinal quads instead of deforming a bevelled
@@ -1102,13 +1142,12 @@ def body(which):
         mesh=bpy.data.meshes.new('Main command wheel diamonds');mesh.from_pydata(verts,[],faces);mesh.update()
         obj=bpy.data.objects.new('Main command wheel diamonds',mesh);scene.collection.objects.link(obj);register(obj,'Main command wheel diamonds','Focus rubber')
         pose=Matrix.Translation(wheel)@Matrix((Vector((0,0,-1)),wheel_up,wheel_axis)).transposed().to_4x4()
-        for obj in OBJECTS[wheel_start:]:obj.matrix_world=pose@obj.matrix_world
-        # Open the grip above the wheel. The convex casting otherwise buries
-        # its center even when the axle follows the shoulder's cross-slope.
-        cutter=box('Main wheel slot cutter',(0,.20,0),(.088,.40,.282),None,.006)
-        cutter.matrix_world=pose@cutter.matrix_world
-        cut=shell.modifiers.new('Recessed main wheel slot','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(shell,cut)
-        OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        wheel_parts=list(OBJECTS[wheel_start:]);wheel_old_pose=pose.copy()
+        for obj in wheel_parts:obj.matrix_world=pose@obj.matrix_world
+        mesh=bpy.data.meshes.new('Command wheel attachment');mesh.from_pydata([wheel_center],[],[])
+        wheel_anchor=bpy.data.objects.new('Command wheel attachment',mesh);scene.collection.objects.link(wheel_anchor)
+        register(wheel_anchor,'Command wheel attachment',None)
+        # Fit the rigid wheel and cut its slot after forming the grip.
 
     if dslr:
         # Keep the status window away from the prism wall, as in the top reference.
@@ -1172,6 +1211,7 @@ def body(which):
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        top_controls=[]
         for name,x,y,z in [('M-Fn',-1.015,.677,.575),('ISO',-1.25,.735,.285),('LOCK',-.97,.751,.010),('Record',-1.015,.745,.300)]:
             hit,normal,_,_=surface.ray_cast(Vector((x,2,z)),Vector((0,-1,0)),4)
             if hit is None:raise RuntimeError('R7 top button missed casting: '+name)
@@ -1180,7 +1220,13 @@ def body(which):
             cyl('Top '+name+' bezel',(0,0,0),.060,.016,'Deep black',vertices=48)
             sphere('Top '+name+' button',(0,0,.012),(.043,.043,.015),'Graphite polymer')
             if name=='Record':cyl('Record button red dot',(0,0,.028),.019,.002,'Red lacquer',vertices=32,bevel=.001)
-            for o in OBJECTS[button_start:]:o.matrix_world=pose@o.matrix_world
+            parts=list(OBJECTS[button_start:])
+            for o in parts:o.matrix_world=pose@o.matrix_world
+            # Carry one attachment point through body fitting, not the rigid keys.
+            mesh=bpy.data.meshes.new('Top control attachment');mesh.from_pydata([hit],[],[])
+            anchor=bpy.data.objects.new('Top control attachment',mesh);scene.collection.objects.link(anchor)
+            register(anchor,'Top '+name+' attachment',None)
+            top_controls.append((name,anchor,pose.copy(),parts))
             if name!='Record':
                 label=text('Top '+name+' marking',name,(x,y+.01,z-.095) if name=='LOCK' else (x-.105,y+.01,z) if name=='M-Fn' else (x+.105,y+.01,z),.043)
                 label.matrix_world=Matrix.Translation(label.location)@Matrix.Rotation(-pi/2,4,'X')@Matrix.Rotation(pi,4,'Z')
@@ -1901,21 +1947,14 @@ def body(which):
         # Reference front view: the right shoulder is narrow and the body is
         # shorter than the earlier generic DSLR-like housing. Apply the same
         # deformation to attached controls so none float beyond the new shell.
+        rigid_top_parts={o for _,_,_,parts in top_controls for o in parts}|set(wheel_parts)
         for o in OBJECTS[start:]:
-            if o in mount_objects or o in release_parts:continue
+            if o in mount_objects or o in release_parts or o in rigid_top_parts:continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             if o in [shell,rear_cover]:
                 # The crown deformation is nonlinear. Subdivide long planar
                 # triangles before bending so the curve is sampled in its interior.
-                import bmesh
-                bm=bmesh.new();bm.from_mesh(o.data)
-                bmesh.ops.triangulate(bm,faces=list(bm.faces))
-                for _ in range(6):
-                    edges=[edge for edge in bm.edges if edge.calc_length()>.05 and max(v.co.y for v in edge.verts)>.28]
-                    if not edges:break
-                    bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
-                    bmesh.ops.triangulate(bm,faces=list(bm.faces))
-                bm.to_mesh(o.data);bm.free()
+                refine_surface(o,lambda a,b:max(a.y,b.y)>.28 and (a-b).length>.05,6)
             rigid_shoe=any(part in o.name for part in ['Hot shoe','Flash contact'])
             for v in o.data.vertices:
                 # The R7 top is a sculpted crown rather than a straight extrusion.
@@ -1960,6 +1999,69 @@ def body(which):
         if hit is None:raise RuntimeError('R7 lens release missed formed casting')
         pose=Matrix.Translation(hit)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
         for o in release_parts:o.matrix_world=pose@o.matrix_world
+        # The terminal-side casting advances independently of the original flat
+        # rubber panel. Fit the skin to the final housing instead of burying it.
+        refine_surface(front_skin,lambda a,b:max(a.x,b.x)>.40 and (a-b).length>.045,7)
+        skin_back=min(v.co.z for v in front_skin.data.vertices)
+        for v in front_skin.data.vertices:
+            hit,_,_,_=release_surface.ray_cast(Vector((v.co.x,v.co.y,3)),Vector((0,0,-1)),5)
+            if hit is None:raise RuntimeError('R7 front rubber missed casting')
+            v.co.z=hit.z+.002+(v.co.z-skin_back)
+        front_skin.data.update()
+        cutter=rounded_panel('Release rubber opening',(0,0,0),(.164,.324,.18),.060,None)
+        cutter.matrix_world=pose@cutter.matrix_world
+        cut=front_skin.modifiers.new('Clear lens release','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(front_skin,cut)
+        OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        # Leave the raised badge exposed using its final projected outline.
+        from mathutils.geometry import convex_hull_2d
+        badge=next(o for o in OBJECTS[start:] if o.name.endswith(' / Raised R7 badge'))
+        points=[Vector((v.co.x,v.co.y)) for v in badge.data.vertices]
+        outline=[points[i] for i in convex_hull_2d(points)];center=sum(outline,Vector((0,0)))/len(outline)
+        outline=[center+(p-center)*1.02 for p in outline];n=len(outline)
+        verts=[(p.x,p.y,z) for z in [-1,2] for p in outline]
+        faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+        mesh=bpy.data.meshes.new('Badge rubber opening');mesh.from_pydata(verts,[],faces);mesh.update()
+        cutter=bpy.data.objects.new('Badge rubber opening',mesh);scene.collection.objects.link(cutter)
+        cut=front_skin.modifiers.new('Clear raised badge','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(front_skin,cut)
+        bpy.data.objects.remove(cutter,do_unlink=True)
+        # Subdivision and conformation invalidate the flat panel's custom normals.
+        old=front_skin.data;mesh=bpy.data.meshes.new(old.name+' fitted')
+        mesh.from_pydata([v.co[:] for v in old.vertices],[],[tuple(f.vertices) for f in old.polygons])
+        for mat in old.materials:mesh.materials.append(mat)
+        for face in mesh.polygons:face.use_smooth=True
+        mesh.update();front_skin.data=mesh;bpy.data.meshes.remove(old)
+        bm=bmesh.new();bm.from_mesh(front_skin.data)
+        assert all(e.is_manifold for e in bm.edges),'R7 front rubber must remain closed'
+        bm.free()
+        # Preserve circular manufactured keys after the nonlinear grip-depth fit.
+        for name,anchor,old_pose,parts in top_controls:
+            point=anchor.data.vertices[0].co
+            hit,normal,_,_=release_surface.ray_cast(Vector((point.x,2,point.z)),Vector((0,-1,0)),4)
+            if hit is None:raise RuntimeError('R7 formed top control missed casting: '+name)
+            fitted=Matrix.Translation(hit-normal*.002)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
+            for o in parts:o.matrix_world=fitted@old_pose.inverted()@o.matrix_world
+            bezel=parts[0]
+            local=[fitted.inverted()@bezel.matrix_world@v.co for v in bezel.data.vertices]
+            diameters=[max(v[i] for v in local)-min(v[i] for v in local) for i in [0,1]]
+            assert max(abs(d-.12) for d in diameters)<.0001,(name,diameters)
+            print('R7 rigid top control',name,'diameters mm',tuple(round(d*55,4) for d in diameters),flush=True)
+            OBJECTS.remove(anchor);bpy.data.objects.remove(anchor,do_unlink=True)
+        point=wheel_anchor.data.vertices[0].co
+        hits=[release_surface.ray_cast(Vector((point.x+dx,2,point.z)),Vector((0,-1,0)),4)[0] for dx in [-.1325,0,.1325]]
+        if any(hit is None for hit in hits):raise RuntimeError('R7 formed command wheel missed casting')
+        axle=(hits[2]-hits[0]).normalized();up=Vector((-axle.y,axle.x,0)).normalized()
+        fitted=Matrix.Translation(hits[1]-up*.097)@Matrix((Vector((0,0,-1)),up,axle)).transposed().to_4x4()
+        for o in wheel_parts:o.matrix_world=fitted@wheel_old_pose.inverted()@o.matrix_world
+        core=wheel_parts[0]
+        local=[fitted.inverted()@core.matrix_world@v.co for v in core.data.vertices]
+        diameters=[max(v[i] for v in local)-min(v[i] for v in local) for i in [0,1]]
+        assert max(abs(d-.212) for d in diameters)<.0001,diameters
+        print('R7 rigid command wheel diameters mm',tuple(round(d*55,4) for d in diameters),flush=True)
+        cutter=box('Main wheel slot cutter',(0,.20,0),(.088,.40,.282),None,.006)
+        cutter.matrix_world=fitted@cutter.matrix_world
+        cut=shell.modifiers.new('Recessed main wheel slot','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(shell,cut)
+        OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+        OBJECTS.remove(wheel_anchor);bpy.data.objects.remove(wheel_anchor,do_unlink=True)
         # Fit the shoe's molded foot to the formed finder roof; keep its metal
         # rails and contact bed rigid while the underside follows the casting.
         bpy.context.view_layer.update()
@@ -1994,6 +2096,10 @@ def body(which):
             print('R7 circular control',label,'diameters mm',tuple(round(d*55,4) for d in diameters),flush=True)
     # Boolean pocket walls must not pull the exterior's smooth normals inward.
     for casting in ([shell] if dslr else [shell,rear_cover]):
+        if not dslr:
+            bm=bmesh.new();bm.from_mesh(casting.data)
+            assert all(e.is_manifold for e in bm.edges),'R7 casting must remain closed: '+casting.name
+            bm.free()
         # The R7 rear cover also has Boolean perforations. Preserve their
         # wall normals separately after rebuilding the deformed cover mesh.
         edge=casting.modifiers.new('Separate hard pocket edges','EDGE_SPLIT')
