@@ -3442,3 +3442,15 @@ Product photo inspected in-browser: https://nzcamera.co.nz/media/catalog/product
 ### R7 coordinated housing depth and terminal-side casting — 2026-10-13
 
 Reused saved Canon grip-side photograph r7-right-canon.jpg, top photograph r7-top.png, terminal-side r7-terminals.webp and front/rear composite r7.jpg (source provenance above). Retained the finder extremity while advancing the rear panel; the terminal-side front casting extends forward beside the fixed RF mount so the traced terminal covers retain their width/height proportions. Matched the release's narrow outline and placement outside the mount gasket to the front photograph. Its dimensions and casting offsets are visual estimates, not calibrated CAD measurements. Inspected the compressed asset in the actual /classic viewer from front, terminal side, rear and top. Detailed evidence and remaining surface-fidelity issues are recorded in FIDELITY_AUDIT.md.
+
+### 40D flash-front outline — 2026-10-13
+
+Reused 40d.jpg's front panel and 40d-oblique-103momo.jpg. Their Canon nameplate face has a broader upper edge than the old strongly tapered model. Fitted a separate front section while retaining the rear roof and depth. The perspective side reference is insufficient to infer an exact flash-overhang dimension; no depth rescaling was made. Corner radii and interpolation remain visual estimates. See FIDELITY_AUDIT.md for rejected transition and actual-viewer evidence.
+
+### 40D terminal-side rubber and grip relief — 2026-10-13
+
+Reused 40d.jpg and 40d-oblique-103momo.jpg for grain/coverage comparison. Firsthand teardown by Timothy Ball, published at https://www.ir-photo.net/ir_40dmod.html, explicitly describes rubber covering above and below the terminal covers. Page text supports a separate covering rather than bare casting; linked image requests failed, so no image-derived measurements are claimed. Side-panel outline, thickness and normal strength remain visually fitted estimates.
+
+### 40D upper rear controls — 2026-10-13
+
+Reused 40d-rear-photo.jpg, with an enlarged crop for the AF-ON/AE-lock/AF-point cluster. It supports differing cap diameters, shallow convex faces and a smooth exposed platform bordered by the rubber pad. Sizes and relief remain approximate visual fits. Upper legends were repositioned to follow the reference arrangement and clear the revised bezels; see FIDELITY_AUDIT.md for the legend-edge correction and viewer checks.

@@ -71,6 +71,9 @@ def material(name,color,rough=.4,metal=0,normal=None,normal_strength=.45,transmi
     M[name]=m;return m
 material('Graphite polymer',(.013,.014,.016),.52,0,FINE,.4)
 material('Satin control plastic',(.008,.009,.010),.24,0)
+# The 40D printed mode face has a broad matte reflection, unlike its metal fittings.
+material('Printed dial face',(.008,.009,.010),.65,0)
+M['Printed dial face'].node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value=.25
 material('Frosted indicator lens',(.30,.32,.30),.32,0)
 material('Unlit amber indicator',(.32,.135,.062),.28,0)
 material('Magnesium shell',(.018,.019,.021),.55,0,FINE,.35)
@@ -485,7 +488,7 @@ def radial_ribs(name,z,r,length,count=120,mat='Focus rubber',segments=1,stagger=
 
 def dial(p,r=.19,axis='y',mode=False,width=.085):
     start=len(OBJECTS);cyl('Control dial rubber', (0,0,0),r,.085,'Focus rubber');radial_ribs('Knurled dial edge',0,r,.063,64)
-    cyl('Dial top',(0,0,.047),r*.92,.013,'Graphite polymer' if mode=='r7' else 'Anodized black')
+    cyl('Dial top',(0,0,.047),r*.92,.013,'Printed dial face' if mode=='40d' else 'Graphite polymer' if mode=='r7' else 'Anodized black')
     if mode=='r7':
         # Canon R7 manual, Part Names: twelve positions including Fv and filters.
         modes=['M','Av','Tv','P','Fv','A+','SCN','Filters','C3','C2','C1','B']
@@ -870,17 +873,27 @@ def body(which):
         # extrusion. End support rings round the lip without shading strips.
         outline_flash=[(-.49,.80),(-.42,.94),(-.29,1.075),(.29,1.075),(.42,.94),(.49,.80)]
         outline_flash.reverse()
-        # The closing seam has a small moulded edge, not the crown's broad radius.
-        corners=smooth_outline(outline_flash,8,radius=[.008 if y<.81 else .10 for x,y in outline_flash]);section=[]
-        for a,b in zip(corners,corners[1:]+corners[:1]):
-            steps=max(1,int(np.ceil(np.linalg.norm(b-a)/.025)))
-            section.extend(a+(b-a)*i/steps for i in range(steps))
+        # Keep the narrow rear roof, but broaden the front nameplate crown:
+        # the front reference has a long flat top and rounded lower corners.
+        front_outline=[(-.49,.80),(-.44,.94),(-.40,1.075),(.40,1.075),(.44,.94),(.49,.80)]
+        front_outline.reverse()
+        corners=smooth_outline(outline_flash,8,radius=[.008 if y<.81 else .10 for x,y in outline_flash])
+        front_corners=smooth_outline(front_outline,8,radius=[.055 if y<.81 else .045 for x,y in front_outline])
+        section=[];front_section=[]
+        for i in range(len(corners)):
+            a,b=corners[i],corners[(i+1)%len(corners)]
+            c,d=front_corners[i],front_corners[(i+1)%len(corners)]
+            steps=max(1,int(np.ceil(max(np.linalg.norm(b-a),np.linalg.norm(d-c))/.025)))
+            section.extend(a+(b-a)*j/steps for j in range(steps))
+            front_section.extend(c+(d-c)*j/steps for j in range(steps))
         n=len(section)
         stations=[0,.012,.035]+[i/24 for i in range(1,24)]+[.965,.988,1]
         stations=sorted(set(stations));verts=[];faces=[]
         for t in stations:
             end_round=.016*(1-sin(pi*min(1,t/.035,(1-t)/.035)/2))
-            for x,y in section:
+            blend=t
+            for back_point,front_point in zip(section,front_section):
+                x,y=back_point*(1-blend)+front_point*blend
                 upper=max(0,min(1,(y-.80)/.275))
                 crown=-.03*(1-t)-.09*t+.035*sin(pi*t)
                 # The side reference has a gentle rise toward the front lip.
@@ -897,18 +910,32 @@ def body(which):
         for face in mesh.polygons:face.use_smooth=len(face.vertices)==4
         # Carry the prism casting up to the closed cover. The original prism
         # outline narrowed too early and exposed a hollow gap along both sides.
-        support_verts=[];support_faces=[]
+        bpy.context.view_layer.update()
+        crown_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        support_verts=[];support_faces=[];levels=12;ring_count=2*(levels+1)
         for row in range(25):
             t=row/24;z=-.36+.68*t
             cover_t=(z+.36)/.915
             half=.49*(1-.32*cover_t)*.988
             seat_y=.80-.025*(1-cover_t)+.012*sin(pi*cover_t)+.008
-            support_verts.extend([(-half,.64,z),(half,.64,z),(half,seat_y,z),(-half,seat_y,z)])
+            hits=[crown_surface.ray_cast(Vector((3,y,z)),Vector((-1,0,0)),4)[0] for y in [.64,.65]]
+            if any(hit is None for hit in hits):raise RuntimeError('40D prism support missed casting')
+            base=hits[0].x-.003;slope=(hits[1].x-hits[0].x)/.01
+            # A tangent transition replaces the exposed vertical rectangular
+            # wall. Start inside the casting and finish at the closed-cover seat.
+            section=[]
+            for j in range(levels+1):
+                u=j/levels;height=seat_y-.64
+                x=(2*u**3-3*u*u+1)*base+(u**3-2*u*u+u)*height*slope+(-2*u**3+3*u*u)*half
+                section.append((x,.64+height*u,z))
+            section+=[(-x,y,z) for x,y,z in reversed(section)]
+            support_verts.extend(section)
             if row:
-                for i in range(4):
-                    j=(i+1)%4;support_faces.append(((row-1)*4+i,(row-1)*4+j,row*4+j,row*4+i))
-        support_faces.extend([(3,2,1,0),(96,97,98,99)])
+                for i in range(ring_count):
+                    j=(i+1)%ring_count;support_faces.append(((row-1)*ring_count+i,(row-1)*ring_count+j,row*ring_count+j,row*ring_count+i))
+        support_faces.extend([tuple(reversed(range(ring_count))),tuple(range(24*ring_count,25*ring_count))])
         support_mesh=bpy.data.meshes.new('Prism cover seat');support_mesh.from_pydata(support_verts,[],support_faces);support_mesh.update()
+        for face in support_mesh.polygons:face.use_smooth=len(face.vertices)==4
         support=bpy.data.objects.new('Prism cover seat',support_mesh);scene.collection.objects.link(support)
         join=shell.modifiers.new('Continuous prism beneath flash','BOOLEAN');join.operation='UNION';join.solver='EXACT';join.object=support;apply(shell,join)
         bpy.data.objects.remove(support,do_unlink=True)
@@ -928,7 +955,7 @@ def body(which):
         cavity=bpy.data.objects.new('Closed flash seating cutter',seat_mesh);scene.collection.objects.link(cavity)
         cut=shell.modifiers.new('Flash cover seating pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cavity;apply(shell,cut)
         bpy.data.objects.remove(cavity,do_unlink=True)
-        line('Flash cover front seam',[(x*.68,y-.09*max(0,min(1,(y-.8)/.275)),.559) for x,y in [(-.46,.82),(-.37,.95),(-.27,1.035),(.27,1.035),(.37,.95),(.46,.82)]],.003)
+        line('Flash cover front seam',[(x*.68,y-.09*max(0,min(1,(y-.8)/.275)),.559) for x,y in [(-.46,.82),(-.43,.95),(-.37,1.035),(.37,1.035),(.43,.95),(.46,.82)]],.003)
         cyl('Flash release',(1.073,.37,.12),.05,.027,'Graphite polymer','x',48)
     text('Canon wordmark','Canon',(0,.896 if dslr else .840,.561 if dslr else front+.006),.12,font='Canon')
     text('EOS badge','EOS',(.84 if dslr else .78,.35 if dslr else .490,front+(.043 if dslr else .035)),.075 if dslr else .110)
@@ -1249,7 +1276,7 @@ def body(which):
         cut=rear_cover.modifiers.new('Recessed speaker grille','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(rear_cover,cut)
         bpy.data.objects.remove(cutter,do_unlink=True)
     if dslr:
-        rear_thumb=profile('40D rear thumb overmold',[(-.54,.61),(-1.28,.58),(-1.40,.32),(-1.38,-.74),(-.97,-.74),(-.91,-.60),(-1.06,-.39),(-1.09,-.17),(-.96,.02),(-.56,.08)],rz-.069,rz-.037,'Molded grip rubber',.012)
+        rear_thumb=profile('40D rear thumb overmold',[(-.54,.61),(-.80,.60),(-.82,.51),(-.92,.455),(-1.02,.443),(-1.14,.437),(-1.205,.399),(-1.38,.384),(-1.40,.32),(-1.38,-.74),(-.97,-.74),(-.91,-.60),(-1.06,-.39),(-1.09,-.17),(-.96,.02),(-.56,.08)],rz-.069,rz-.037,'Molded grip rubber',.012)
         cyl('Quick control recess',(-.73,-.32,rz-.031),.355,.035,'Deep black')
         ring('Quick wheel rim',rz-.063,.315,.292,.037,'Graphite polymer',center=(-.73,-.32))
         ring('Quick wheel rubber face',rz-.079,.301,.244,.029,'Focus rubber',center=(-.73,-.32))
@@ -1413,10 +1440,10 @@ def body(which):
         rear_ink(name,x,y,points if filled else points+[points[0]],mat,filled)
     if dslr:
         # Canon EOS 40D manual p.17: index/reduce and enlarge legends.
-        rear_rectangle('Index border',-1.065,.421,.059,.040)
+        rear_rectangle('Index border',-1.065,.398,.059,.040)
         for dx,dy in [(-.020,-.010),(.020,-.010),(0,.010)]:
-            rear_rectangle('Index tile',-1.065+dx,.421+dy,.017,.016,filled=True)
-        for x,y,plus in [(-1.137,.421,False),(-1.27,.371,True)]:
+            rear_rectangle('Index tile',-1.065+dx,.398+dy,.017,.016,filled=True)
+        for x,y,plus in [(-1.137,.398,False),(-1.27,.371,True)]:
             rear_ink('Magnifier ring',x,y,[(cos(a*2*pi/32)*.016,sin(a*2*pi/32)*.016) for a in range(33)])
             rear_ink('Magnifier handle',x,y,[(.012,-.012),(.030,-.030)])
             rear_ink('Magnifier minus',x,y,[(-.008,0),(.008,0)])
@@ -1437,8 +1464,14 @@ def body(which):
             if normal.z>0:normal=-normal
             skin_z=hit.z
             cap_start=len(OBJECTS)
-            ring('Rear button bezel '+t,-.006,.071,.057,.015,'Satin control plastic',segments=64)
-            cap=cyl('Rear button '+t,(0,0,-.010),.054,.016,'Satin control plastic',vertices=64,bevel=.004)
+            radius={'AF-ON':.054,'*':.070,'▣':.064}.get(t,.054)
+            ring('Rear button bezel '+t,-.006,radius+.017,radius+.003,.015,'Satin control plastic',segments=64)
+            if t in ['AF-ON','*','▣']:
+                # The upper cluster has shallow convex caps of different sizes;
+                # the reference's lower-row keys retain their flat faces.
+                cap=sphere('Rear button '+t,(0,0,-.010),(radius,radius,.013),'Satin control plastic')
+            else:
+                cap=cyl('Rear button '+t,(0,0,-.010),radius,.016,'Satin control plastic',vertices=64,bevel=.004)
             if t=='▥':
                 # The erase key has a small molded central depression.
                 bpy.ops.mesh.primitive_cylinder_add(vertices=32,radius=.008,depth=.010,location=(0,0,-.018));dimple=bpy.context.object
@@ -1454,7 +1487,7 @@ def body(which):
             for o in OBJECTS[cap_start:]:o.matrix_world=pose@o.matrix_world
             if t=='*':
                 for a in [pi/2,pi/6,-pi/6]:
-                    rear_ink('AE lock asterisk',x,y+.086,[(-cos(a)*.026,-sin(a)*.026),(cos(a)*.026,sin(a)*.026)],'White ink')
+                    rear_ink('AE lock asterisk',x+.050,y+.105,[(-cos(a)*.026,-sin(a)*.026),(cos(a)*.026,sin(a)*.026)],'White ink')
                 continue
         else:
             cyl('Rear button bezel '+t,(x,y,rz-.047),.071,.018,'Deep black')
@@ -1490,11 +1523,12 @@ def body(which):
             line('Playback icon',[(x+.010,y+.010,rz-.086),(x-.012,y,rz-.086),(x+.010,y-.010,rz-.086),(x+.010,y+.010,rz-.086)],.002,'Blue ink')
         elif t=='▣':
             # AF-point selection is a framed point array, not the erase symbol.
-            iy=y+.086 if dslr else y
+            ix=x+.050 if dslr else x
+            iy=y+.110 if dslr else y
             iz=rz-.045 if dslr else rz-.086
-            line('AF point frame',[(x-.024,iy-.018,iz),(x+.024,iy-.018,iz),(x+.024,iy+.018,iz),(x-.024,iy+.018,iz),(x-.024,iy-.018,iz)],.002,'White ink')
+            line('AF point frame',[(ix-.024,iy-.018,iz),(ix+.024,iy-.018,iz),(ix+.024,iy+.018,iz),(ix-.024,iy+.018,iz),(ix-.024,iy-.018,iz)],.002,'White ink')
             for dx,dy in [(0,0),(-.014,0),(.014,0),(0,-.01),(0,.01)]:
-                box('AF point',(x+dx,iy+dy,iz),(.005,.005,.001),'White ink',0)
+                box('AF point',(ix+dx,iy+dy,iz),(.005,.005,.001),'White ink',0)
         elif t=='▥':
             line('Erase icon',[(x-.018,y+.014,rz-.086),(x-.014,y-.021,rz-.086),(x+.014,y-.021,rz-.086),(x+.018,y+.014,rz-.086)],.0025,'Blue ink')
             line('Erase lid',[(x-.023,y+.023,rz-.086),(x+.023,y+.023,rz-.086)],.003,'Blue ink')
@@ -1567,6 +1601,29 @@ def body(which):
         OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True)
         eye.matrix_world=pose
     if dslr:
+        # The reference's front leatherette wraps around the terminal side.
+        # Keep a real opening around its recessed door frame.
+        skin=profile('40D terminal-side leatherette',[(-.255,-.77),(-.255,.43),(.49,.43),(.55,.36),(.55,-.69),(.49,-.77)],0,.006,'Molded grip rubber',rounding=.035)
+        opening=rounded_panel('Terminal leatherette opening',(.10,-.17,.003),(.590,.950,.10),.045,None)
+        cut=skin.modifiers.new('Terminal frame opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(skin,cut)
+        OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
+        skin.rotation_euler.y=pi/2;active(skin);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(skin.data)
+        for _ in range(4):
+            bmesh.ops.triangulate(bm,faces=list(bm.faces))
+            edges=[e for e in bm.edges if e.calc_length()>.035]
+            if not edges:break
+            bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
+        bmesh.ops.triangulate(bm,faces=list(bm.faces));bm.to_mesh(skin.data);bm.free()
+        bpy.context.view_layer.update()
+        skin_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        for v in skin.data.vertices:
+            hit,_,_,_=skin_surface.ray_cast(Vector((3,v.co.y,v.co.z)),Vector((-1,0,0)),4)
+            if hit is None:raise RuntimeError('40D terminal leatherette missed casting')
+            v.co.x+=hit.x+.001
+        skin.data.update()
+        print('40D terminal leatherette faces',len(skin.data.polygons),flush=True)
         # The 40D has two tall adjacent rubber terminal flaps, not horizontal
         # subdivisions. Their seam and molded legends are visible from the side.
         terminal_start=len(OBJECTS)
@@ -3596,7 +3653,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.65 if name=='r7' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
+            strengths={'Molded grip rubber':.65 if name=='r7' else .9 if name=='40d' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
