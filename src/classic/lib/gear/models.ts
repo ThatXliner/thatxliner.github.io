@@ -139,7 +139,6 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                 material.iridescenceThicknessRange = [110, 125];
                 material.clearcoat = 0;
                 material.side = THREE.FrontSide;
-                material.envMapIntensity = 1.2;
                 // Screen-space transmission does not resolve stacked
                 // refractive groups. Approximate the curved outer element
                 // with finite thickness and a separate coated reflection layer.
@@ -159,8 +158,8 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                   // multiplies volume thickness by that scale in the shader.
                   object.updateWorldMatrix(true, false);
                   const scale = object.getWorldScale(new THREE.Vector3()).x;
-                  const centerThickness = id === "70-200-f28" ? 0.160 : id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.040;
-                  const edgeThickness = id === "70-200-f28" ? 0.038 : id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.075;
+                  const centerThickness = id === "70-200-f28" ? 0.160 : id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.02764;
+                  const edgeThickness = id === "70-200-f28" ? 0.038 : id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.12594;
                   const maxThickness = Math.max(centerThickness, edgeThickness);
                   material.thickness = maxThickness / scale;
                   const geometry = object.geometry;
@@ -185,6 +184,11 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                       // Use its actual sag instead of a parabolic interpolation.
                       const thickness = id === "50"
                         ? edgeThickness + Math.sqrt(sphereRadius ** 2 - 0.278 ** 2 * r2) - (sphereRadius - sag)
+                        : id === "28-135"
+                        ? edgeThickness + [0.08090, 0.17920].map((sag) => {
+                            const radius = (0.569687 ** 2 + sag ** 2) / (2 * sag);
+                            return Math.sqrt(radius ** 2 - 0.569687 ** 2 * r2) - (radius - sag);
+                          }).reduce((front, rear) => front - rear)
                         : centerThickness + (edgeThickness - centerThickness) * r2;
                       pixels[offset + 1] = Math.round(thickness / maxThickness * 255);
                       pixels[offset + 3] = 255;

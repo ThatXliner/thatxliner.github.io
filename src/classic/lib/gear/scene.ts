@@ -97,8 +97,12 @@ export async function createStudio(
         if (
           material instanceof THREE.MeshPhysicalMaterial &&
           /Optical glass|Inner optical glass/.test(material.name)
-        )
+        ) {
           material.envMap = env.texture;
+          // Explicit maps bypass scene.environmentIntensity. Use the same
+          // studio radiance as the housing; coating Fresnel sets reflectance.
+          material.envMapIntensity = scene.environmentIntensity;
+        }
       }
     });
     return model;

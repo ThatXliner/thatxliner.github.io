@@ -3454,3 +3454,16 @@ Reused 40d.jpg and 40d-oblique-103momo.jpg for grain/coverage comparison. Firsth
 ### 40D upper rear controls — 2026-10-13
 
 Reused 40d-rear-photo.jpg, with an enlarged crop for the AF-ON/AE-lock/AF-point cluster. It supports differing cap diameters, shallow convex faces and a smooth exposed platform bordered by the rubber pad. Sizes and relief remain approximate visual fits. Upper legends were repositioned to follow the reference arrangement and clear the revised bezels; see FIDELITY_AUDIT.md for the legend-edge correction and viewer checks.
+
+
+### 28–135 front meniscus section fit — 2026-10-13
+
+Reused Canon construction section 28-135-construction.gif and product photograph 28-135-front.jpg. Fit the first element's front and rear outlines as spheres with a common axis, using y=45..100 samples and a 64-pixel clear semi-diameter. Residuals below .3 pixels describe the selected low-resolution samples only. Preserve the model's clear radius and front apex; shape and thickness remain diagram estimates, not an identified optical prescription. See FIDELITY_AUDIT.md for fit parameters, exported-geometry assertions, and actual-viewer checks. Do not infer exact coating or curvature solely from reflection sizes in the product photograph: its illumination differs from the viewer studio.
+
+### Optical coating and illumination distinction — 2026-10-13
+
+Canon's technical explanation describes thin-film interference and multilayer coatings used to reduce surface reflection: https://global.canon/en/technology/s_labo/light/003/03.html . Canon also describes coatings tailored to glass type and color balance: https://www.canon.com.cn/product/ef/info/info20.html . Retrieved via web search; neither source supplies a layer prescription for the particular 28–135 example. Do not label the viewer's single-film approximation as a measured Super Spectra coating. The retained runtime correction instead removes an unrelated 1.2/.65 environment-radiance mismatch between explicit glass maps and implicit housing maps.
+
+### R7 joystick cap — 2026-10-13
+
+Canon Snapshot, “EOS R7 or Advanced APS-C DSLR? (Part 1): Buttons, Controls, and EVF”: https://snapshot.asia.canon/ph/en/article/eos-r7-or-advanced-aps-c-dslr-part-1-buttons-controls-and-evf . Rear close-up saved locally as r7-rear-snapshot-canon.jpg shows a smooth rim around a flat dotted joystick surface. Cap diameter and depth are visual estimates, not manufacturer dimensions.

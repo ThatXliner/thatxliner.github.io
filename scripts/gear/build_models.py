@@ -1364,7 +1364,10 @@ def body(which):
         cup=bpy.data.objects.new('Joystick concave cup',mesh);scene.collection.objects.link(cup)
         register(cup,'Joystick concave cup','Focus rubber')
         for face in mesh.polygons:face.use_smooth=True
-        sphere('Joystick thumb tip',(x,y,rz-.086),(.060,.060,.010),'Molded grip rubber')
+        # Canon's rear close-up shows a flat dotted center inside a smooth rim.
+        # Keep its face below the surrounding dial, not a pebble-textured dome.
+        cyl('Joystick thumb tip',(x,y,rz-.087),.072,.018,'Graphite polymer',vertices=96,bevel=.006)
+        ring('Joystick thumb rim',rz-.096,.072,.056,.006,'Satin control plastic',center=(x,y),segments=96)
         for ix in range(-3,4):
             for iy in range(-3,4):
                 if ix*ix+iy*iy<12:sphere('Joystick molded dots',(x+ix*.014,y+iy*.014,rz-.097),(.003,.003,.002),'Graphite polymer')
@@ -2667,7 +2670,9 @@ def lens(which):
     if which=='28-135':
         # Canon's construction diagram shows a negative front meniscus. Keep
         # the existing front face position while curving the rear face forward.
-        optical_element('Optical front element',l-.1635,r*.799,.10,.075,back_sag=.135)
+        # Spherical fits to the saved Canon section, keeping the front apex.
+        # Center thickness .02764; edge thickness .12594 (drawing estimates).
+        optical_element('Optical front element',l-.16987,r*.799,.08090,.12594,back_sag=.17920,spherical=True)
     elif which=='70-200-f4':
         # Canon's section shows a thin positive front meniscus. Approximate
         # its relative face curvatures while preserving the front apex.

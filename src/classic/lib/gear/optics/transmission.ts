@@ -1,14 +1,12 @@
 import type {prepareTransmission} from './prepare-transmission';
 import * as THREE from 'three';
-import {MeshBVH,MeshBVHUniformStruct,FloatVertexAttributeTexture,BVHShaderGLSL} from 'three-mesh-bvh';
+import {BVHShaderGLSL} from 'three-mesh-bvh';
+import {restoreTransmissionTextures} from './packed-textures';
 /** Diagnostic: exact opaque triangles, spherical refraction; diffuse-only hit shading. */
 export function installPatentTransmission(material:THREE.MeshPhysicalMaterial,data:Awaited<ReturnType<typeof prepareTransmission>>){
- const geometry=new THREE.BufferGeometry();
- geometry.setAttribute('position',new THREE.BufferAttribute(data.position,3));geometry.setAttribute('normal',new THREE.BufferAttribute(data.normal,3));geometry.setAttribute('color',new THREE.BufferAttribute(data.color,4));
- const bvh=MeshBVH.deserialize(data.serialized,geometry);
- const uniform=new MeshBVHUniformStruct();uniform.updateFrom(bvh);
- const colorTexture=new FloatVertexAttributeTexture();colorTexture.updateFrom(geometry.getAttribute('color'));
- const normalTexture=new FloatVertexAttributeTexture();normalTexture.updateFrom(geometry.getAttribute('normal'));
+ const textures=restoreTransmissionTextures(data.textures);
+ const {index,position,bvhBounds,bvhContents,color:colorTexture,normal:normalTexture}=textures;
+ const uniform={index,position,bvhBounds,bvhContents};
  const bvhUniform={value:uniform},colorUniform={value:colorTexture},normalUniform={value:normalTexture};
  const debugHit={value:0};
  const accelerated={value:1};const prior=material.onBeforeCompile;
@@ -58,6 +56,6 @@ export function installPatentTransmission(material:THREE.MeshPhysicalMaterial,da
   shader.fragmentShader=shader.fragmentShader.replace('outgoingLight=fgReflections();','outgoingLight=fgBatch<=-2?fgTransmission():fgReflections();');
  };
  material.customProgramCacheKey=()=> 'patent-transmission-bvh-v1';material.needsUpdate=true;
- function dispose(){uniform.dispose();colorTexture.dispose();normalTexture.dispose();geometry.dispose();}
+ function dispose(){for(const texture of Object.values(textures))texture.dispose();}
  return {triangles:data.triangles,dispose};
 }
