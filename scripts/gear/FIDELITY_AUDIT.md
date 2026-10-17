@@ -1982,3 +1982,67 @@ Previous turn corrected f/4 control legends (progress). Compared saved70-200-f4-
 Full isolated build/bake/compression completed. Independent exported checks report mean roughness0.34007→0.25617, normal scale.60, same17material primitives. Asset2441528bytes (-520byte delta), SHA256 1294e994f031fabeb2b3abfa0694e7c4ba7b49915c7a571fe37c3de1a4f91543. No added image dimensions, passes or runtime logic. Evidence f4-enamel-export-check.json and build/optimize logs. Updated stale source comment describing40D cell pitch from prior turn.
 
 Actual /classic side, full front and elevated rear-shoulder views inspected without console errors; saved f4-enamel-live-{side,front,rear-shoulder}.png. Rear angle was raised to expose paint otherwise hidden by body; not a detached rear-optics inspection. Thumbnail refreshed. Collar-free setup and lazy loading retained. Local/unpushed. Full geometry/material/optics photographic acceptance remains incomplete.
+
+### 2026-10-17 — R7 middle-finger recess
+
+Previous turn shipped checkpoint6bcb186 (progress). Compared current actual /classic R7+50 grip-side view with saved Canon r7-right-canon-hires.png. Existing front contour ran almost straight below the shutter ledge; reference has a distinct hollow returning to a lower palm swell. Added a .15-unit Gaussian retreat centered at authored y.12 (width.18) to shared casting/rubber loft rows, preserving rear section edges and bottom fade. This is reference-estimated sculpting, not measured CAD.
+
+Full isolated R7 rebuild/bake and meshopt/webp compression passed existing geometry assertions and card-door manifold checks. Independent check-r7-finger-recess.py probes visible rubber at x-1.25: front z.8802 at y0 versus1.0055 at y.36, a6.89mm ledge-to-hollow retreat; lower palm z.9422 at y-.3. This validates a distinct recess, not full photographic accuracy. Evidence r7-finger-recess-check.json and build/check/optimize logs. Latest r7-card-door-unmerged.blend and r7.blend match generator. Asset356540faces,4758636bytes (-16972bytes), SHA2564f1741f1a6ab73197942e0d3f7e62579255731fcf656b1a841cec252b16fa2ff.
+
+Actual compressed /classic side, front-oblique, default front and rear inspected without console errors. Saved r7-grip-contour-{before,after,oblique,front,rear}.png; refreshed R7thumbnail and default setup poster. No viewer code or loading changes. Local/unpushed. Upper grip shoulder still too upright/rounded compared with the side reference; full body contours, materials and optical acceptance remain incomplete.
+
+### 2026-10-17 — R7 shutter-shoulder slope
+
+Previous turn deepened finger recess (progress). Orthographic side diagnostic versus Canon r7-right-canon-hires.png confirmed upper grip sections projected too close to the ledge beneath, making the shutter face too upright. Moved authored upper rows' z centers at y.59/.69/.73 from.46/.59/.63 to.41/.49/.53. Lower grip rows retained. First rebuilt actual front view revealed shutter seat too low on the changed crown; corrected its sampling z.770→.715 and rebuilt again. Reference-guided geometry estimate, not CAD.
+
+Independent check-r7-shoulder-slope.py compares saved before/after casting ray samples across five grip x coordinates. Upper y.65 front envelope retreats.072units (3.96mm); lower y-.4 and finger-hollow y0 samples are identical. Existing source and card-door topology assertions pass. Final full bake/export/meshopt-webp output357359faces,4765500bytes, SHA2565b309f51d38a4dddca24f4aeee6901dc3152584ed8fd18db378dd8d89808e5c4. Evidence shoulder-slope-check.json/log and shoulder-seat-build/optimize.log. Current unmerged/baked Blender snapshots match final source.
+
+Actual compressed /classic R7+50 front, side, top and rear checked after selection animation settled; shutter now sits higher in the corrected sloped face, command wheel remains seated, no console errors. Screens r7-shoulder-live-{front,side,top,rear}.png. Orthographic before/after images precede the final shutter-seat correction and only support the broad contour comparison. Refreshed thumbnail and setup poster. Local/unpushed; loading/runtime unchanged. Side upper rubber boundary and casting seam still differ from product reference, and whole-model photographic acceptance remains incomplete.
+
+### 2026-10-17 — R7 rounded rubber boundary beside card door
+
+Previous turn corrected shutter shoulder (progress). Side reference r7-right-canon-hires.png has a deliberate rounded upper/rear rubber boundary. Probe-r7-rubber-edge.py confirmed the old irregular model edge was a casting intersection: rubber clearance changed from buried1–2mm at z.05–.10 to exposed~.22mm at z.20–.40. Defined a rear trim at authored z.18 with .11-unit quarter-circle upper corner, using a closed Boolean cutter after sleeve fitting. Removed hidden rear sleeve geometry instead of relying on its intersection to define the seam. Reference-estimated boundary, not measured manufacturer geometry.
+
+Full isolated rebuild/bake and meshopt/webp export passed existing assertions. Independent check-r7-rubber-boundary.py welds only its temporary inspection mesh and verifies closed manifold/nondegenerate overmold; five rear rays at z.1 find no rubber, fifteen visible side rays clear casting by0–1mm. Evidence r7-rubber-boundary-check.json/log, build/optimize logs. Latest Blender snapshots match source. Asset352751faces,4696752bytes (-68748from previous local version), SHA256eee97c634b89add8f89f72307c798c5bc906d1cf5309e392956a3be1ee358b4f.
+
+Actual /classic compressed model side, oblique, front and rear inspected; rounded corner replaces irregular exposed intersection, without new visible gaps or console errors. Screens r7-rubber-boundary-{side,oblique,front,rear}.png. Thumbnail/poster refreshed. Local/unpushed, no renderer changes. Casting seam layout and overall materials/optics still differ from reference; full photographic acceptance remains incomplete.
+
+### 2026-10-17 — R7 casting microtexture strength
+
+Previous turn fixed rubber boundary (progress). Matched production-lighting development side close-ups compared existing R7 casting normal scale.18 with.45 against r7-right-canon-hires.png. Stronger grain breaks up the shoulder highlights more like the reference's fine painted texture, retaining clear distinction from coarser rubber. Retained original roughness/color/UV pitch. Screens r7-casting-grain-{baseline,candidate}.png. This is an appearance estimate, not measured BRDF.
+
+Updated generator's R7-only Crinkle painted metal scale to.45. Patched that single scalar in public and uncompressed GLB JSON, asserting previous.18 and byte-identical remaining binary chunks; no geometry/texture rebake needed. Export verification r7-casting-grain-export-check.json. Updated calibrated material in saved r7.blend with isolated Blender; unmerged file intentionally precedes export calibration. Public4696736bytes, SHA256fcdf37ef2a7f09393068a3a463bae49dc9ae44250b974051ce5b2b43373d220b.
+
+Actual compressed /classic front, grip side, and rear checked without console errors; screenshots r7-casting-grain-live-{front,side,rear}.png. Thumbnail/poster refreshed. Local/unpushed. No added runtime passes, textures or primitives. Side-door finish/casting seams and whole-model geometry/material/optical matching remain incomplete.
+
+### 2026-10-17 — R7 side-door finish continuity
+
+Previous turn improved casting grain (progress). Canon grip-side reference r7-right-canon-hires.png shows fine textured finish continuing across the card door; actual viewer door was conspicuously smooth. Assigned SD card door skin to the existing calibrated casting appearance instead of generic Graphite polymer, retaining separate finger pad, bumps and recessed engravings. This matches appearance and does not assert that the actual door is metal. Export now applies casting grain pitch.18units and normal scale.45 to the door.
+
+Full isolated build/bake/compression passed source and card-door manifold/nondegenerate checks. Compressed normal scale independently read.45.352751faces,21primitives,4740468bytes (+43732from prior), SHA256b96f332b682485a15a6d562b5ed17956195e05a220b0302ad9147741b0a146f6. Latest Blender snapshots match source. Build/optimize logs r7-door-finish-*.log.
+
+Actual /classic matched side before/after, oblique, front and rear inspected without console errors. Saved r7-door-finish-{before,after,oblique,front,rear}.png; refreshed R7thumbnail/setup poster. Local/unpushed. No runtime/loading changes. Fine black-on-black engravings remain difficult to read at default framing, as with reference; full casting seam/contour/material/optical matching remains incomplete.
+
+### 2026-10-17 — C200 HDU-2 diagonal front return
+
+Previous turn matched R7 card-door finish (progress). Broader C200 front/side/rear inspection led to Canon's assembled reference at https://www.canon.ca/en/About-Canon/News/Press-Releases/Press-Releases-2017/2017-MAY-31-EOSC200-EOSC200B . Its C200-EF24-105_REAR_L_HANDLE_LCD_GRIP_CL-hiRes.jpg shows a substantial diagonal lower front handle return, unlike the nearly rectangular model. Saved browser reference c200-canon-assembled-rear-browser.png. Existing manual handle diagram also consulted.
+
+Reshaped outer front corner and inner opening, shortened lower front rail recess, and moved its fastener onto solid rail. First attempt modified the wrong end because the generator rotates the handle180degrees after authoring; actual viewer revealed the rear bore surround cut away. Rejected that version and restored rear, then reshaped authored negative-X end (front after orientation). Final source/asset only retain corrected front change. Outer lower front(-1.57,1.55)→(-1.15,1.15); inner diagonal(-1.28,1.55)→(-1.02,1.32). Reference estimates, not manufacturer CAD.
+
+Full isolated rebuild/bake/export passed existing assertions:44×81×156mm handle envelope,8.8mm bores,35.5mm spacing. Independent check-c200-handle-slope.py verifies welded inspection mesh is closed and rays hit diagonal rail/relocated fastener seat/upper front rail while clearing removed corner and hand opening. c200-handle-front-slope-check.log/json record final checks; prior slope-only logs are superseded failed-orientation iteration. Final319969faces,5145052bytes, SHA256d5b8214dbd4a275899cc634ae393a06ed8d6bc5a5444a9bec77d5dc3dd793787. Saved c200-round-rims-unmerged.blend and c200.blend match final source.
+
+Actual compressed /classic matched handle side, oblique, full front/rear and opposite side inspected; front diagonal and intact rear bores confirmed, no console errors. Screens c200-handle-front-slope-{after,oblique,front,rear,opposite}.png; baseline c200-handle-slope-before.png. Thumbnail refreshed. Local/unpushed; runtime/loading unchanged. Overall camera/lens contours, materials, optics and photographic acceptance remain incomplete.
+
+### 2026-10-17 — C200 monitor orientation and size verification
+
+Previous turn corrected HDU-2 front return (progress). Canon assembled photograph shows monitor controls on the right, initially suggesting mirrored model layout. Canon manual LM-V1 parts diagram p.17 (saved c200-monitor-parts.png) explicitly shows FUNC, MENU, joystick, CANCEL, DISP down the left in the illustrated orientation. The LCD can be rotated; do not mirror correct geometry to match a differently oriented setup. No monitor geometry/material change retained this turn.
+
+Independent check-c200-monitor-layout.py reads current saved unmerged geometry in monitor coordinates, verifying119.9000×75.4000mm case,88.5000×49.8000mm display (3.9980-inch diagonal), correct top-to-bottom controls entirely left of display. Log/JSON c200-monitor-layout-check.*. These checks establish layout and size, not full photographic accuracy.
+
+Actual compressed /classic monitor front, oblique and rear inspected; saved c200-monitor-layout-{front,oblique,rear}.png. Front controls correspond to manual order; case, attachment and cable connection appear continuous; no console errors. Evidence rejects a mirrored-layout edit. Remaining definite detail gap: front alignment mark shown as item8 in manual is absent from generator; rear case contour/material still needs a matched photographic view. Full goal remains incomplete, existing local R7/C200 work unpushed.
+
+### 2026-10-17 — C200 monitor alignment marks and shipping checkpoint
+
+Added opposing white triangles across the LM-V1 bezel seam, positioned from Canon assembled rear reference. Each closed triangular prism sits above its own surface; independent manifold and front-ray checks pass (c200-monitor-marks-check.json). Full Blender export completed:319979faces. Meshopt/WebP compression:5143940bytes,24primitives,SHA256 530506471c8f6e465062b0555c3fd03d2d4f3494ffa2140aab71ddc8fa0c1108.
+
+Actual compressed /classic monitor view confirms both triangles visible without covering display or controls; no console errors. Evidence c200-monitor-marks-front.png. Refreshed C200 thumbnail. Production build passed:15pages in23.25s; git diff --check passed. Shipping accumulated R7 grip/shoulder/finish and C200 handle/monitor improvements at user request. Existing lazy loading unchanged. Photographic fidelity remains work in progress. Unrelated homepage/resume-film edits excluded.

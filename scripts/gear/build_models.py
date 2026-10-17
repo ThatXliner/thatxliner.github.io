@@ -754,7 +754,8 @@ def body(which):
     # Full-depth grip and separate pebbled overmold share the lower contour.
     rows=[(-.85,-1.09,.11,.25,.32),(-.80,-1.12,.11,.33,.43),(-.65,-1.14,.12,.35,.46),(-.25,-1.15,.15,.355,.47),(.12,-1.14,.16,.345,.49),(.4,-1.16,.12,.33,.46),(.55,-1.17,.10,.34,.43),(.64,-1.18,.04,.30,.35),(.68,-1.20,-.015,.22,.25)]
     if not dslr:
-        rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.15,.46,.34,.39),(.69,-1.16,.59,.30,.23),(.73,-1.16,.63,.21,.11)]
+        # The upper crown recedes behind the ledge, forming the sloped shutter face.
+        rows=[(-.85,-1.09,.30,.25,.37),(-.80,-1.12,.32,.32,.48),(-.65,-1.14,.32,.34,.53),(-.25,-1.15,.33,.355,.55),(.12,-1.14,.33,.345,.56),(.40,-1.16,.34,.32,.54),(.59,-1.15,.41,.34,.39),(.69,-1.16,.49,.30,.23),(.73,-1.16,.53,.21,.11)]
         # Canon's grip-side view shows the finger grip recessed below the
         # shutter ledge. Retreat the front ~6 mm while keeping each section's
         # rear edge, the shutter crown and the bottom return in place.
@@ -763,6 +764,9 @@ def body(which):
             below=max(0,min(1,(.40-y)/.28))
             bottom=max(0,min(1,(y+.85)/.20))
             retreat=.11*below*below*(3-2*below)*bottom
+            # The middle-finger hollow is deepest just below the shutter ledge,
+            # then returns to the lower palm swell in Canon's grip-side view.
+            retreat+=.15*math.exp(-((y-.12)/.18)**2)*bottom
             shaped.append((y,cx,cz-retreat/2,rx,rz-retreat/2))
         rows=shaped
     # Keep the outside silhouette while narrowing the front grip into the
@@ -871,6 +875,22 @@ def body(which):
             inner=grip_rubber.data.vertices[i+outer_count]
             inner.co=inner.co.lerp(hit+normal*.0005,weight)
         grip_rubber.data.update()
+        # Define the rear edge and rounded upper corner beside the card door.
+        # Letting the sleeve disappear inside the casting made a wavy seam.
+        boundary=[(-2,-2),(-2,.18),(.28,.18)]
+        boundary.extend((.28+.11*sin(a*pi/32),.29-.11*cos(a*pi/32)) for a in range(1,17))
+        boundary.extend([(2,.29),(2,-2)])
+        n=len(boundary)
+        vertices=[(x,y,z) for x in [-3,3] for y,z in boundary]
+        faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]
+        faces.extend((i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n))
+        mesh=bpy.data.meshes.new('Grip boundary cutter');mesh.from_pydata(vertices,[],faces);mesh.update()
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(mesh);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(mesh);bm.free()
+        cutter=bpy.data.objects.new('Grip boundary cutter',mesh);scene.collection.objects.link(cutter)
+        trim=grip_rubber.modifiers.new('Rounded rear overmold boundary','BOOLEAN')
+        trim.operation='DIFFERENCE';trim.solver='EXACT';trim.object=cutter;apply(grip_rubber,trim)
+        bpy.data.objects.remove(cutter,do_unlink=True)
         grip_surface=BVHTree.FromObject(grip_rubber,bpy.context.evaluated_depsgraph_get())
         hit,normal,_,_=grip_surface.ray_cast(Vector((-1.23,-.37,2)),Vector((0,0,-1)),4)
         if hit is None:raise RuntimeError('Remote receiver missed grip')
@@ -887,7 +907,7 @@ def body(which):
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
     shutter_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.460) if dslr else (-1.10,2,.770)),Vector((0,-1,0)),4)
+    seat,normal,_,_=shutter_surface.ray_cast(Vector((-1.2,2,.460) if dslr else (-1.10,2,.715)),Vector((0,-1,0)),4)
     if seat is None:raise RuntimeError(which+' shutter seat missed grip')
     # Sink the angled R7 seat into the convex crown rather than lifting its
     # rear edge into a peak above the original silhouette.
@@ -1923,7 +1943,7 @@ def body(which):
         card_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
         card_start=len(OBJECTS)
         card_outline=[(-.35,.20),(.15,.20),(.15,-.60),(.10,-.64),(-.32,-.64),(-.35,-.58)]
-        panel=profile('SD card door skin',card_outline,.002,.008,'Graphite polymer',.001,rounding=.018)
+        panel=profile('SD card door skin',card_outline,.002,.008,'Crinkle painted metal',.001,rounding=.018)
         panel.rotation_euler.y=-pi/2
         # Canon's side close-up shows staggered round bumps on a rounded pad.
         latch=rounded_panel('SD door finger grip',(0,0,0),(.13,.36,.018),.040,'Focus rubber')
@@ -3617,15 +3637,16 @@ def cinema():
     accessories_start=len(OBJECTS)
     # HDU-2 is a narrow continuous casting, not a cage plate with two posts.
     # Build its side silhouette in local XY, then turn local X along camera Z.
-    handle=profile('HDU-2 continuous casting',[(-1.49,1.15),(-1.57,1.27),(-1.57,1.88),(-1.46,2.00),(.30,2.00),(.44,1.87),(.44,1.31),(.30,1.15)],-.235,.235,'Crinkle painted metal',.043)
-    opening=profile('Handle opening cutter',[(-1.28,1.39),(-1.28,1.70),(-1.21,1.79),(-1.05,1.80),(-.96,1.76),(-.86,1.80),(-.69,1.80),(-.60,1.76),(-.50,1.80),(-.33,1.80),(-.24,1.76),(-.14,1.80),(.06,1.80),(.15,1.69),(.15,1.43),(.03,1.32),(-1.11,1.32)],-.40,.40,'Deep black',.025)
+    # Canon's assembled reference has a diagonal lower front return.
+    handle=profile('HDU-2 continuous casting',[(-1.15,1.15),(-1.57,1.55),(-1.57,1.88),(-1.46,2.00),(.30,2.00),(.44,1.87),(.44,1.31),(.30,1.15)],-.235,.235,'Crinkle painted metal',.043)
+    opening=profile('Handle opening cutter',[(-1.28,1.55),(-1.28,1.70),(-1.21,1.79),(-1.05,1.80),(-.96,1.76),(-.86,1.80),(-.69,1.80),(-.60,1.76),(-.50,1.80),(-.33,1.80),(-.24,1.76),(-.14,1.80),(.06,1.80),(.15,1.69),(.15,1.43),(.03,1.32),(-1.02,1.32)],-.40,.40,'Deep black',.025)
     cut=handle.modifiers.new('Open hand clearance','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(handle,cut);OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
     if handle.ray_cast(Vector((-.65,1.55,.60)),Vector((0,0,-1)),distance=1.2)[0]:raise RuntimeError('HDU-2 hand opening is obstructed')
     # Shallow split channels in both side rails, visible in Canon's HDU-2
     # product photograph. Cut these into the casting rather than paint lines.
     for side in [-1,1]:
         for yy in [1.915,1.235]:
-            for xx,width in [(-1.02,.59),(-.35,.61)]:
+            for xx,width in ([(-.94,.42),(-.35,.61)] if yy==1.235 else [(-1.02,.59),(-.35,.61)]):
                 channel=rounded_panel('Handle rail channel cutter',(xx,yy,side*.237),(width,.034,.044),.013,None)
                 cut=handle.modifiers.new('Inset rail channel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=channel;apply(handle,cut)
                 OBJECTS.remove(channel);bpy.data.objects.remove(channel,do_unlink=True)
@@ -3649,7 +3670,7 @@ def cinema():
     for o in OBJECTS[knob_start:]:o.matrix_world=Matrix.Translation(Vector((0,1.36,-.69)))@Matrix.Rotation(-pi/2,4,'X')@o.matrix_world
     cyl('Mounting wheel socket',(0,1.399,-.69),.038,.004,'Deep black','y',6,.001)
     for side in [-1,1]:
-        for y,z in [(1.27,-1.34),(1.85,-1.34),(1.25,.29),(1.66,.34)]:
+        for y,z in [(1.27,-1.08),(1.85,-1.34),(1.25,.29),(1.66,.34)]:
             screw_start=len(OBJECTS);screw((0,0,0),r=.020)
             for o in OBJECTS[screw_start:]:o.matrix_world=Matrix.Translation(Vector((side*.239,y,z)))@Matrix.Rotation(side*pi/2,4,'Y')@o.matrix_world
     # Front/rear accessory plates with vertical anti-rotation serrations and
@@ -3762,6 +3783,16 @@ def cinema():
                 shell_normals[loop]=tuple(Vector((slope,0,-1)).normalized()) if face.normal.z<0 else (0,0,1)
     mesh.normals_split_custom_set(shell_normals)
     rounded_panel('Monitor display bezel',(.135,0,-.003),(1.79,1.215,.016),.040,'Deep black')
+    # Opposed alignment triangles straddle the bezel seam (Canon LM-V1 p.17).
+    for name,points,z in [
+        ('bezel',[(1.000,-.020),(1.026,0),(1.000,.020)],.0055),
+        ('case',[(1.060,-.020),(1.060,.020),(1.034,0)],-.0105),
+    ]:
+        vertices=[(x,y,z+depth) for depth in [0,.0004] for x,y in points]
+        faces=[(2,1,0),(3,4,5),(0,1,4,3),(1,2,5,4),(2,0,3,5)]
+        mesh=bpy.data.meshes.new('Monitor alignment '+name);mesh.from_pydata(vertices,[],faces);mesh.update()
+        mark=bpy.data.objects.new('Monitor alignment '+name,mesh);scene.collection.objects.link(mark)
+        register(mark,'Monitor alignment '+name,'White ink');mark['skip_baked_ao']=True
     # 4-inch 16:9 active panel: approx 88.5 x 49.8 mm.
     rounded_panel('Monitor glass',(.135,0,.008),(88.5/55,49.8/55,.009),.020,'Inactive display glass')
     for yy,name in [(.505,'FUNC'),(.265,'MENU'),(-.265,'CANCEL'),(-.505,'DISP')]:
@@ -4087,7 +4118,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.65 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .18}
+            strengths={'Molded grip rubber':.65 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .45 if name=='r7' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
