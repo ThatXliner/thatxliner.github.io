@@ -303,9 +303,12 @@ def eyecup(x,y,z,body='c200',housing=()):
         active(cutter);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
         cut=o.modifiers.new('Eb open lower lip','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(o,cut)
         bpy.data.objects.remove(cutter,do_unlink=True)
+    # Eb rear references place the optical carrier below the rubber hood's
+    # center, extending between its lower feet rather than exposing the cover.
+    if body=='40d':y-=.065
     # Separate optical carrier inside the rubber cup; the DSLR has no eye sensor.
     if body=='r7':rounded_panel('Eyepiece inner carrier',(x,y,z-.045),(.59,.35,.034),.065,'Graphite polymer')
-    else:box('Eyepiece inner carrier',(x,y,z-.045),(.65,.44,.034) if body=='c200' else (.59,.35,.034),'Graphite polymer',.038)
+    else:box('Eyepiece inner carrier',(x,y,z-.045),(.65,.44,.034) if body=='c200' else (.59,.38,.034),'Graphite polymer',.038)
     optical_x=x+.035 if body=='r7' else x-.045 if body=='c200' else x
     if body=='r7':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.365,.275,.016),.029,'Deep black')
     else:box('Eyepiece optical recess',(optical_x,y,z-.066),(.43,.38,.016) if body=='c200' else (.365,.275,.016),'Deep black',.029)
@@ -381,9 +384,10 @@ def eyecup(x,y,z,body='c200',housing=()):
         rounded_panel('Viewfinder proximity sensor bezel',(x-.237,y,z-.065),(.091,.139,.016),.016,'Deep black')
         rounded_panel('Viewfinder proximity sensor window',(x-.237,y,z-.076),(.063,.110,.006),.013,'Sensor coating')
     else:
-        box('Eyecup retaining lower rail',(x,y-.207,z-.060),(.47,.034,.030),'Anodized black',.006)
+        box('Eyecup retaining lower rail',(x,y-.190,z-.060),(.47,.020,.030),'Anodized black',.006)
     # R7 terminal-side/top references place its thin diopter wheel on the
     # left of the eyecup, below the crown; the DSLR uses the opposite side.
+    if body=='40d':y+=.065  # Diopter axle stays fixed on the upper housing.
     dx=x+.405 if body=='r7' else x-.405
     dy=y-.09 if body=='r7' else y+.145
     dz=z+.055 if body=='r7' else z+.025
@@ -2726,15 +2730,15 @@ def lens(which):
                 text('Focus limiter near legend','1.2m–∞' if f4 else '1.4m–∞',(-.030,y+.171,.018),.066,'Deep black')
                 text('Focus limiter far legend','3m–∞' if f4 else '2.5m–∞',(.025,y+.123,.018),.066,'Deep black')
             elif label_=='AF  MF':
-                text('Autofocus legend','AF',(-.055,y+.118,.018),.042,'Deep black')
-                text('Manual focus legend','MF',(.095,y+.090,.018),.042,'Deep black')
+                text('Autofocus legend','AF',(-.055,y+.118,.018),.060 if f4 else .042,'Deep black')
+                text('Manual focus legend','MF',(.110 if f4 else .095,y+.090,.018),.060 if f4 else .042,'Deep black')
             else:
                 title='STABILIZER\nMODE' if 'MODE' in label_ else 'STABILIZER'
                 text('Stabilizer legend',title,(0,y+.180,.018),.055 if f4 else .040,'Deep black')
                 if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black')
                 else:
-                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.041,'Deep black')
-                    text('Stabilizer off legend','OFF',(.095,y+.090,.018),.041,'Deep black')
+                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.060 if f4 else .041,'Deep black')
+                    text('Stabilizer off legend','OFF',(.115 if f4 else .095,y+.090,.018),.060 if f4 else .041,'Deep black')
             line('First position tick',[(-.050,y+.061,.018),(-.050,y+.081,.018)],.0016,'Deep black')
             # MF/OFF sit to the right of this bent index, not over its crossbar.
             line('Second position tick',[(.012,y+.061,.018),(.012,y+.081,.018),(.050,y+.081,.018)],.0016,'Deep black')
@@ -3204,8 +3208,11 @@ def cinema():
         for face in mesh.polygons:face.use_smooth=True
         cyl('Function bezel',(x,y,.081+offset),.086,.018,'Deep black')
         sphere('Function button',(x,y,.097+offset),(.077,.077,.011),'Graphite polymer')
-        text('Function number',n,(x,y,.109+offset),.082)
-        text('Function label',label_,(x,y+.140,.0615 if x==-.78 else .0295),.059 if x==-.78 else .061,font='Bold')
+        # Operator reference: number height is about 40% of the cap diameter;
+        # the condensed legends are taller than Arial's default proportions.
+        text('Function number',n,(x,y,.109+offset),.116)
+        legend=text('Function label',label_,(x,y+.140,.0615 if x==-.78 else .0295),.059 if x==-.78 else .072,font='Bold')
+        legend.scale.y=1.35 if x==-.78 else 1.17
     cyl('Record bezel',(-.43,-.875,.10),.139,.044,'Anodized black');sphere('Red REC button',(-.43,-.875,.129),(.094,.094,.023),'Red lacquer');text('REC label','REC',(-.24,-.755,.0567),.046,font='Bold')
     box('Control dial recess',(-.77,-.87,.062),(.20,.26,.032),'Deep black',.027)
     # The operator-side control wheel exposes a vertical knurled edge.
@@ -4080,13 +4087,16 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.65 if name=='r7' else .9 if name=='40d' else .36,'Crinkle painted metal':.60 if name=='c200' else .18}
+            strengths={'Molded grip rubber':.65 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
                 finish=(M['Crinkle painted metal'] if name=='c200' and source.name=='Magnesium shell' else source).copy();finish.name={'r7':'R7 ','40d':'40D ','c200':'C200 '}[name]+source.name
                 for node in finish.node_tree.nodes:
                     if node.type=='NORMAL_MAP':node.inputs['Strength'].default_value=strengths[source.name]
+                    if name=='40d' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE' and node.image==PEBBLE:
+                        # The 40D leatherette has joined creased cells, not isolated bumps.
+                        node.image=GRIP_CELL;node.image.colorspace_settings.name='Non-Color'
                     if name=='r7' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE':
                         node.image=GRIP_CELL if node.image==PEBBLE else GRIP_ROUGH
                         node.image.colorspace_settings.name='Non-Color'
@@ -4110,6 +4120,19 @@ def export_asset(name,objects):
                             node.image.colorspace_settings.name='Non-Color'
                 calibrated[source.name]=finish
             o.data.materials[0]=calibrated[source.name]
+    if name=='70-200-f4':
+        # Reference-guided painted-metal highlights, independent of the f/2.8.
+        enamel=M['White enamel'].copy();enamel.name='White enamel f4'
+        for node in enamel.node_tree.nodes:
+            if node.type=='NORMAL_MAP':node.inputs['Strength'].default_value=.60
+            if node.type=='TEX_IMAGE' and 'roughness' in node.image.name:
+                original=node.image
+                values=np.array(original.pixels[:],dtype=np.float32).reshape(original.size[1],original.size[0],4)[:,:,:3]
+                node.image=image('f4-enamel-roughness',values*.75)
+                node.image.colorspace_settings.name='Non-Color'
+        for o in objects:
+            for slot in o.material_slots:
+                if slot.material==M['White enamel']:slot.material=enamel
     # Smart UVs provide real material-space grain; normals are corrected before export.
     for o in objects:
         if o.type!='MESH':continue
@@ -4144,10 +4167,10 @@ def export_asset(name,objects):
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             if uv_area<1e-9:raise RuntimeError('Textured finish has no usable surface UVs: '+o.name)
             # Calibrated camera grain is authored here without viewer tiling:
-            # about .63 mm R7 rubber cells, .46 mm 40D rubber cells and .2 mm painted-shell cells.
+            # about .63 mm R7/40D rubber cells and .2 mm painted-shell cells.
             tile_span=1.4
             if name in ['r7','40d']:
-                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55 if name=='r7' else .40
+                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55
                 elif 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.18
             elif name=='c200':
                 if 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.26

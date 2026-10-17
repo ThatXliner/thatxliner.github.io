@@ -136,7 +136,8 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
               ) {
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
-                material.iridescenceThicknessRange = [110, 125];
+                // Reference-guided 50mm coating tint; not Canon's multilayer prescription.
+                material.iridescenceThicknessRange = id === "50" ? [90, 90] : [110, 125];
                 material.clearcoat = 0;
                 material.side = THREE.FrontSide;
                 // Screen-space transmission does not resolve stacked

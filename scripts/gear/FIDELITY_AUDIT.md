@@ -1920,3 +1920,65 @@ Previous turn corrected R7 shoe depth/support (progress). Returned to full C200 
 Rebuilt with independent check-c200-rim-circles.py:9closed manifold rims, both diameters11.4473mm and ratios within1e-5of1. Existing socket/calibration assertions also pass. Source/current saved unmerged c200-round-rims-unmerged.blend; before and build logs in ignored output. Final319953faces, compressed asset5118516bytes SHA256 874282b187e7f988718cddfb4b33a70e478e40a509e52946d164ec01a1c6acb1.
 
 Actual /classic compressed viewer inspected from operator side, front-oblique, whole front assembly and rear; rims now match caps without stretched surrounds. No console errors. Saved c200-round-rims-{before,after,oblique,assembly,rear}.png and refreshed c200thumbnail. Local/unpushed. Overall materials still differ from reference, especially cast-surface highlight/grain response; full C200 and broader photographic acceptance remain unfinished. Runtime/lazy-loading unchanged.
+
+
+### 2026-10-17 — C200 cast-grain strength
+
+Previous turn shipped checkpoint cefe6d6 (progress). Compared saved operator-side product reference c200.jpg with matched development viewer poses at normal strengths .60 and 1.02. Stronger normal response breaks up cast-panel/front-flange highlights more like the reference while retaining the existing physical grain pitch, roughness map, and smooth upper-shell material. Saved c200-finish-baseline.png and c200-finish-stronger-grain.png. This is an appearance estimate, not a measured surface profile.
+
+Updated generator C200 Crinkle painted metal strength to1.02. Applied the same scalar to the existing uncompressed GLB JSON, asserting the previous .60 value and leaving binary geometry/textures byte-identical; then reran meshopt/webp compression. No geometry rebuild or new AO bake required. Saved c200.blend remains the prior .60 material snapshot; generator and current raw/public GLBs are authoritative for this material change. Compressed normalTexture.scale independently verified1.02. Asset 5118500bytes SHA256 f4e267fe5fcfbfa8da40cdc1e6ffa347aff1ead816122b37ae42d417dba86973.
+
+Actual /classic front, operator side, and rear inspected without console errors; screenshots c200-grain-live-{front,side,rear}.png. Refreshed thumbnail. No added textures, primitives, or runtime logic; lazy loading unchanged. Local/unpushed. Overall body contours, material response, optics and photographic acceptance remain incomplete.
+
+
+### 2026-10-17 — C200 operator-panel marking proportions
+
+Previous turn improved cast grain (progress). Compared saved c200.jpg operator reference and current front-facing panel. Independent unmerged measurements found numbered glyph height about2.33mm on8.09mm caps (29%), and legend heights1.65–1.71mm. Reference estimates are approximately40% cap height for numbers and28–30% for legends. Increased function-number size.082→.116; standard legend size.061→.072 with vertical scale1.17. Retained ND FILTER width at.059 and increased its vertical scale1.35 to fit its narrow casting. This approximates the reference's condensed lettering; exact manufacturer typeface remains unverified.
+
+Full isolated C200 rebuild, AO bake and meshopt/webp compression completed. Existing circular-rim and calibration assertions pass. Independent check-c200-lettering.py asserts all seven numbered glyphs occupy39–43% of cap height, remain inside caps, and every nonempty function legend clears its casting rim; c200-lettering-check.log records results. Before dimensions in c200-label-before.log. Latest c200.blend and c200-round-rims-unmerged.blend now match current source, including prior1.02 cast grain strength. Compressed material scalar independently verified. Asset 5128224bytes SHA256 701ae5ff932d3589e1ba96e383dc3ac57647ef0cd9ba763628ac1ad68254b53c.
+
+Actual /classic matched side before/after, oblique, full front and rear inspected; improved legibility without visible label penetration or console errors. Saved c200-lettering-{before,after,oblique,front,rear}.png; thumbnail refreshed. Local/unpushed, renderer/lazy-loading unchanged. Full geometry/material/optics photographic matching remains incomplete; this does not establish acceptance of the whole camera.
+
+
+### 2026-10-17 — 40D molded leatherette structure
+
+Previous turn corrected C200 markings (progress). Audited 40D actual rear/front against saved40d-rear-photo.jpg,40d-rear-lanteigne.jpg and40d.jpg. Isolated-bump normal map read as tightly packed granular ridges; reference shows connected creased cells. Matched production-lighting development comparison saved40d-grip-baseline.png and40d-grip-cells-candidate.png. Reused existing warped-cell normal texture on 40D Molded grip rubber only, retaining original roughness map. Normal strength.9→.65; tile span.40→.55units gives nominal55*.55/48=.63mm pitch. Scale/strength are photographic estimates, not measured leatherette.
+
+Full isolated40D rebuild and meshopt/webp export passed existing source assertions. Independent compressed GLB check confirms1024x1024normal image, scalar.65, byte-identical roughness texture and unchanged26material primitives. Asset4158060bytes, +391228bytes from prior; SHA256 c12a472015f8b203cda8fc1973ee8e6c056a9e09c34858c530ecef0a13d854c7. Evidence40d-cell-grip-export-check.json,build/optimize logs; latest unmerged40d-cell-grip-unmerged.blend and baked40d.blend. Higher resolution normal map adds download/GPU texture storage; no draw-group or renderer-policy change.
+
+Actual /classic front,rear,grip-side views inspected without console errors; screenshots40d-cell-grip-live-{front,rear,side}.png. Thumbnail refreshed. Owned body/lens selectors used successfully for40D+50mm. Local/unpushed. Rear eyepiece carrier contours/optical path and broader body/lens fidelity remain incomplete; no claim of whole-model photorealism.
+
+
+### 2026-10-17 — 40D eyepiece carrier placement
+
+Previous turn corrected leatherette (progress). Rear reference comparison (40d-rear-photo.jpg and40d-rear-lanteigne.jpg) showed optical carrier should extend between the rubber Eb feet, below the hood center. Current model exposed a rectangular strip of cast rear cover below the carrier. Ray probe40d-eyecup-lower-probe.log identified the flat rear cover at y.40–.46; development no-AO/no-shadow isolation retained the strip, ruling out an AO-only fix. Saved40d-eyecup-with-ao.png and40d-eyecup-no-shadows.png.
+
+Lowered only40D inner optical assembly by.065units (3.575mm), moving carrier, ocular, baffles and Boolean housing channel together. Carrier height.35→.38; lower retaining rail height.034→.020 and center to new optical center minus.190. Rubber hood and upper diopter axle stay in place. Reference-based placement, not manufacturer CAD.
+
+Full isolated build/bake/compression passed. Independent check-40d-eyepiece-fit.py initially encountered split shading edges; welded duplicate coordinates in its temporary validation mesh (1e-6), without changing production geometry. Carrier and rail are closed manifold after welding; carrier bottom y.435, optic center y.625; all9sampled viewing rays first hit ocular rather than housing. Evidence40d-eyepiece-fit-check.log. Latest saved40d-cell-grip-unmerged.blend and40d.blend include change. Asset4141612bytes SHA256 80a231173f0feac888f5dcb5e14387f3e085e5a07680cf2bab809f7b264ee944.
+
+Actual /classic rear, oblique, front and grip-side checked without console errors; saved40d-eyepiece-fit-{before,after,oblique,front,side}.png and refreshedthumbnail. Lower cover strip now covered by properly placed carrier. Optical interior/pentaprism remains simplified and full reference matching is unfinished. No runtime/shadow-policy change retained. Local/unpushed.
+
+### 2026-10-17 — EF 50mm front coating appearance
+
+Previous turn corrected40D eyepiece fit (progress). Inspected saved50ii.jpg and50ii-canon.jpg with current viewer: front glass had a blue-gray cast rather than the warm oblique reflection in the former reference. Matched development baseline/candidate comparison (50-coating-before.png,50-coating-candidate.png) tested90nm single-film approximation against110–125nm. Retained90nm for lens id50 in models.ts; inner layers subsequently receive their existing220–240/350–370nm overrides, so change is confined to the outer element. This is a reference-guided tint approximation, not Canon's proprietary coating prescription or proof of accurate multilayer transport.
+
+Actual /classic40D+50 at default oblique and near-axis views inspected; R7+50 selected independently and verified after attachment animation settled. No console errors. Saved50-coating-live-{oblique,front,r7}.png and refreshed50thumbnail. Other lens IDs and ocular materials retain prior values; no geometry, textures, render passes or lazy-loading changes. Final source build passed15pages in23.48s (50-coating-final-build.log); diff check clean. Local/unpushed. Multi-element refraction and broader optics/body reference matching remain incomplete.
+
+
+### 2026-10-17 — owned70–200f/4 control legends
+
+Previous turn adjusted50mm coating (progress). Compared actual f/4 side close-up with saved70-200-f4-side.jpg. Curved switch panel and collar-free assembly retained. AF/MF and ON/OFF labels were undersized relative to their switch openings while STABILIZER heading was closer. Increased only f/4 AF/MF size.042→.060 and ON/OFF.041→.060; moved MF center.095→.110 and OFF.095→.115 to clear bent position ticks. f/2.8 values preserved. Dimensions are photographic estimates.
+
+Full isolated f/4 build and compression passed existing panel topology checks. Independent check-f4-control-legends.py verifies every face-centroid sample of all4changed labels first hits its own glyph from radial and±.3tangential directions (12checks), with no panel or position-mark occlusion. Latest source assembly f4-control-legends-unmerged.blend, baked70-200-f4.blend; logs f4-control-legends-build/check/optimize. Asset2442048bytes SHA256 eea7406366b91f46456e74d6c2bcb45b21a042d453570bad6fe6eee8a99c8f32.
+
+Actual /classic matched side before/after, closer label view and full front/rear assembly views inspected without console errors. Saved f4-control-legends-{before,after,close,assembly,rear-assembly}.png. Rear assembly view checks attachment, not hidden rear lens optics. Thumbnail refreshed. No collar introduced, runtime/loading unchanged. Local/unpushed; broader materials, contours and optical reference matching remain unfinished.
+
+
+### 2026-10-17 — owned70–200f/4 enamel response
+
+Previous turn corrected f/4 control legends (progress). Compared saved70-200-f4-side.jpg painted highlights with matched studio side baseline/candidate. Reduced only f/4 white-enamel roughness map by.75 and increased normal strength.40→.60, retaining grain pitch and color. Separate White enamel f4 material is copied during export; shared f/2.8 material remains unchanged. Candidate has sharper broken highlights on the shoulder/front paint, closer to the reference; this is an appearance estimate under different photographic lighting, not measured BRDF. Saved f4-enamel-baseline.png and f4-enamel-candidate.png.
+
+Full isolated build/bake/compression completed. Independent exported checks report mean roughness0.34007→0.25617, normal scale.60, same17material primitives. Asset2441528bytes (-520byte delta), SHA256 1294e994f031fabeb2b3abfa0694e7c4ba7b49915c7a571fe37c3de1a4f91543. No added image dimensions, passes or runtime logic. Evidence f4-enamel-export-check.json and build/optimize logs. Updated stale source comment describing40D cell pitch from prior turn.
+
+Actual /classic side, full front and elevated rear-shoulder views inspected without console errors; saved f4-enamel-live-{side,front,rear-shoulder}.png. Rear angle was raised to expose paint otherwise hidden by body; not a detached rear-optics inspection. Thumbnail refreshed. Collar-free setup and lazy loading retained. Local/unpushed. Full geometry/material/optics photographic acceptance remains incomplete.
