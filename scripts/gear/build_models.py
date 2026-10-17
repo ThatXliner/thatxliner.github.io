@@ -737,7 +737,10 @@ def body(which):
             x,y,z=v.co
             terminal=max(0,min(1,(x-.45)/.45));terminal=terminal*terminal*(3-2*terminal)
             forward=max(0,min(1,(z-back)/(front-back)))
-            v.co.z+=.24*terminal*forward
+            # The terminal shoulder sits behind the flange in Canon's top
+            # view. Retain the lower cover depth but taper the upper casting.
+            shoulder=max(0,min(1,(y-.28)/.30));shoulder=shoulder*shoulder*(3-2*shoulder)
+            v.co.z+=(.24-.12*shoulder)*terminal*forward
             # The upper viewfinder housing reaches behind the shoulder plane.
             crest=max(0,min(1,(y-.34)/.4))*math.exp(-((x-.04)/.40)**4)
             rear_weight=max(0,min(1,(front-z)/(front-back)))
@@ -766,7 +769,13 @@ def body(which):
         # The finger channel is narrow below the shutter deck, but the upper
         # crown broadens inward to carry the M-Fn button beside the wheel.
         width=.80+.20*t
-        return y,cx-rx*(1-width),cz,rx*width,rz
+        # Widen the upper crown inward by 4.4 mm to match the top silhouette;
+        # preserve the outside edge and lower finger channel.
+        crown=.04*t
+        center=cx-rx*(1-width)+crown
+        radius=rx*width+crown
+        assert abs((center-radius)-(cx-rx))<1e-9
+        return y,center,cz,radius,rz
     grip_rows=[r7_grip_section(row) for row in rows] if not dslr else rows
     grip_core=loft_grip('Sculpted grip core',grip_rows,'Crinkle painted metal')
     # Fuse both bodies' casting and grip; intersecting shells produce a hard
@@ -892,16 +901,9 @@ def body(which):
         # Sample the nonlinear seat fade before bending the reduced casting.
         # Long triangles otherwise turn its smooth falloff into highlight bands.
         import bmesh
-        bm=bmesh.new();bm.from_mesh(shell.data)
-        bmesh.ops.triangulate(bm,faces=list(bm.faces))
-        for _ in range(5):
-            edges=[edge for edge in bm.edges if edge.calc_length()>.022 and
-                   any(v.co.y>seat_floor and abs(v.co.x-seat.x)<.25 and
-                       abs(v.co.z-seat.z)<.22 for v in edge.verts)]
-            if not edges:break
-            bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
-            bmesh.ops.triangulate(bm,faces=list(bm.faces))
-        bm.to_mesh(shell.data);bm.free()
+        refine_surface(shell,lambda a,b:(a-b).length>.022 and
+                       any(v.y>seat_floor and abs(v.x-seat.x)<.25 and
+                           abs(v.z-seat.z)<.22 for v in [a,b]),5)
     seat_rotation=Vector((0,1,0)).rotation_difference(normal).to_matrix()
     for v in shell.data.vertices:
         x,y,z=v.co
@@ -1035,6 +1037,9 @@ def body(which):
             part_name=o.name.removeprefix(which+' / ')
             if part_name not in ['Raised R7 badge','EOS badge','Model badge']:continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            # Sample the curved shoulder on the badge and lettering together;
+            # long face chords otherwise cross the closely fitted printed glyphs.
+            refine_surface(o,lambda a,b:(a-b).length>.015,6)
             backmost=min(v.co.z for v in o.data.vertices)
             for v in o.data.vertices:
                 hit,_,_,_=surface.ray_cast(Vector((v.co.x,v.co.y,3)),Vector((0,0,-1)),5)
@@ -1086,22 +1091,33 @@ def body(which):
     mount_objects=set(OBJECTS[mountStart:])
     # Top: shoe channels, contact pins, textured command dial and mode wheel.
     shoeY=1.072 if dslr else .974
-    box('Hot shoe base',(0,shoeY,-.10),(.48,.045,.43),'Anodized black',.017)
+    # R7 top reference: elongated shoe bed, with its front stop unchanged.
+    shoe_extension=0 if dslr else .12
+    shoe_z=-.10-shoe_extension/2
+    shoe_base=box('Hot shoe base',(0,shoeY,shoe_z),(.48,.045,.43+shoe_extension),'Anodized black',.017)
+    if not dslr:
+        # The rear support narrows with the finder roof; the metal rails
+        # overhang this molded foot rather than extending the eyepiece housing.
+        active(shoe_base);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        for v in shoe_base.data.vertices:
+            rear=max(0,min(1,(-v.co.z-.30)/.10));rear=rear*rear*(3-2*rear)
+            v.co.x*=1-.12*rear
+        shoe_base.data.update()
     for x in [-.205,.205]:
-        box('Hot shoe rail',(x,shoeY+.032,-.1),(.06,.033,.4),'Machined metal',.008)
-        box('Hot shoe return',(x+(.018 if x<0 else -.018),shoeY+.056,-.1),(.04,.017,.39),'Machined metal',.005)
+        box('Hot shoe rail',(x,shoeY+.032,shoe_z),(.06,.033,.4+shoe_extension),'Machined metal',.008)
+        box('Hot shoe return',(x+(.018 if x<0 else -.018),shoeY+.056,shoe_z),(.04,.017,.39+shoe_extension),'Machined metal',.005)
     if dslr:
         for x,z in [(0,-.1),(-.09,-.20),(.09,-.20),(-.05,.0),(.05,.0)]:cyl('Flash contact',(x,shoeY+.03,z),.015,.008,'Gold engraving','y',24,.001)
     else:
         # R7 multi-function shoe: metal bed around an inset compatibility
         # contact block, plus the small accessory interface at the front stop.
-        box('Hot shoe metal bed',(0,shoeY+.025,-.10),(.426,.014,.390),'Machined metal',.006)
-        box('Hot shoe contact insulator',(0,shoeY+.036,-.165),(.224,.013,.275),'Graphite polymer',.006)
-        cyl('Flash contact sync',(0,shoeY+.046,-.124),.031,.004,'Machined metal','y',48,.001)
+        box('Hot shoe metal bed',(0,shoeY+.025,shoe_z),(.426,.014,.510),'Machined metal',.006)
+        box('Hot shoe contact insulator',(0,shoeY+.036,-.225),(.224,.013,.275),'Graphite polymer',.006)
+        cyl('Flash contact sync',(0,shoeY+.046,-.184),.031,.004,'Machined metal','y',48,.001)
         for x in [-.044,.044]:
-            for z in [-.218,-.270]:cyl('Flash contact communication',(x,shoeY+.046,z),.0125,.004,'Machined metal','y',24,.001)
-        cyl('Hot shoe locking pin opening',(0,shoeY+.034,.003),.018,.002,'Deep black','y',32,.001)
-        for x in [-.093,.093]:cyl('Hot shoe retaining recess',(x,shoeY+.045,-.175),.013,.002,'Deep black','y',24,.001)
+            for z in [-.278,-.330]:cyl('Flash contact communication',(x,shoeY+.046,z),.0125,.004,'Machined metal','y',24,.001)
+        cyl('Hot shoe locking pin opening',(0,shoeY+.034,-.057),.018,.002,'Deep black','y',32,.001)
+        for x in [-.093,.093]:cyl('Hot shoe retaining recess',(x,shoeY+.045,-.235),.013,.002,'Deep black','y',24,.001)
         box('Hot shoe accessory contact recess',(0,shoeY+.033,.076),(.284,.025,.025),'Deep black',.004)
         for i in range(21):box('Hot shoe accessory contact',((i-10)*.0118,shoeY+.040,.066),(.006,.003,.012),'Gold engraving',.001)
 
@@ -2159,7 +2175,7 @@ def body(which):
         contacts=[]
         for v in shoe_base.data.vertices:
             hit,_,_,_=shoe_surface.ray_cast(Vector((v.co.x,2,v.co.z)),Vector((0,-1,0)),4)
-            if hit is None:raise RuntimeError('R7 hot shoe foot missed finder roof')
+            if hit is None:raise RuntimeError('R7 hot shoe foot missed finder roof: '+str(tuple(v.co)))
             contacts.append(hit.y)
         top=max(contacts)+.012
         for o in shoe_parts:
@@ -3812,7 +3828,7 @@ def cinema():
     grip_fit=Matrix.Translation(calibration@grip_mount_anchor-accessory_shape@grip_mount_anchor)@accessory_shape
     # Side-facing circular controls must not become elliptical under the
     # independently constrained depth/height fit. Their centers keep the layout.
-    side_round_prefixes=('Function bezel','Function button','Function number',
+    side_round_prefixes=('Rolled function casting rim','Function bezel','Function button','Function number',
         'Record bezel','Red REC button','Playback button','WB button',
         'Tape measure hook','Cinema EOS badge')
     operator_objects=OBJECTS[panelStart:rightStart]
@@ -3861,6 +3877,9 @@ def cinema():
             low,high=bounds([o]);center=(low+high)*.5
         keep_round=Matrix.Translation(center)@Matrix.Diagonal((1,factors.z/factors.y,1,1))@Matrix.Translation(-center)
         o.matrix_world=keep_round@o.matrix_world
+        if label.startswith('Rolled function casting rim'):
+            low,high=bounds([o]);extent=high-low
+            assert abs(extent.y-extent.z)<1e-5,'C200 function rim must remain circular'
     # Canon manual pp.16/42: recessed underside panel, TB-1 insert and
     # separate mounting sockets. Build after the body fit so bores and
     # their hardware can share inverse scaling and retain physical diameters.
