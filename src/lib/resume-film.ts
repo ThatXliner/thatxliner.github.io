@@ -686,15 +686,6 @@ export async function initResumeFilm() {
       'a[href^="#"]',
     );
     if (!link) return;
-    if (link.classList.contains("resume-jump")) {
-      event.preventDefault();
-      const resume = root.querySelector<HTMLElement>("#index")!;
-      history.pushState(null, "", "#index");
-      resume.setAttribute("tabindex", "-1");
-      resume.focus({ preventScroll: true });
-      resume.scrollIntoView({ behavior: "instant", block: "start" });
-      return;
-    }
     const index = chapters.findIndex(
       (chapter) => `#${chapter.id}` === link.getAttribute("href"),
     );
