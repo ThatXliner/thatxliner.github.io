@@ -302,6 +302,33 @@ def optical_element(name,z,r,sag=.025,thickness=.035,mat='Optical glass',back_sa
     split.split_angle=pi/4;split.use_edge_angle=True;apply(o,split)
     return o
 
+def cinema_large_eyecup():
+    # Removable rubber cup shown in Canon's assembled C200 photographs.
+    # Photo-estimated flare; separate from the calibrated bare-body envelope.
+    sections=[(.86,.65,.19,-.075),(.91,.72,.25,-.15),
+              (1.01,.88,.36,-.24),(1.13,1.06,.48,-.33),
+              (1.18,1.16,.54,-.38),(1.175,1.155,.537,-.395),
+              (1.14,1.12,.52,-.397),(1.105,1.035,.47,-.34),
+              (.98,.85,.35,-.25),(.875,.685,.235,-.16),
+              (.825,.615,.175,-.075)]
+    vertices=[];faces=[];steps=20;count=4*(steps+1)
+    for w,h,r,depth in sections:
+        for cx,cy,start in [(w/2-r,h/2-r,0),(-w/2+r,h/2-r,pi/2),(-w/2+r,-h/2+r,pi),(w/2-r,-h/2+r,3*pi/2)]:
+            for i in range(steps+1):
+                a=start+i*pi/(2*steps);xx=cx+r*cos(a);yy=cy+r*sin(a)
+                # The cheek wings project farther back than the upper/lower rim.
+                wing=.16*(xx/(w/2))**2*max(0,min(1,(-depth-.075)/.30))
+                vertices.append((.31+xx,.94+yy,-2.08+depth-wing))
+    for row in range(len(sections)):
+        for i in range(count):
+            j=(i+1)%count;next_row=(row+1)%len(sections)
+            faces.append((row*count+i,row*count+j,next_row*count+j,next_row*count+i))
+    mesh=bpy.data.meshes.new('C200 removable eyecup');mesh.from_pydata(vertices,[],faces);mesh.update()
+    for face in mesh.polygons:face.use_smooth=True
+    o=bpy.data.objects.new('C200 removable eyecup',mesh);scene.collection.objects.link(o)
+    register(o,'C200 removable eyecup','Focus rubber')
+    return o
+
 def eyecup(x,y,z,body='c200',housing=()):
     # Four rounded rectangular loops form a hollow rubber hood. The glass sits
     # behind its opening, rather than on top of a solid block.
@@ -828,6 +855,14 @@ def dslr_rear_cover(points,back,front):
     o=bpy.data.objects.new('Rear control cover',mesh);scene.collection.objects.link(o)
     register(o,'Rear control cover','Crinkle painted metal')
     return o
+
+def r7_fitted_width(x):
+    # Match the established width outside the transition without a crease
+    # where the terminal shoulder begins to narrow.
+    if x<=.35:return x
+    if x>=.55:return .45+(x-.45)*.65
+    t=(x-.35)/.20
+    return x-.35*.20*(t**3-.5*t**4)
 
 def body(which):
     global current;current=which;start=len(OBJECTS);dslr=which=='40d'
@@ -2365,9 +2400,12 @@ def body(which):
                 shoulder_front=shoulder_front*shoulder_front*(3-2*shoulder_front)
                 v.co.y+=.12*grip_weight*shoulder_height*shoulder_front
                 v.co.y*=.87
-                if v.co.x>.45 and 'Lens release' not in o.name:
-                    v.co.x=.45+(v.co.x-.45)*.65
+                if 'Lens release' not in o.name:
+                    v.co.x=r7_fitted_width(v.co.x)
             o.data.update()
+            if o==display:
+                # Body fitting changes the corner-normal basis even on flat glass.
+                finish(o)
             if o in [shell,rear_cover]:
                 # Discard pre-bend split normals after adding vertices and bending.
                 old=o.data;mesh=bpy.data.meshes.new(old.name+' formed')
@@ -4068,7 +4106,16 @@ def cinema():
     # Build its side silhouette in local XY, then turn local X along camera Z.
     # Canon's assembled reference has a diagonal lower front return.
     handle=profile('HDU-2 continuous casting',[(-1.15,1.15),(-1.57,1.55),(-1.57,1.88),(-1.46,2.00),(.30,2.00),(.44,1.87),(.44,1.31),(.30,1.15)],-.235,.235,'Crinkle painted metal',.043)
-    opening=profile('Handle opening cutter',[(-1.28,1.55),(-1.28,1.70),(-1.21,1.79),(-1.05,1.80),(-.96,1.76),(-.86,1.80),(-.69,1.80),(-.60,1.76),(-.50,1.80),(-.33,1.80),(-.24,1.76),(-.14,1.80),(.06,1.80),(.15,1.69),(.15,1.43),(.03,1.32),(-1.02,1.32)],-.40,.40,'Deep black',.025)
+    # The underside has shallow rounded finger rests, not angular teeth.
+    # Cosine shoulders meet the straight land tangentially; depth is photo-estimated.
+    finger_edge=[]
+    for center in [-.96,-.60,-.24]:
+        for i in range(13):
+            xx=center-.09+i*.18/12
+            depth=.025*(1-cos(2*pi*i/12))/2
+            finger_edge.append((xx,1.80-depth))
+    finger_edge.append((.06,1.80))
+    opening=profile('Handle opening cutter',[(-1.28,1.55),(-1.28,1.70),(-1.21,1.79)]+finger_edge+[(.15,1.69),(.15,1.43),(.03,1.32),(-1.02,1.32)],-.40,.40,'Deep black',.025)
     cut=handle.modifiers.new('Open hand clearance','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=opening;apply(handle,cut);OBJECTS.remove(opening);bpy.data.objects.remove(opening,do_unlink=True)
     if handle.ray_cast(Vector((-.65,1.55,.60)),Vector((0,0,-1)),distance=1.2)[0]:raise RuntimeError('HDU-2 hand opening is obstructed')
     # Shallow split channels in both side rails, visible in Canon's HDU-2
@@ -4537,6 +4584,7 @@ def cinema():
     print('C200 core dimensions mm',tuple(round(v,3) for v in core_size),'body with EVF mm',tuple(round(v,3) for v in body_size),flush=True)
     assert all(abs(a-b)<.5 for a,b in zip(core_size,(144,146,137))), core_size
     assert all(abs(a-b)<.5 for a,b in zip(body_size,(144,153,179))), body_size
+    cup=cinema_large_eyecup();cup.matrix_world=evf_fit@cup.matrix_world
     return OBJECTS[start:]
 
 def adapter():
@@ -4605,7 +4653,10 @@ def bake_occlusion(name,objects):
     for o in unbaked:o.hide_render=True
     bpy.ops.object.select_all(action='DESELECT')
     for o in objects:o.select_set(True)
-    bpy.context.view_layer.objects.active=objects[0];bpy.ops.object.join()
+    bpy.context.view_layer.objects.active=objects[0]
+    # Joining into a nonuniformly scaled object skews custom shading normals.
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    bpy.ops.object.join()
     obj=bpy.context.object;obj.name=name+' | baked assembly'
     obj.data.uv_layers.new(name='BakedAO');obj.data.uv_layers.active_index=len(obj.data.uv_layers)-1
     bpy.ops.object.mode_set(mode='EDIT');bpy.ops.mesh.select_all(action='SELECT')
@@ -4748,7 +4799,9 @@ def export_asset(name,objects):
     for (mat,skip_ao),items in grouped.items():
         bpy.ops.object.select_all(action='DESELECT')
         for o in items:o.select_set(True)
-        bpy.context.view_layer.objects.active=items[0];bpy.ops.object.join();obj=bpy.context.object;obj.name=name+' | '+mat;joined.append(obj)
+        bpy.context.view_layer.objects.active=items[0]
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        bpy.ops.object.join();obj=bpy.context.object;obj.name=name+' | '+mat;joined.append(obj)
         obj['skip_baked_ao']=skip_ao
     bpy.ops.object.select_all(action='DESELECT')
     for o in joined:o.select_set(True)
