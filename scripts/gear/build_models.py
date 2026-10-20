@@ -427,7 +427,7 @@ def eyecup(x,y,z,body='c200',housing=()):
             polygons.append((back_center,back_start+i,back_start+j))
     mesh=bpy.data.meshes.new('Rectangular curved eyepiece optic');mesh.from_pydata(vertices,[],polygons);mesh.update()
     optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','40D ocular glass' if body=='40d' else 'C200 ocular glass' if body=='c200' else 'R7 ocular glass')
-    if body=='c200':
+    if body in ['40d','c200']:
         # The AO bake replaces shaders with opaque emission. Exclude this
         # transmitting window so it cannot cast a false shadow on the ocular.
         optic['skip_baked_ao']=True
@@ -2386,7 +2386,9 @@ def body(which):
                 upper=max(0,min(1,(y-.40)/.35));upper=upper*upper*(3-2*upper)
                 front_weight=max(0,min(1,(z-back)/(front-back)))
                 finder=math.exp(-(x/.48)**4)
-                if not rigid_shoe:v.co.z+=.17*finder*upper*front_weight
+                # The finder brow leans back toward its roof in Canon's side view.
+                brow=max(0,min(1,(y-.64)/.30));brow=brow*brow*(3-2*brow)
+                if not rigid_shoe:v.co.z+=.17*finder*upper*(1-.80*brow)*front_weight
                 crown=max(0,min(1,(y-.35)/.35));crown=crown*crown*(3-2*crown)
                 # Keep crown shaping ahead of the rear panel; rear controls are rigid.
                 deck=max(0,min(1,(z-back)/.20));deck=deck*deck*(3-2*deck)
@@ -2652,9 +2654,12 @@ def fifty_prime():
     # Bend both printed legends and the compact AF/MF recess onto the shell.
     detail_start=len(OBJECTS)
     switch_panel=rounded_panel('AF MF recess',(0,0,-.001),(.235,.23,.006),.025,'Satin control plastic')
-    text('AF MF legend','AF  MF',(0,.060,.004),.039)
+    # Canon's diagram reads with the lens front upward: AF above MF,
+    # lettering across the barrel and the slider toward the front for AF.
+    text('AF legend','AF',(.036,.043,.004),.039,rotation=(0,0,-pi/2))
+    text('MF legend','MF',(-.036,.043,.004),.039,rotation=(0,0,-pi/2))
     rounded_panel('Focus mode track floor',(0,-.037,-.005),(.145,.061,.002),.023,'Deep black')
-    rounded_panel('Focus mode slider',(-.033,-.037,-.001),(.066,.053,.012),.021,'Graphite polymer')
+    rounded_panel('Focus mode slider',(.033,-.037,-.001),(.066,.053,.012),.021,'Graphite polymer')
     cutter=rounded_panel('Focus mode aperture cutter',(0,-.037,-.008),(.147,.063,.08),.024,None)
     cut=switch_panel.modifiers.new('Open focus mode insert','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(switch_panel,cut)
     for o in OBJECTS[detail_start:]:
@@ -2706,8 +2711,8 @@ def fifty_prime():
         for o in items:
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             for v in o.data.vertices:
-                u,vv,depth=v.co;angle=pi/2-u/.62+phase;radius=.6215+depth
-                v.co=(radius*cos(angle),radius*sin(angle),z-vv)
+                u,vv,depth=v.co;angle=pi/2+u/.62+phase;radius=.6215+depth
+                v.co=(radius*cos(angle),radius*sin(angle),z+vv)
             o.data.update()
     sphere('Mount alignment pip',(-.622,-.16,.245),(.014,.018,.018),'Red lacquer')
     for i in range(8):
@@ -4164,11 +4169,11 @@ def cinema():
         for xx in [-.129,-.111,-.093,-.075,.075,.093,.111,.129]:
             box('Handle end plate serration',(xx,1.65,.014),(.004,.295,.006),'Graphite polymer',.001)
         for o in OBJECTS[plate_start:]:o.matrix_world=Matrix.Translation(Vector((0,0,zz)))@Matrix.Rotation(0 if sign>0 else pi,4,'Y')@o.matrix_world
-    # Newly cut rail pockets must not retain weighted normals from the
-    # original uncut casting. Keep the broad side faces exactly planar.
+    # Newly cut rail pockets and end sockets must not retain weighted normals
+    # from the uncut casting. Preserve all planar cap directions, not just sides.
     handle_normals=[(0,0,0)]*len(handle.data.loops)
     for face in handle.data.polygons:
-        if abs(face.normal.z)>.999:
+        if max(abs(component) for component in face.normal)>.999:
             face.use_smooth=False
             for loop in face.loop_indices:handle_normals[loop]=tuple(face.normal)
     handle.data.normals_split_custom_set(handle_normals)

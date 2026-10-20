@@ -3519,3 +3519,16 @@ Canon C200/C200B instruction manual, saved c200-manual.pdf, pp.16 and42. Parts d
 ### LM-V1 shoulder transition — 2026-10-20
 
 Canon expansion guide English p.16 (PDF page76), local cinema-expansion.pdf, provides the outer shoulder outline in paths517,624,518. Case-width dimension runs x328.981..432.468 PDF points; the shoulder transition runs x346.123..370.172. The middle segment is straight, joined to horizontal shelves by approximately circular fillets (radius21.37 PDF points, tangent join6.173points from each end). Generator monitor_back_section uses these normalized horizontal proportions and curve shape. The existing shallow/deep shell depths remain estimated at.275/.360units; this is not a calibrated thickness reconstruction. Drawing width/depth views have different apparent scales/datums, so a single points-to-mm conversion has not been assumed for thickness. Extracted samples and derivative/profile check are under ignored output/gear-modeling/lmv1-shoulder-*.json.
+
+### 2026-10-20 — EF50mm II printed orientation and AF position
+
+Canon EF50mm f/1.8 II instruction sheet, first-page nomenclature and figure4:
+https://www.bhphotovideo.com/lit_files/92847.pdf
+Downloaded copy: https://allphotolenses.com/public/files/pdfs/8dbc2e65bf1b771f7d6af5f36200c905.pdf
+Saved as output/gear-reference/50ii-canon-instructions.pdf and rendered PNG.
+The drawing and existing50ii-canon.jpg show AF toward the lens front, MF toward
+the mount, individual text baselines across the barrel, and the top of the
+focal-length/minimum-distance lettering facing the lens front. Corrected the
+previous combined axial AF/MF text, reversed depicted slider position, and
+rotated the barrel legends180degrees about their local radial axes. Panel depth
+and dimensions retain the previously verified recessed construction.
