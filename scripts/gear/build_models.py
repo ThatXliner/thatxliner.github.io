@@ -57,6 +57,33 @@ def surface_maps():
     grip_rough=image('molded-grip-cell-roughness',np.repeat((.78*(.64+.055*(1-cell)))[:,:,None],3,axis=2))
     return pebble,fine,grip,grip_rough
 PEBBLE,FINE,GRIP_CELL,GRIP_ROUGH=surface_maps()
+
+def r7_grip_maps():
+    # Separate R7 molded cells from the older 40D leatherette. Compare the
+    # crease profile at matched RMS slope before applying material relief.
+    n=1024;rng=np.random.default_rng(2026);seeds=rng.random((48,48,2))
+    gy,gx=np.mgrid[:n,:n].astype(float)/n;fields=[]
+    for warp in [1,.45]:
+        u=gx*48+warp*(.24*np.sin(2*pi*(gx*19+gy*13))+.13*np.sin(2*pi*(gx*31-gy*23)))
+        v=gy*48+warp*(.24*np.sin(2*pi*(gx*11-gy*17))+.13*np.sin(2*pi*(gx*29+gy*31)))
+        nearest=np.full(u.shape,100.);second=nearest.copy()
+        for dx in [-1,0,1]:
+            for dy in [-1,0,1]:
+                ix=np.floor(u).astype(int)+dx;iy=np.floor(v).astype(int)+dy
+                sx=ix+seeds[iy%48,ix%48,0];sy=iy+seeds[iy%48,ix%48,1]
+                distance=(u-sx)**2+(v-sy)**2
+                second=np.minimum(second,np.maximum(nearest,distance));nearest=np.minimum(nearest,distance)
+        d=np.sqrt(second)-np.sqrt(nearest)
+        if warp==1:height=1-np.exp(-d*10)
+        else:
+            t=np.clip((d-.015)/.32,0,1);height=t*t*(3-2*t)
+        fields.append(np.stack([np.roll(height,-1,1)-np.roll(height,1,1),np.roll(height,-1,0)-np.roll(height,1,0)],axis=-1))
+    strength=5.6*np.sqrt(np.mean(fields[0]**2)/np.mean(fields[1]**2))
+    normal=np.concatenate([-fields[1]*strength,np.ones((n,n,1))],axis=-1)
+    normal/=np.linalg.norm(normal,axis=-1)[...,None]
+    return image('r7-molded-cell-normal',normal*.5+.5),image('r7-molded-cell-roughness',np.repeat((.78*(.64+.055*(1-height)))[:,:,None],3,axis=2))
+R7_GRIP_CELL,R7_GRIP_ROUGH=r7_grip_maps()
+
 LEATHER=bpy.data.images.load(os.path.join(ROOT,'scripts/gear/textures/Leather037_NormalGL.png'));LEATHER.colorspace_settings.name='Non-Color';LEATHER.pack()
 leather_rough_source=bpy.data.images.load(os.path.join(ROOT,'scripts/gear/textures/Leather037_Roughness.png'));leather_rough_source.colorspace_settings.name='Non-Color'
 leather_values=np.array(leather_rough_source.pixels[:],dtype=np.float32).reshape(leather_rough_source.size[1],leather_rough_source.size[0],4)[:,:,:3]
@@ -143,6 +170,8 @@ material('White enamel',(.66,.645,.59),.34,0,PEBBLE,.40)
 material('Telephoto switch seat',(.34,.33,.30),.48,0)
 material('Red lacquer',(.46,.018,.011),.27,.15)
 material('Gold engraving',(.48,.35,.12),.4,.45)
+# Matte cavity floors retain the local shadow absent from the shared AO atlas.
+material('R7 recessed legend',(.002,.0024,.003),1,0)
 material('Yellow marking ink',(.95,.55,.015),.5,0)
 material('Stabilizer badge gold',(.42,.19,.025),.4,.2)
 material('White ink',(.76,.78,.74),.5,0)
@@ -1491,10 +1520,31 @@ def body(which):
         access_lens.location=(-1.025,-.508,rz-.077)
         access_socket.rotation_euler.z=.56
         access_lens.rotation_euler.z=.56
-        # The controller rises from a rounded asymmetric casting shoulder,
-        # rather than a circular button applied directly to the flat back.
-        controller_outline=[(-.14,-.035),(-.13,.075),(-.055,.155),(.035,.165),(.13,.090),(.145,-.040),(.105,-.145),(-.040,-.160)]
-        controller_surround=profile('Multi controller casting surround',[(-.52+x,.24+y) for x,y in controller_outline],rz-.057,rz-.020,'Crinkle painted metal',.014,rounding=.045)
+        # A radial falloff meets the rear-cover plane with zero slope. The
+        # old extruded profile retained a steep perimeter like an added plate.
+        segments=128;rows=24;verts=[(-.52,.245,rz-.059)];faces=[]
+        for row in range(1,rows+1):
+            t=row/rows;z=rz-.04099-.01801*(1-t*t)**2
+            verts.extend((-.52+.153*t*cos(i*2*pi/segments),.245+.175*t*sin(i*2*pi/segments),z) for i in range(segments))
+        for i in range(segments):faces.append((0,1+i,1+(i+1)%segments))
+        for row in range(rows-1):
+            a=1+row*segments;b=a+segments
+            for i in range(segments):
+                j=(i+1)%segments;faces.append((a+i,b+i,b+j,a+j))
+        bottom=len(verts);verts.extend((-.52+.153*cos(i*2*pi/segments),.245+.175*sin(i*2*pi/segments),rz-.020) for i in range(segments))
+        outer=1+(rows-1)*segments
+        for i in range(segments):
+            j=(i+1)%segments;faces.append((outer+i,bottom+i,bottom+j,outer+j))
+        faces.append(tuple(range(bottom,bottom+segments)))
+        mesh=bpy.data.meshes.new('40D blended controller shoulder');mesh.from_pydata(verts,[],faces);mesh.update()
+        controller_surround=bpy.data.objects.new('Multi controller casting surround',mesh);scene.collection.objects.link(controller_surround)
+        register(controller_surround,'Multi controller casting surround','Crinkle painted metal')
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(mesh);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
+        assert all(e.is_manifold for e in bm.edges),'40D controller shoulder must be closed'
+        assert all(f.calc_area()>1e-12 for f in bm.faces),'40D controller shoulder contains collapsed faces'
+        bm.to_mesh(mesh);bm.free()
+        for face in mesh.polygons:face.use_smooth=True
         join=rear_cover.modifiers.new('Integral controller shoulder','BOOLEAN');join.operation='UNION';join.solver='EXACT';join.object=controller_surround;apply(rear_cover,join)
         OBJECTS.remove(controller_surround);bpy.data.objects.remove(controller_surround,do_unlink=True)
         for face in rear_cover.data.polygons:
@@ -1502,7 +1552,31 @@ def body(which):
         cyl('Multi controller socket',(-.52,.24,rz-.050),.119,.035,'Deep black')
         ring('Multi controller bezel',rz-.064,.116,.088,.020,'Satin control plastic',center=(-.52,.24),segments=96)
         sphere('Multi controller rubber seat',(-.52,.24,rz-.066),(.085,.085,.025),'Focus rubber')
-        cyl('Multi controller thumb pad',(-.52,.24,rz-.094),.064,.014,'Satin control plastic',vertices=64,bevel=.006)
+        cyl('Multi controller thumb pad',(-.52,.24,rz-.094),.064,.014,'Satin control plastic',vertices=96,bevel=.004)
+        # The rear reference resolves a narrow molded lip with four diagonal
+        # breaks around the thumb pad. Keep each break above the solid pad.
+        segments=128;verts=[];faces=[]
+        for radius,front in [(.064,False),(.064,True),(.054,True),(.054,False)]:
+            for i in range(segments):
+                a=2*pi*i/segments
+                notch=max(math.exp(-((math.atan2(sin(a-b),cos(a-b)))/.055)**2) for b in [pi/4,3*pi/4,5*pi/4,7*pi/4])
+                z=rz-.104+.003*notch if front else rz-.099
+                verts.append((-.52+radius*cos(a),.24+radius*sin(a),z))
+        for row in range(4):
+            next_row=(row+1)%4
+            for i in range(segments):
+                j=(i+1)%segments
+                faces.append((row*segments+i,row*segments+j,next_row*segments+j,next_row*segments+i))
+        mesh=bpy.data.meshes.new('40D controller interrupted lip');mesh.from_pydata(verts,[],faces);mesh.update()
+        lip=bpy.data.objects.new('Multi controller thumb rim',mesh);scene.collection.objects.link(lip)
+        register(lip,'Multi controller thumb rim','Satin control plastic')
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(mesh);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
+        assert all(e.is_manifold for e in bm.edges),'40D controller lip must be closed'
+        assert all(f.calc_area()>1e-12 for f in bm.faces),'40D controller lip has collapsed faces'
+        bm.to_mesh(mesh);bm.free()
+        for face in mesh.polygons:face.use_smooth=True
+
         # Rear photograph: a fan-shaped switch base with a diagonal raised fin.
         # Dimensions follow the image silhouette, not a manufacturer drawing.
         power_outline=[(.135,.064),(.070,.084),(-.075,.073),(-.139,.031),(-.145,-.019),(-.096,-.076),(.078,-.083),(.142,-.048),(.157,.005)]
@@ -1788,11 +1862,32 @@ def body(which):
         upright=normal.cross(across).normalized()
         pose=Matrix.Translation(hit)@Matrix((across,upright,normal)).transposed().to_4x4()
         if side<0:
-            pocket=rounded_panel('Strap pocket cutter',(0,0,-.020),(.43,.17,.15),.047,None)
+            # The grip-side reference shows sloping walls leading to the
+            # recessed fitting, not a vertical-sided rectangular cavity.
+            sections=[(.055,.43,.17,.047,0)]
+            for i in range(13):
+                t=i/12;sections.append((-.075*t*t*(3-2*t),.43-.10*t,.17-.04*t,.047-.015*t,-.008*t))
+            verts=[];faces=[]
+            for z,w,h,r,cy in sections:
+                points=smooth_outline([(-w/2,-h/2),(w/2,-h/2),(w/2,h/2),(-w/2,h/2)],steps=10,radius=r)
+                verts.extend((x,y+cy,z) for x,y in points)
+            n=len(points)
+            for row in range(len(sections)-1):
+                for i in range(n):
+                    j=(i+1)%n;faces.append((row*n+i,row*n+j,(row+1)*n+j,(row+1)*n+i))
+            faces.extend([tuple(reversed(range(n))),tuple(range((len(sections)-1)*n,len(sections)*n))])
+            mesh=bpy.data.meshes.new('40D tapered strap pocket');mesh.from_pydata(verts,[],faces);mesh.update()
+            pocket=bpy.data.objects.new('Strap pocket cutter',mesh);scene.collection.objects.link(pocket)
+            import bmesh
+            bm=bmesh.new();bm.from_mesh(mesh);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
+            assert all(e.is_manifold for e in bm.edges),'40D strap cutter must be closed'
+            assert all(f.calc_area()>1e-12 for f in bm.faces),'40D strap cutter has collapsed faces'
+            bm.to_mesh(mesh);bm.free()
+            for face in mesh.polygons:face.use_smooth=True
             pocket.matrix_world=pose
             cut=shell.modifiers.new('Recessed shoulder strap pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=pocket;apply(shell,cut)
-            OBJECTS.remove(pocket);bpy.data.objects.remove(pocket,do_unlink=True)
-            floor=rounded_panel('Strap pocket lining',(0,0,-.084),(.42,.16,.015),.044,'Deep black');floor.matrix_world=pose
+            bpy.data.objects.remove(pocket,do_unlink=True)
+            floor=rounded_panel('Strap pocket lining',(0,-.008,-.077),(.33,.13,.010),.032,'Deep black');floor.matrix_world=pose
         eye=rounded_panel('Rectangular strap eye',(0,-.032 if side<0 else -.037,-.042 if side<0 else .006),(.29,.093,.025),.034,'Anodized black')
         bore=rounded_panel('Strap webbing aperture',(0,-.032 if side<0 else -.037,-.042 if side<0 else .006),(.215,.040,.070),.017,None)
         cut=eye.modifiers.new('Open rectangular strap aperture','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(eye,cut)
@@ -2009,7 +2104,7 @@ def body(which):
             for j in range(count):
                 sphere('SD door finger grip bump',(-.022,-.30+j*.060+offset,zz),(.004,.008,.009),'Graphite polymer')
         # Recess the molded legend into the door so the edges catch light.
-        label=text('SD door engraving cutter','CARD OPEN',(0,0,0),.041,'Graphite polymer')
+        label=text('SD door engraving cutter','CARD OPEN',(0,0,0),.060,'Graphite polymer')
         label.matrix_world=Matrix.Translation((-.0095,-.18,-.055))@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(-pi/2,4,'Z')
         depth=label.modifiers.new('Engraving depth','SOLIDIFY');depth.thickness=.007;depth.offset=0;apply(label,depth)
         cut=panel.modifiers.new('Recessed CARD OPEN','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=label;apply(panel,cut)
@@ -2034,10 +2129,10 @@ def body(which):
         edge=panel.modifiers.new('Engraving edge radius','BEVEL');edge.width=.00035;edge.segments=2;apply(panel,edge)
         # shortcut: the shared AO atlas cannot resolve these tiny cavity floors.
         # A recessed dark floor approximates their occlusion until a detail bake is used.
-        floor=text('SD door engraving floor','CARD OPEN',(0,0,0),.041,'Deep black')
+        floor=text('SD door engraving floor','CARD OPEN',(0,0,0),.060,'R7 recessed legend')
         floor.matrix_world=Matrix.Translation((-.0061,-.18,-.055))@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(-pi/2,4,'Z')
         floor['skip_baked_ao']=True
-        arrow_floor=arrow_ring('SD door arrow floor',-.0061,-.0059,'Deep black')
+        arrow_floor=arrow_ring('SD door arrow floor',-.0061,-.0059,'R7 recessed legend')
         arrow_floor['skip_baked_ao']=True
         for o in OBJECTS[card_start:]:
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -4315,7 +4410,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.65 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .45 if name=='r7' else .18}
+            strengths={'Molded grip rubber':.25 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .45 if name=='r7' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
@@ -4326,7 +4421,7 @@ def export_asset(name,objects):
                         # The 40D leatherette has joined creased cells, not isolated bumps.
                         node.image=GRIP_CELL;node.image.colorspace_settings.name='Non-Color'
                     if name=='r7' and source.name=='Molded grip rubber' and node.type=='TEX_IMAGE':
-                        node.image=GRIP_CELL if node.image==PEBBLE else GRIP_ROUGH
+                        node.image=R7_GRIP_CELL if node.image==PEBBLE else R7_GRIP_ROUGH
                         node.image.colorspace_settings.name='Non-Color'
                 if name=='r7' and source.name=='Crinkle painted metal':
                     # Canon's reference finish has broader painted highlights.
@@ -4395,10 +4490,10 @@ def export_asset(name,objects):
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             if uv_area<1e-9:raise RuntimeError('Textured finish has no usable surface UVs: '+o.name)
             # Calibrated camera grain is authored here without viewer tiling:
-            # about .63 mm R7/40D rubber cells and .2 mm painted-shell cells.
+            # about .9 mm R7 cells, .63 mm 40D cells and .2 mm shell grain.
             tile_span=1.4
             if name in ['r7','40d']:
-                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55
+                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55/.7 if name=='r7' else .55
                 elif 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.18
             elif name=='c200':
                 if 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.26
