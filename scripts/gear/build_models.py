@@ -514,8 +514,8 @@ def line(name,points,radius=.005,mat='Deep black',smooth=False):
         for p,co in zip(sp.points,points):p.co=(*co,1)
     o=bpy.data.objects.new(name,curve);scene.collection.objects.link(o);register(o,name,mat);active(o);bpy.ops.object.convert(target='MESH');return o
 
-def screw(p,axis='z',r=.026):
-    cyl('Recessed cross-head screw',p,r,.009,'Screw steel',axis,32,.003)
+def screw(p,axis='z',r=.026,mat='Screw steel'):
+    cyl('Recessed cross-head screw',p,r,.009,mat,axis,32,.003)
     for angle in [0,pi/2]:
         b=box('Screw slot',(p[0],p[1],p[2]+.006),(r*1.1,.005,.002),'Deep black',.001);b.rotation_euler.z=angle
         if axis=='x':
@@ -1648,7 +1648,7 @@ def body(which):
         segments=96;rows=10;verts=[];faces=[]
         for row in range(rows+1):
             t=row/rows;radius=.181-(.181-.079)*t
-            depth=rz-.092+.018*(2*t-t*t)
+            depth=rz-.092+.006*(2*t-t*t)
             verts.extend((x+radius*cos(i*2*pi/segments),y+radius*sin(i*2*pi/segments),depth) for i in range(segments))
         for row in range(rows):
             for i in range(segments):
@@ -1676,7 +1676,7 @@ def body(which):
             refine_surface(rib,lambda a,b:(a-b).length>.008,4)
             for vertex in rib.data.vertices:
                 u,v,depth=vertex.co;radius=math.hypot(u,v);t=(.181-radius)/(.181-.079)
-                vertex.co=(x+cos(a)*u-sin(a)*v,y+sin(a)*u+cos(a)*v,rz-.093+.018*(2*t-t*t)+depth)
+                vertex.co=(x+cos(a)*u-sin(a)*v,y+sin(a)*u+cos(a)*v,rz-.093+.006*(2*t-t*t)+depth)
             rib.data.update();finish(rib)
         pad_fit=Matrix.Translation(Vector((x,y,0)))@Matrix.Diagonal((.88,.88/.87,1,1))@Matrix.Translation(Vector((-x,-y,0)))
         for o in OBJECTS[four_way_start:]:o.matrix_world=pad_fit@o.matrix_world
@@ -2734,15 +2734,21 @@ def lens(which):
             face.use_smooth=True
             if face.index//n in [len(sections)-1,len(sections)]:face.material_index=1
         assert min(rr for zz,rr in sections)>r*.79
-    if which=='28-135':
+    if which in ['28-135','70-200-f28']:
         # Canon's product photograph shows a rounded mount-to-barrel flare,
         # rather than a full-width rear-facing annulus at the control housing.
         # The curve ends before the switch panel; dimensions are photo estimates.
-        controls=np.array([(.10,.55),(.14,.62),(.17,r*.97),(.265,r*.97)])
+        controls=np.array([(.10,.55),(.14,.62),(.17,r*.97),(.265,r*.97)] if which=='28-135' else [(.10,r*.90),(.12,r*.96),(.18,r*.97),(.265,r*.97)])
         rear=[]
         for j in range(33):
             t=j/32
             rear.append(tuple((1-t)**3*controls[0]+3*(1-t)**2*t*controls[1]+3*(1-t)*t*t*controls[2]+t**3*controls[3]))
+        if which=='70-200-f28':
+            za,zb=.215,.219
+            ra,rb=[float(np.interp(z,[p[0] for p in rear],[p[1] for p in rear])) for z in [za,zb]]
+            before=[p for p in rear if p[0]<za]
+            seam_row=len(before)
+            rear=before+[(za,ra),(za,ra-.0025),(zb,rb-.0025),(zb,rb)]+[p for p in rear if p[0]>zb]
         section=rear+[(barrel_end,r*.97),(barrel_end,r*.79),(.265,r*.79),(.10,.43)]
         n=128
         verts=[(rr*cos(2*pi*i/n),rr*sin(2*pi*i/n),zz) for zz,rr in section for i in range(n)]
@@ -2750,6 +2756,12 @@ def lens(which):
         mesh=bpy.data.meshes.new('Rounded zoom rear housing');mesh.from_pydata(verts,[],faces);mesh.update()
         housing=bpy.data.objects.new('Main lens housing',mesh);scene.collection.objects.link(housing);register(housing,'Main lens housing',paint)
         for face in mesh.polygons:face.use_smooth=face.index//n not in [len(rear),len(section)-1]
+        if which=='70-200-f28':
+            mesh.materials.append(M['Optical barrel flocking'])
+            for face in mesh.polygons:
+                row=face.index//n
+                if row>=len(rear)+1 or row==seam_row+1:face.material_index=1
+                if row in [seam_row,seam_row+2]:face.use_smooth=False
     else:
         housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
@@ -2757,11 +2769,12 @@ def lens(which):
         for z,width in ([(l*.37,l*.26),(l*.76,l*.22)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
             grip_mat='Telephoto grip rubber'
             ring('Rubber ring',z,r*.997,r*.89,width,grip_mat)
-            # The f/2.8 has wider lands with aligned transverse breaks,
-            # rather than the fine uninterrupted ribs used on small dials.
-            radial_ribs('Molded longitudinal grip ribs',z,r*.997,width*.96,120 if which=='70-200-f4' else 96,mat=grip_mat,segments=3 if z>l*.5 else 2,stagger=which=='70-200-f4',break_gap=.007 if which=='70-200-f4' else .016)
+            # The original f/2.8 zoom ring has narrow alternating breaks.
+            staggered=which=='70-200-f4' or z<l*.5
+            radial_ribs('Molded longitudinal grip ribs',z,r*.997,width*.96,120 if which=='70-200-f4' else 96,mat=grip_mat,segments=3 if z>l*.5 else 2,stagger=staggered,break_gap=.007 if staggered else .016)
         ring('L-series red ring',l*.92,r*.992,r*.94,.034,'Red lacquer')
-        if which=='70-200-f4':
+        if white:
+            badge_z=.235 if which=='70-200-f4' else .45
             badge_start=len(OBJECTS)
             for words,y in [('IMAGE',.047),('STABILIZER',-.047)]:
                 text('Image stabilizer gold lettering',words,(0,y,.010),.080,'Stabilizer badge gold',font='Bold')
@@ -2771,14 +2784,18 @@ def lens(which):
                 active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
                 for v in o.data.vertices:
                     u,vv,d=v.co;angle=u/(r*.97);rr=r*.97+d
-                    v.co=(rr*sin(angle),rr*cos(angle),.235-vv)
+                    v.co=(rr*sin(angle),rr*cos(angle),badge_z-vv)
                 o.data.update()
             # Short molded rear ribs stop around the smooth badge area.
-            for i in range(64):
-                a=2*pi*i/64
+            rear_rib_count=64 if which=='70-200-f4' else 128
+            for i in range(rear_rib_count):
+                a=2*pi*i/rear_rib_count
                 if abs(math.atan2(sin(a),cos(a)))<.48:continue
-                rib=box('Rear barrel molded rib',(0,r*.972,.218),(.009,.007,.156),paint,.002)
+                rib=box('Rear barrel molded rib' if which=='70-200-f4' else 'Rear barrel groove cutter',(0,r*(.972 if which=='70-200-f4' else .969),badge_z-.017),(.009,.007,.156),paint if which=='70-200-f4' else None,.002)
                 rib.matrix_world=Matrix.Rotation(a,4,'Z')@rib.matrix_world
+                if which=='70-200-f28':
+                    cut=housing.modifiers.new('Recessed rear grip groove','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=rib;apply(housing,cut)
+                    OBJECTS.remove(rib);bpy.data.objects.remove(rib,do_unlink=True)
         # The owned f/4 lens is used without a tripod collar or foot.
         if which=='70-200-f28':
             collar_z=l*.22
@@ -2937,24 +2954,25 @@ def lens(which):
         switch_panel=box('AF IS switch panel',(0,0,0 if white else -.011),(.40,1.40,.026) if white else (.345,.87,.026),'White enamel' if white else 'Graphite polymer',.027)
     items=[('AF  MF',.25),('STABILIZER\nON  OFF',-.13)] if which not in ['50','35'] else [('AF  MF',0)]
     if white:items=[('1.2m-∞  3m-∞' if f4 else '1.4m-∞  2.5m-∞',.49),('AF  MF',.16),('STABILIZER\nON  OFF',-.16),('STABILIZER MODE\n1   2',-.51)]
+    control_font='Arial' if f4 else 'Bold'
     for label_,y in items:
         if white:
             # Match the stacked labels and two position ticks in the side photo.
             if label_.startswith(('1.2m','1.4m')):
                 # The distance ranges are larger than AF/MF and stagger toward
                 # their two index marks in both telephoto reference photographs.
-                text('Focus limiter near legend','1.2m–∞' if f4 else '1.4m–∞',(-.030,y+.171,.018),.066,'Deep black')
-                text('Focus limiter far legend','3m–∞' if f4 else '2.5m–∞',(.025,y+.123,.018),.066,'Deep black')
+                text('Focus limiter near legend','1.2m–∞' if f4 else '1.4m–∞',(-.030,y+.171,.018),.066,'Deep black',font=control_font)
+                text('Focus limiter far legend','3m–∞' if f4 else '2.5m–∞',(.025,y+.123,.018),.066,'Deep black',font=control_font)
             elif label_=='AF  MF':
-                text('Autofocus legend','AF',(-.055,y+.118,.018),.060,'Deep black')
-                text('Manual focus legend','MF',(.110,y+.090,.018),.060,'Deep black')
+                text('Autofocus legend','AF',(-.055,y+.118,.018),.060,'Deep black',font=control_font)
+                text('Manual focus legend','MF',(.110,y+.090,.018),.060,'Deep black',font=control_font)
             else:
                 title='STABILIZER\nMODE' if 'MODE' in label_ else 'STABILIZER'
-                text('Stabilizer legend',title,(0,y+.180,.018),.055,'Deep black')
-                if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black')
+                text('Stabilizer legend',title,(0,y+.180,.018),.055,'Deep black',font=control_font)
+                if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black',font=control_font)
                 else:
-                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.060,'Deep black')
-                    text('Stabilizer off legend','OFF',(.115,y+.090,.018),.060,'Deep black')
+                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.060,'Deep black',font=control_font)
+                    text('Stabilizer off legend','OFF',(.115,y+.090,.018),.060,'Deep black',font=control_font)
             line('First position tick',[(-.050,y+.061,.018),(-.050,y+.081,.018)],.0016,'Deep black')
             # MF/OFF sit to the right of this bent index, not over its crossbar.
             line('Second position tick',[(.012,y+.061,.018),(.012,y+.081,.018),(.050,y+.081,.018)],.0016,'Deep black')
@@ -2982,9 +3000,14 @@ def lens(which):
             rounded_panel('Switch recess floor',(0,key_y-.007,.009),(opening[0]-.002,opening[1]-.002,.001),.059,'Deep black' if f4 else 'Telephoto switch seat')
             # Keys occupy roughly four fifths of the opening in the reference.
             # Keep their left stop fixed while extending the face toward the slot.
-            rounded_panel('Switch slider',(-.010 if stabilizer else -.020,key_y-.007,.017 if stabilizer else .012),(.225,.145,.020) if stabilizer else (.205,.116,.010),.048,'White enamel')
+            slider=rounded_panel('Switch slider',(-.010 if stabilizer else -.020,key_y-.007,.017 if stabilizer else .012),(.225,.145,.020) if stabilizer else (.205,.116,.010),.048,'White enamel')
             for dx in ([.045,.059,.073,.087] if stabilizer else [-.074,-.055,.049,.068]):
-                box('Slider grip ridge',(dx,key_y-.014 if stabilizer else key_y-.007,.030 if stabilizer else .018),(.006,.084,.007) if stabilizer else (.005,.080,.002),'White enamel',.001)
+                if f4:
+                    box('Slider grip ridge',(dx,key_y-.014 if stabilizer else key_y-.007,.030 if stabilizer else .018),(.006,.084,.007) if stabilizer else (.005,.080,.002),'White enamel',.001)
+                else:
+                    cutter=box('Slider groove cutter',(dx,key_y-.014 if stabilizer else key_y-.007,.027 if stabilizer else .017),(.006,.084,.006) if stabilizer else (.005,.080,.004),None,.001)
+                    cut=slider.modifiers.new('Recessed key grip groove','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(slider,cut)
+                    OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
             box('Slider position mark',(-.059 if stabilizer else -.016,key_y+.019 if stabilizer else key_y+.012,.0275 if stabilizer else .0175),(.008,.070 if stabilizer else .065,.001),'Deep black',.0004)
         elif which=='28-135':
             af=label_=='AF  MF'
@@ -3004,7 +3027,7 @@ def lens(which):
             for j in range(3):box('Slider knurl',(-.060+j*.016,y-.007,.058 if white else .039),(.005,.028,.004),'White enamel' if white else 'Graphite polymer',.001)
     if f4:screw((0,-.660,.014),r=.018)
     elif white:
-        for x in [-.153,.153]:screw((x,.615,.014),r=.018)
+        for x in [-.153,.153]:screw((x,.615,.014),r=.018,mat='Machined metal')
     if not white:
         if which!='28-135':box('AF IS slider position mark',(-.043,-.137,.040),(.008,.043,.003),'White ink',.001)
         screw((0,-.373,.007),r=.026)
@@ -3012,7 +3035,7 @@ def lens(which):
         # Subdivide long panel edges before bending, so the inset follows the
         # cylinder at its center as well as at all four corners.
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        if 'panel' in o.name or ((white or which=='28-135') and 'Switch recess floor' in o.name):
+        if 'panel' in o.name or ((white or which=='28-135') and 'Switch recess floor' in o.name) or (which=='70-200-f28' and 'Switch slider' in o.name):
             if white or which=='28-135':
                 # Refine shared triangle edges before bending. Repeated partial
                 # n-gon subdivision creates collapsed faces around the cutouts.
@@ -3047,7 +3070,7 @@ def lens(which):
                     if normal.dot(face.normal)<0:normal=-normal
                     normals[loop]=tuple(normal if cylindrical else face.normal)
             o.data.normals_split_custom_set(normals)
-        if white and ('panel' in o.name or 'Switch recess floor' in o.name):
+        if white and ('panel' in o.name or 'Switch recess floor' in o.name or (which=='70-200-f28' and 'Switch slider' in o.name)):
             old_mesh=o.data;formed=bpy.data.meshes.new('Formed telephoto switch panel')
             formed.from_pydata([v.co[:] for v in old_mesh.vertices],[],[tuple(f.vertices) for f in old_mesh.polygons])
             for mat in old_mesh.materials:formed.materials.append(mat)

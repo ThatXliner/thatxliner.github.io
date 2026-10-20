@@ -2349,3 +2349,91 @@ Rejected both as production fixes. Restored original compressed asset byte-for-b
 Shipping the verified C200 mounted grip proportions, circular-control preservation, assignable-button clearance, and palm rubber coverage/grain at the user's request. Generator, compressed model and selector preview agree with the verified final C200 build above. No runtime/loading changes. Full photographic fidelity remains unfinished.
 
 The subsequent f/2.8 filtered-texture comparison did not improve readability at the matched view. A heavier control-label font candidate showed promise but had not completed visual acceptance or source integration. Restored the last shipped lens byte-for-byte (SHA2566da9173e7f116f24d2aff2351e8882675fddd19e9833722a56348b246d61cdd9); both experiments remain local diagnostic work, excluded from this shipment. Python source parsing and git diff --check pass. Prior production build and final C200 interactive front/rear/close inspections cover this asset-only checkpoint.
+
+
+### 2026-10-20 — f/2.8 control-print weight
+
+Previous turn shipped the verified C200 checkpoint (progress). Finished the pending font-weight comparison against70-200-f28-controls.jpg. The filtered-texture prototype did not improve readability at the matched scale, so retained mesh print and changed only f/2.8 control-label weight to Arial Bold. Sizes, positions, black PBR material, index lines and f/4 typography remain unchanged. Prototype clearance check sampled21942glyph rays across nine directions with no obstruction. Integrated the exact weight selection into the generator and rebuilt/baked the lens from source; used16-bit meshopt position quantization and existing WebP pipeline.
+
+Actual final compressed /classic viewer inspected at matched close scale, larger inspection, neighboring oblique angle and whole front/rear views. Labels read more clearly, with distinct AF/MF and ON/OFF positioning and no visible index collision. This improves readability, not full photographic acceptance: switch profiles, barrel materials and overall fidelity remain unfinished. Evidence f28-print-weight-final-{close,inspection,oblique,front,rear}.png. An initial HMR canvas was blank without console errors; full page reload restored rendering, after which all final inspections passed with no console errors. No runtime edits, new textures or rendering passes. Updated raw export, baked project and selector thumbnail. Source parse and git diff --check pass. Local/unpushed.
+
+Final lens metrics: {'bytes': 2297096, 'triangles': 338172, 'primitives': 17, 'sha256': '59456fa2f9b91ed766020c401f29adbde6870bc39ac5f5bb52ed14dbeaf16f48'}.
+
+
+### 2026-10-20 — f/2.8 panel fasteners and slider-normal diagnosis
+
+Previous turn improved control typography (progress). Investigated whether the apparent raised switch outlines were a stale-normal defect. Read earlier topology/normal audits first; independent current unmerged slider-cap check reports maximum radial normal deviations2.087,2.086,2.759,2.084degrees across four36-samplecaps, not a grossly rotated normal field. Evidence check-f28-slider-normals.py and f28-slider-normals.json/log. No speculative normal or recess-color changes retained. This does not settle the exact switch-profile discrepancy.
+
+Saved reference70-200-f28-controls.jpg shows silver panel screw heads; existing Screw steel made them read as black dots. Added optional screw material argument preserving the helper default, and assigned existing Machined metal only to the two f/2.8 panel heads. Slot geometry/material, other screws and lenses unchanged. Full isolated source build/bake, raw export and16-bit meshopt/WebP compression passed. Actual /classic close and neighboring side views show reflective head rims and dark cross slots, with no console errors. Evidence f28-panel-fasteners-{close,oblique}.png. Refreshed thumbnail. Prior turn's front/rear geometry inspection remains applicable to this two-head material-only edit. Source parse and git diff --check pass. Local/unpushed. Switch shapes, surfaces, optics and overall photographic acceptance remain incomplete.
+
+Final lens metrics: {'bytes': 2295544, 'triangles': 338172, 'primitives': 16, 'sha256': '508c32d1048cf6679db464c23310e6d4a6ca41c4217221743ff9125f65b82eb8'}.
+
+
+### 2026-10-20 — original f/2.8 zoom-ring break pattern
+
+Previous turn corrected panel screws and ruled out gross slider-cap normal misalignment (progress). Retrieved a sharper original-model close-up from https://www.ebay.com/itm/318610335646 (image https://i.ebayimg.com/images/g/0qUAAeSwU4ZqdXdJ/s-l960.jpg), saved as output/gear-reference/f28-controls-ebay.jpg. The visible1.4m limiter range identifies the original lens rather than the later1.2m versions. This photo confirms a shallow raised switch-opening lip, pale recessed seats and visibly raised keys; removing the lip to force an entirely flat appearance would be unsupported. Precise key profiles remain unfinished.
+
+Photo also clearly shows one narrow transverse break per zoom-ring rib, alternating between adjacent ribs. Existing f/2.8 zoom ring incorrectly used aligned breaks. Enabled the existing alternating pattern for its rear zoom ring and reduced gap .016to.007authoring units. Offset and gap are photographic estimates. Focus ring remains unchanged because this close-up does not show it. f/4 output settings unchanged. Updated source, rebuilt/baked lens, saved raw export, compressed with16-bit meshopt/WebP, refreshed selector thumbnail. Actual /classic close side and full front/rear views verified without console errors; screenshots f28-staggered-zoom-{side,front,rear}.png. Triangle count remains338172; no new texture or rendering pass. Source parsing and git diff --check pass. Local/unpushed; full contours, switches, materials and optics still need photographic acceptance.
+
+Final lens metrics: {'bytes': 2294732, 'triangles': 338172, 'primitives': 16, 'sha256': 'efe6550c6f9d8efc1e20ac9eb640304da085a17925ce62e044cc59352a356856'}.
+
+
+### 2026-10-20 — f/2.8 recessed key grip grooves
+
+Previous turn corrected zoom-ring stagger (progress). The sharper original-model close-up f28-controls-ebay.jpg shows shallow recessed key grip grooves. Replaced f/2.8 raised grip bars with Boolean-cut channels; kept f/4 construction unchanged. Initial unmerged check confirmed four closed, nondegenerate keys, but actual compressed side view exposed diagonal cap highlights. Rejected that surface result. Extended existing shared-edge triangle refinement and post-bend normal reconstruction to f/2.8 sliders. Final source generation runs the closed/nondegenerate mesh assertions for all four formed keys as well as panel/floors. This removes the diagonal highlights.
+
+Actual final compressed /classic side, larger oblique, front and rear views inspected; no browser errors. Grooves remain subtle at viewer scale; exact spacing, depth and edge rounding are photographic estimates and not fully accepted. Evidence f28-key-grooves-side.png (rejected shading) and f28-key-grooves-final-{side,detail,front,rear}.png. Initial diagnostic check-f28-key-grooves.py/report describes pre-refinement keys; final validity assertions are in the successful f28-key-grooves-surface-build.log build. Baked project and raw export updated,16-bit meshopt/WebP compression retained, selector preview refreshed. No renderer or loading changes. Source parse and git diff --check pass. Local/unpushed; full photographic objective remains incomplete.
+
+Final lens metrics: {'bytes': 2315432, 'triangles': 341556, 'primitives': 16, 'sha256': 'a6282d136eadbbad5ce5914f573316766ba9038416792f5016245e45152fc22b'}.
+
+
+### 2026-10-20 — f/2.8 rear badge and barrel grooves
+
+Previous turn corrected recessed key grips and shading (progress). Retrieved two full-resolution original-lens views from the same reference listing https://www.ebay.com/itm/318610335646 : https://i.ebayimg.com/images/g/JsYAAeSwyudqfl9L/s-l1600.webp and https://i.ebayimg.com/images/g/Ey4AAeSwn~xqfl9L/s-l1600.webp (saved f28-ebay-side3.webp and side4.webp). They confirm the focus ring has three aligned rows, so retained that layout. They also expose a missing rear IMAGE STABILIZER badge and short molded grip grooves.
+
+Extended existing curved gold/white badge construction to f/2.8 at authoringZ.45 behind the collar, preserving f/4 values. Added shallow Boolean-cut rear grip grooves at128angular positions, omitting the badge sector; count/depth/placement are photographic estimates. Independent generated housing check reports16916vertices16150faces, zero nonmanifold edges/degenerate faces; saved unmerged build and report check-f28-rear-badge.py/f28-rear-badge-check.json. Initial raised-rib trial was superseded before visual acceptance by recessed grooves matching the close reference.
+
+Final source rebuild/bake/export and16-bit meshopt/WebP compression passed. Actual/classic elevated side, adjacent top, whole front and rear inspected, no browser errors. Badge is readable and clear of collar; grooves are faint at viewer lighting. Evidence f28-rear-badge-{close,top,front,rear}.png. Updated raw export/baked project/thumbnail. Full rear-barrel contour, badge edge treatment and groove dimensions remain unfinished; no overall photographic acceptance. Source parsing and git diff --check pass. Local/unpushed.
+
+Final lens metrics: {'bytes': 2594308, 'triangles': 357196, 'primitives': 17, 'sha256': '243a02f1c23841f64723e406b1c0e581c913c78947372b32943527b4d869badf'}.
+
+
+### 2026-10-20 — f/2.8 rounded rear transition
+
+Previous turn added missing rear badge/grooves (progress). Compared the actual top-side assembly with f28-ebay-side3/4.webp: model housing stopped abruptly atZ.265, leaving a visibly exposed black mount-end section. Reference shows white casing extending rearward with a rounded outer edge. Replaced f/2.8 straight rear annulus with a sampled cubic rotational profile from(.10,.90r)through(.12,.96r),(.18,.97r)to(.265,.97r), retaining the remainder of the barrel. These are photograph-derived estimates, not manufacturer dimensions. Used existing28-135 lathe construction without changing its controls; assigned f/2.8 internal/rear surfaces optical flocking rather than white enamel. Existing bayonet remains unchanged.
+
+Independent generated housing check:20116vertices19350faces, zero nonmanifold edges/degenerate faces. Saved f28-rear-transition-unmerged.blend and check JSON/log. Full isolated source build/bake/export and16-bit meshopt/WebP compression passed. Actual/classic matched elevated top, side, whole front/rear inspected with no browser errors; visible mount join remains seated. This visual clearance check is not a whole-assembly intersection proof. Evidence f28-rear-transition-{top,side,front,rear}.png; baseline f28-rear-badge-top.png. Rear band/seam and exact contours remain unfinished. Raw export/baked project/thumbnail updated. Source parse and git diff --check pass. Local/unpushed; full photographic goal incomplete.
+
+Final lens metrics: {'bytes': 2702296, 'triangles': 363596, 'primitives': 18, 'sha256': 'a087bedb2ad3a8758091105a9ebeff1602a12f33188f38165c66db96f07bb952'}.
+
+
+### 2026-10-20 — f/2.8 rear-band joint
+
+Previous turn corrected rear silhouette (progress). Added the thin circumferential joint visible below the rear grip grooves in f28-ebay-side3/4.webp. The joint is part of the housing profile, with two radial walls and a recessed dark floor, not an overlapping stripe. Axial intervalZ.215–.219 and radial depth.0025authoring units are photographic estimates. The exterior radius on each side is interpolated from the existing rounded rear curve. Floor reuses the existing dark interior material; walls keep explicit flat shading.
+
+Independent housing check reports20628vertices19862faces, zero nonmanifold edges/degenerate faces. Full source build/bake/raw export and16-bit meshopt/WebP compression passed. Actual/classic matched top and side close views show a narrow continuous seam with no console errors; saved f28-rear-seam-{top,side}.png. Prior turn front/rear assembly checks cover the unchanged overall envelope, not new full photographic acceptance. Updated selector thumbnail. Source parse and git diff --check pass. No new texture/material/runtime passes. Local/unpushed. Rear contour estimates and complete body/lens photographic fidelity remain unfinished.
+
+Final lens metrics: {'bytes': 2721000, 'triangles': 364620, 'primitives': 18, 'sha256': 'f532aa8258014dfb332290c166ab860d6a05f96d72a33e9af36e9f981d9685e9'}.
+
+
+### 2026-10-20 — R7 grip silhouette reassessment
+
+Previous turn added f/2.8 rear joint (progress). Stepped back to review larger body proportions in actual/classic R7+50 front, grip-side and rear views against r7.jpg and Canon r7-right-canon-hires.png. Initial front-oblique impression suggested an exaggerated mid-height waist. Before reshaping, inspected the existing side-hollow correction and shared width construction. Canon side reference confirms a deliberate hollow below the shutter ledge; changing it solely from the front-oblique impression risks regressing the side silhouette.
+
+Generated current R7 source without export and measured exact horizontal plane intersections through the rubber overmold at25%,40%,55%,70% of its world-height range. Widths30.674,31.119,31.118,30.806mm (approximately1.45% total spread), depths42.245,41.874,39.990,38.818mm. These are actual generated mesh sections, not manufacturer measurements; they do not prove shape fidelity or isolate every perspective effect. They contradict the initial hypothesis of a substantial mid-palm lateral constriction. First vertex-band sampling failed where no vertices were near a section; replaced it with edge/plane intersections and reran successfully. Evidence check-r7-grip-width.py, r7-grip-width-check.json/log and r7-grip-width-unmerged.blend.
+
+Saved r7-overall-review-{front,front-level,side,side-aligned,rear}.png. The file called front-level is a lower-angle exploration, not a calibrated orthographic match. No R7 production geometry/material changes made. Next contour changes require matched projection/reference evidence rather than the misleading initial front view. Existing f/2.8 local improvements remain intact; broader body materials, rear controls and optical fidelity still require acceptance. Goal incomplete.
+
+
+### 2026-10-20 — R7 directional-pad dish depth
+
+Previous turn ruled out a large lateral grip waist (progress). Compared actual rear rocker with saved Canon rear images and a sharper product photo https://media.ldlc.com/r1600/ld/products/00/05/96/54/LD0005965443_0005999405.jpg saved r7-rear-ldlc.jpg. Existing pad's deep bowl highlight differs from the nearly flat reference face. Reduced dish rise .018to.006authoring units; applied the same surface function to all four molded ribs. Retained outer rim, pad size/position, SET key and markings. Depth is a photo-based estimate, not a measured component dimension.
+
+Independent current-generator check confirms all2744rib vertices project onto the dish, each closed/nondegenerate rib retains embedded base and raised top (clearance approximately-.001523to.003495units). Evidence check-r7-rocker-depth.py, r7-rocker-depth-check.json/log and unmerged snapshot. Full isolated source build/AO rebake/export, meshopt/WebP compression passed. Actual /classic matched rear close before/after shows flatter response, adjacent oblique view verifies seating, front whole-assembly inspected after rebake; no console errors. Evidence r7-rocker-depth-{before,after,oblique,front}.png. Refreshed body thumbnail. Default front poster not regenerated because this edit is rear-only and does not alter its visible geometry. Exact plastic finish, rib visibility and full body/lens photographic fidelity remain incomplete. Source parse and git diff --check pass. Local/unpushed; prior f/2.8 improvements retained.
+
+Final R7 metrics: {'bytes': 4765144, 'triangles': 461190, 'primitives': 22, 'sha256': 'da1fe2ad24c1ba20ebf949d273f064d9f7a6138d835fa4f88cf196cb12b9b50c'}.
+
+
+### 2026-10-20 — shipping checkpoint
+
+Shipping the reviewed f/2.8 lens refinements and R7 directional-pad update at the user's request. Restored the reviewed compressed R7 asset and matching generator before committing; the subsequent thumb-grain experiment remains only in ignored output files pending visual review. Production R7 and lens hashes match the final metrics recorded above. Full photographic fidelity remains incomplete.
