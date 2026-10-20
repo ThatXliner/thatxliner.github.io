@@ -134,7 +134,7 @@ woven_normals/=np.linalg.norm(woven_normals,axis=-1)[...,None]
 WOVEN=image('c200-webbing-normal',woven_normals*.5+.5)
 material('C200 woven webbing',(.008,.009,.010),.78,0,WOVEN,1)
 material('C200 strap leather',(.010,.011,.012),.60,0,LEATHER,.6)
-material('C200 grip rubber',(.009,.0095,.01),.66,0,LEATHER,1.0)
+material('C200 grip rubber',(.009,.0095,.01),.66,0,LEATHER,3.0)
 
 material('Telephoto grip rubber',(.009,.009,.010),.68,0,FINE,.20)
 M['Telephoto grip rubber'].node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value=.30
@@ -3542,9 +3542,12 @@ def cinema():
     tr=Matrix.Translation(Vector((-.97,.04,-.73)))@Matrix.Rotation(-pi/2,4,'Y')
     for o in OBJECTS[rightStart:]:o.matrix_world=tr@o.matrix_world
     gripStart=len(OBJECTS)
+    grip_round_groups=[]
+    round_start=len(OBJECTS)
     # Local X runs toward the lens, local Z is the grip's outer face.
     cyl('Grip rosette seat',(0,.10,.015),.23,.085,'Anodized black')
     dial((0,.10,.082),.24,'z',width=.085)
+    grip_round_groups.append((OBJECTS[round_start:],Vector((0,.10,.015)),Vector((0,0,1))))
     # GR-V1's palm housing swells continuously between its end caps rather
     # than extruding a flat outline. Rows run along the local front/rear axis.
     grip_shell=loft_grip('GR-V1 grip shell',[
@@ -3559,10 +3562,14 @@ def cinema():
     # along complete cross-section rings after shaping the rear thumb deck.
     grip_shell.data.materials.append(M['C200 grip rubber'])
     profile('Grip rear control panel',[(-.54,.12),(-.44,.29),(-.30,.27),(-.25,.07),(-.33,-.20),(-.49,-.21)],.402,.433,'Graphite polymer',.035)
+    round_start=len(OBJECTS)
     cyl('Grip record recess',(-.43,-.10,.449),.073,.029,'Deep black')
     # Canon's GR-V1 has a full red key inside a narrow black surround.
     cyl('Grip record button',(-.43,-.10,.469),.062,.021,'Red lacquer',vertices=64,bevel=.003)
+    grip_round_groups.append((OBJECTS[round_start:],Vector((-.43,-.10,.449)),Vector((0,0,1))))
+    round_start=len(OBJECTS)
     dial((-.35,.15,.445),.078,'y',width=.095)
+    grip_round_groups.append((OBJECTS[round_start:],Vector((-.35,.15,.445)),Vector((0,1,0))))
     text('Grip start stop','START\nSTOP',(-.54,-.10,.44),.023)
     # Rear thumb controls shown in Canon's GR-V1 parts inset (manual p.18).
     # Author upright in a plane facing the rear; then carry them with the grip.
@@ -3590,7 +3597,7 @@ def cinema():
         vertex.co.y=y+(seated-y)*weight
     grip_shell.data.update()
     for face in grip_shell.data.polygons:
-        face.material_index=1 if -.12<face.center.x<.42 else 0
+        face.material_index=1 if -.27<face.center.x<.42 else 0
     cyl('Grip joystick recess',(.030,.035,.015),.096,.010,'Deep black',vertices=64,bevel=.003)
     ring('Grip joystick surround',.023,.091,.070,.015,'Graphite polymer',center=(.030,.035))
     cyl('Grip joystick boot',(.030,.035,.027),.063,.018,'Focus rubber',vertices=64,bevel=.009)
@@ -3601,12 +3608,13 @@ def cinema():
         cx=.030+.079*cos(angle);cy=.035+.079*sin(angle)
         points=[(cx+.009*cos(angle),cy+.009*sin(angle)),(cx-.006*cos(angle)-.006*sin(angle),cy-.006*sin(angle)+.006*cos(angle)),(cx-.006*cos(angle)+.006*sin(angle),cy-.006*sin(angle)-.006*cos(angle))]
         profile('Grip joystick direction',points,.031,.032,'White ink',0,rounding=0)
-    cyl('Grip assignable recess',(-.113,.012,.017),.047,.012,'Deep black',vertices=64,bevel=.003)
-    cyl('Grip FOCUS GUIDE button',(-.113,.012,.027),.036,.014,'Anodized black',vertices=64,bevel=.006)
-    text('Grip assignable number','1',(-.113,.012,.036),.033)
+    cyl('Grip assignable recess',(-.078,.012,.017),.047,.012,'Deep black',vertices=64,bevel=.003)
+    cyl('Grip FOCUS GUIDE button',(-.078,.012,.027),.036,.014,'Anodized black',vertices=64,bevel=.006)
+    text('Grip assignable number','1',(-.078,.012,.036),.033)
     thumb_basis=Matrix(((0,-1,0,0),(0,0,-1,0),(1,0,0,0),(0,0,0,1)))
     thumb_transform=Matrix.Translation(Vector((-.31,-.400,.285)))@thumb_basis
     for o in OBJECTS[thumb_start:]:o.matrix_world=thumb_transform@o.matrix_world
+    grip_round_groups.append((OBJECTS[thumb_start:],thumb_transform@Vector((.030,.035,.027)),thumb_transform.to_3x3()@Vector((0,0,1))))
     # Strap bridges the hand space; its padded center is distinct from the webs.
     for x in [-.46,.44]:
         box('Strap attachment',(x,.10,.443),(.10,.28,.054),'Anodized black',.015)
@@ -3685,6 +3693,7 @@ def cinema():
     tr=Matrix.Translation(Vector((-.96,-.15,-.45)))@Matrix.Rotation(-pi/2,4,'Y')
     grip_mount_anchor=tr@grip_pivot
     for o in OBJECTS[gripStart:]:o.matrix_world=tr@grip_pose@o.matrix_world
+    grip_round_groups=[(items,tr@grip_pose@center,(tr@grip_pose).to_3x3()@axis) for items,center,axis in grip_round_groups]
     rearStart=len(OBJECTS)
     box('Rear control fascia',(0,.02,0),(1.77,1.91,.07),'Graphite polymer',.07)
     battery_start=len(OBJECTS)
@@ -4145,7 +4154,7 @@ def cinema():
     factors=Vector(tuple(t/(hi[i]-lo[i]) for i,t in enumerate((144/55,146/55,137/55))))
     pivot=Vector((0,0,hi.z))
     calibration=Matrix.Translation(pivot)@Matrix.Diagonal((*factors,1))@Matrix.Translation(-pivot)
-    # Retain the existing EVF/battery/grip shapes; reposition their anchors
+    # Retain the existing EVF/battery shapes; reposition their anchors
     # against the shorter core instead of squashing these separate assemblies.
     old_lo,old_hi=bounds(bare_body)
     old_factors=Vector(tuple(t/(old_hi[i]-old_lo[i]) for i,t in enumerate((144/55,153/55,179/55))))
@@ -4155,7 +4164,23 @@ def cinema():
     evf_fit=Matrix.Translation(evf_shift)@accessory_shape
     battery_anchor=Vector((.23,-.59,-1.915))
     battery_fit=Matrix.Translation(calibration@battery_anchor-accessory_shape@battery_anchor)@accessory_shape
-    grip_fit=Matrix.Translation(calibration@grip_mount_anchor-accessory_shape@grip_mount_anchor)@accessory_shape
+    # Size the upright palm independently. Use the assembled 178 mm width
+    # for the mounted grip; the standalone 60 mm width does not yet reconcile
+    # with this strap/connection configuration.
+    grip_lo,grip_hi=bounds(grip_objects)
+    grip_factors=Vector(tuple(target/(grip_hi[i]-grip_lo[i]) for i,target in enumerate((60/55,124/55,75/55))))
+    mounted_outer_x=(calibration@hi).x-178/55
+    grip_factors.x=((calibration@grip_mount_anchor).x-mounted_outer_x)/(grip_mount_anchor.x-grip_lo.x)
+    grip_scale=Matrix.Diagonal((*grip_factors,1))
+    grip_fit=Matrix.Translation(calibration@grip_mount_anchor)@grip_scale@Matrix.Translation(-grip_mount_anchor)
+    grip_control_fits={}
+    for items,center,axis in grip_round_groups:
+        normal_axis=max(range(3),key=lambda i:abs(axis[i]))
+        plane=[i for i in range(3) if i!=normal_axis]
+        radius_scale=math.sqrt(grip_factors[plane[0]]*grip_factors[plane[1]])
+        scales=[radius_scale]*3;scales[normal_axis]=grip_factors[normal_axis]
+        fit=Matrix.Translation(grip_fit@center)@Matrix.Diagonal((*scales,1))@Matrix.Translation(-center)
+        for o in items:grip_control_fits[o]=fit
     # Side-facing circular controls must not become elliptical under the
     # independently constrained depth/height fit. Their centers keep the layout.
     side_round_prefixes=('Rolled function casting rim','Function bezel','Function button','Function number',
@@ -4175,7 +4200,7 @@ def cinema():
         elif o in battery_objects:
             o.matrix_world=battery_fit@o.matrix_world
         elif o in grip_objects:
-            o.matrix_world=grip_fit@o.matrix_world
+            o.matrix_world=grip_control_fits.get(o,grip_fit)@o.matrix_world
         elif o in handle_objects:
             o.matrix_world=Matrix.Translation(handle_shift)@o.matrix_world
         elif o in arm_objects:
@@ -4282,6 +4307,8 @@ def cinema():
     bpy.context.view_layer.update()
     hc=[o.matrix_world@Vector(c) for o in handle_objects for c in o.bound_box]
     hd=tuple((max(v[i] for v in hc)-min(v[i] for v in hc))*55 for i in range(3))
+    grip_lo,grip_hi=bounds(grip_objects)
+    print('GR-V1 dimensions mm',tuple(round((grip_hi[i]-grip_lo[i])*55,3) for i in range(3)),flush=True)
     print('HDU-2 dimensions mm',tuple(round(v,2) for v in hd),'bore diameter mm',8.8,'bore spacing mm',35.5,flush=True)
     assert abs(hd[1]-81)<.1 and abs(hd[2]-156)<.1 and abs(hd[0]-44)<1.0
     # Check the generated geometry, not just the target constants.
@@ -4475,7 +4502,7 @@ def export_asset(name,objects):
                 points=[uv[i].uv for i in face.loop_indices]
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             assert uv_area>1e-9, 'C200 grip rubber needs nonzero UV area'
-            density=math.sqrt(world_area/uv_area)/1.10
+            density=math.sqrt(world_area/uv_area)/2.20
             for face in rubber_faces:
                 for li in face.loop_indices:uv[li].uv*=density
             print('C200 rubber UV tile span',round(math.sqrt(world_area/(uv_area*density*density)),6),'faces',len(rubber_faces),flush=True)
