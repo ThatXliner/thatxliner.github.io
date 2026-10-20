@@ -3732,10 +3732,32 @@ def cinema():
     rounded_panel('LA-V1 front mounting base',(0,1.65,.488),(.295,.345,.095),.027,'Graphite polymer')
     cyl('LA-V1 attachment lock screw',(0,1.65,.557),.090,.060,'Anodized black',vertices=64,bevel=.008)
     ring('LA-V1 lock screw rim',.594,.065,.047,.013,'Graphite polymer',center=(0,1.65),segments=64)
-    rounded_panel('LA-V1 pivot base',(.19,1.77,.560),(.49,.16,.15),.039,'Graphite polymer')
+    base=rounded_panel('LA-V1 pivot base',(.19,1.77,.560),(.49,.16,.15),.039,'Graphite polymer')
+    # Slotted base and knurled lock wheel shown in the LA-V1 parts diagram.
+    slot=rounded_panel('LA-V1 base slot cutter',(.12,1.77,.635),(.29,.082,.056),.040,'Deep black')
+    cut=base.modifiers.new('Recessed adjustment slot','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=slot;apply(base,cut)
+    OBJECTS.remove(slot);bpy.data.objects.remove(slot,do_unlink=True)
+    cyl('LA-V1 lock wheel spindle',(.28,1.77,.728),.045,.190,'Anodized black',vertices=48,bevel=.003)
+    wheel=cyl('LA-V1 pivot lock wheel',(.28,1.77,.840),.130,.046,'Graphite polymer',vertices=80,bevel=.006)
+    ribs=radial_ribs('LA-V1 pivot lock wheel knurl',.840,.130,.032,64,mat='Graphite polymer',stagger=False,depth=.005)
+    ribs.location.x=.28;ribs.location.y=1.77
+    ring('LA-V1 pivot lock wheel face',.863,.112,.105,.004,'Graphite polymer',center=(.28,1.77),segments=64)
+    hexcut=cyl('LA-V1 pivot wheel hex cutter',(.28,1.77,.865),.025,.025,'Deep black',vertices=6,bevel=0)
+    cut=wheel.modifiers.new('Recessed pivot wheel hex','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=hexcut;apply(wheel,cut)
+    OBJECTS.remove(hexcut);bpy.data.objects.remove(hexcut,do_unlink=True)
     cyl('LA-V1 lower pivot',(.40,1.78,.600),.125,.20,'Graphite polymer','x',64,.015)
-    box('Monitor articulated arm',(.43,1.965,.650),(.14,.39,.16),'Graphite polymer',.032)
-    cyl('Monitor hinge',(.55,2.15,.650),.13,.30,'Anodized black','x',64)
+    # LA-V1 pivot A has separate stacked housings around its vertical spindle.
+    cyl('LA-V1 pivot spindle',(.43,1.965,.650),.105,.39,'Anodized black','y',64,.006)
+    cyl('LA-V1 lower pivot housing',(.43,1.895,.650),.160,.180,'Graphite polymer','y',64,.015)
+    cyl('LA-V1 pivot separation',(.43,1.990,.650),.148,.020,'Deep black','y',64,.003)
+    cyl('LA-V1 upper pivot housing',(.43,2.055,.650),.160,.110,'Graphite polymer','y',64,.012)
+    box('LA-V1 pivot back web',(.43,1.965,.530),(.20,.31,.065),'Graphite polymer',.014)
+    hinge=cyl('Monitor hinge',(.55,2.15,.650),.13,.30,'Graphite polymer','x',64,.015)
+    # Recessed hex fixation bolt at the exposed end of the monitor hinge.
+    bolt=cyl('LA-V1 monitor fixation bolt',(.705,2.15,.650),.062,.018,'Anodized black','x',48,.003)
+    cutter=cyl('LA-V1 fixation hex cutter',(.715,2.15,.650),.027,.023,'Deep black','x',6,0)
+    cut=bolt.modifiers.new('Hex key recess','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(bolt,cut)
+    OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
     arm_objects=set(OBJECTS[arm_start:])
     monitorStart=len(OBJECTS)
     # Canon expansion guide p.16: 119.90 x 75.40 mm. Build in the
@@ -3768,6 +3790,27 @@ def cinema():
     back_faces.extend([tuple(reversed(range(cross_count))),tuple(range((len(sections)-1)*cross_count,len(sections)*cross_count))])
     mesh=bpy.data.meshes.new('LM-V1 continuous back');mesh.from_pydata(back_verts,[],back_faces);mesh.update()
     monitor_back=bpy.data.objects.new('LM-V1 continuous back',mesh);scene.collection.objects.link(monitor_back);register(monitor_back,'LM-V1 continuous back','Graphite polymer');finish(monitor_back)
+    # LM-V1 side mounting socket: 36.4 mm above the bottom, 12.85 mm
+    # behind the front, 1/4-20 thread with 11.2 mm usable depth (Canon p.16).
+    socket_y=-mh/2+36.4/55;socket_z=-12.85/55
+    bore=cyl('Monitor side socket cutter',(mw/2-5.6/55,socket_y,socket_z),3.175/55,12.2/55,'Deep black','x',64)
+    cut=monitor_back.modifiers.new('Side mounting socket bore','BOOLEAN')
+    cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(monitor_back,cut)
+    OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True)
+    # Four shallow recessed strips above the side socket, visible in Canon's
+    # assembled hero photograph. Keep the case closed beneath each recess.
+    for zz in [-.180,-.225,-.270,-.315]:
+        groove=rounded_panel('Monitor side groove cutter',(0,0,0),(.028,.43,.012),.006,'Deep black')
+        groove.matrix_world=Matrix.Translation(Vector((mw/2-.004,.325,zz)))@Matrix.Rotation(pi/2,4,'Y')
+        cut=monitor_back.modifiers.new('Recessed side strip','BOOLEAN')
+        cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=groove;apply(monitor_back,cut)
+        OBJECTS.remove(groove);bpy.data.objects.remove(groove,do_unlink=True)
+    mesh=monitor_back.data
+    lip=ring('Monitor side mounting socket lip',0,.070,3.175/55,.008,'Anodized black',segments=64)
+    lip.matrix_world=Matrix.Translation(Vector((mw/2-.006,socket_y,socket_z)))@Matrix.Rotation(pi/2,4,'Y')
+    for i in range(8):
+        thread=ring('Monitor side socket thread',0,3.175/55,2.50/55,.009,'Anodized black',segments=48)
+        thread.matrix_world=Matrix.Translation(Vector((mw/2-(1+i*1.27)/55,socket_y,socket_z)))@Matrix.Rotation(pi/2,4,'Y')
     # Area-weighted end-cap normals bend the broad rear face by up to 75 degrees.
     # Preserve the swept shoulder tangent and keep the case end caps planar.
     shell_normals=[tuple(n.vector) for n in mesh.corner_normals]
@@ -3826,7 +3869,7 @@ def cinema():
         depth=-.656-v.co.z
         v.co.z=-.43-math.sqrt(max(0,.225**2-v.co.y**2))-.001-depth
     for side in [-1,1]:
-        for yy in [-.50,.50]:
+        for yy in ([-.60,.60] if side==1 else [-.50,.50]):
             screw_start=len(OBJECTS);screw((0,0,0),r=.021)
             for o in OBJECTS[screw_start:]:o.matrix_world=Matrix.Translation(Vector((side*mw/2,yy,-.20)))@Matrix.Rotation(side*pi/2,4,'Y')@o.matrix_world
     for xx in [socket_x-.18,socket_x+.18]:
