@@ -1131,7 +1131,21 @@ def body(which):
         box('Hot shoe rail',(x,shoeY+.032,shoe_z),(.06,.033,.4+shoe_extension),'Machined metal',.008)
         box('Hot shoe return',(x+(.018 if x<0 else -.018),shoeY+.056,shoe_z),(.04,.017,.39+shoe_extension),'Machined metal',.005)
     if dslr:
-        for x,z in [(0,-.1),(-.09,-.20),(.09,-.20),(-.05,.0),(.05,.0)]:cyl('Flash contact',(x,shoeY+.03,z),.015,.008,'Gold engraving','y',24,.001)
+        # 40D top reference: silver bed and contacts with a black central
+        # insulator; the four communication contacts are behind the sync pin.
+        bed=box('Hot shoe metal bed',(0,shoeY+.025,shoe_z),(.426,.014,.390),'Machined metal',.006)
+        insulator=box('Hot shoe contact insulator',(0,shoeY+.035,-.205),(.138,.008,.210),'Graphite polymer',.003)
+        crown=cyl('Hot shoe insulator crown cutter',(0,shoeY+.035,-.100),.073,.008,'Graphite polymer','y',64,.002)
+        union=insulator.modifiers.new('Continuous contact insulator','BOOLEAN');union.operation='UNION';union.solver='EXACT';union.object=crown;apply(insulator,union)
+        OBJECTS.remove(crown);bpy.data.objects.remove(crown,do_unlink=True);finish(insulator)
+        cyl('Flash contact sync',(0,shoeY+.041,-.100),.032,.004,'Machined metal','y',48,.001)
+        for x in [-.035,.035]:
+            for z in [-.200,-.260]:
+                cyl('Flash contact communication',(x,shoeY+.041,z),.0125,.004,'Machined metal','y',32,.001)
+        bore=cyl('Hot shoe locking pin cutter',(0,shoeY+.029,.025),.014,.024,'Deep black','y',48,0)
+        cut=bed.modifiers.new('Locking pin bore','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(bed,cut)
+        OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True);finish(bed)
+        cyl('Hot shoe locking pin floor',(0,shoeY+.023,.025),.0135,.001,'Deep black','y',48,0)
     else:
         # R7 multi-function shoe: metal bed around an inset compatibility
         # contact block, plus the small accessory interface at the front stop.
@@ -2750,15 +2764,15 @@ def lens(which):
                 text('Focus limiter near legend','1.2m–∞' if f4 else '1.4m–∞',(-.030,y+.171,.018),.066,'Deep black')
                 text('Focus limiter far legend','3m–∞' if f4 else '2.5m–∞',(.025,y+.123,.018),.066,'Deep black')
             elif label_=='AF  MF':
-                text('Autofocus legend','AF',(-.055,y+.118,.018),.060 if f4 else .042,'Deep black')
-                text('Manual focus legend','MF',(.110 if f4 else .095,y+.090,.018),.060 if f4 else .042,'Deep black')
+                text('Autofocus legend','AF',(-.055,y+.118,.018),.060,'Deep black')
+                text('Manual focus legend','MF',(.110,y+.090,.018),.060,'Deep black')
             else:
                 title='STABILIZER\nMODE' if 'MODE' in label_ else 'STABILIZER'
-                text('Stabilizer legend',title,(0,y+.180,.018),.055 if f4 else .040,'Deep black')
+                text('Stabilizer legend',title,(0,y+.180,.018),.055,'Deep black')
                 if 'MODE' in label_:text('Switch positions','1   2',(0,y+.098,.018),.040,'Deep black')
                 else:
-                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.060 if f4 else .041,'Deep black')
-                    text('Stabilizer off legend','OFF',(.115 if f4 else .095,y+.090,.018),.060 if f4 else .041,'Deep black')
+                    text('Stabilizer on legend','ON',(-.055,y+.126,.018),.060,'Deep black')
+                    text('Stabilizer off legend','OFF',(.115,y+.090,.018),.060,'Deep black')
             line('First position tick',[(-.050,y+.061,.018),(-.050,y+.081,.018)],.0016,'Deep black')
             # MF/OFF sit to the right of this bent index, not over its crossbar.
             line('Second position tick',[(.012,y+.061,.018),(.012,y+.081,.018),(.050,y+.081,.018)],.0016,'Deep black')

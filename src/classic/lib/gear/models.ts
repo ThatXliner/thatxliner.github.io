@@ -230,14 +230,9 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                       : id === "70-200-f28" ? 0.35
                       : id === "70-200-f4" ? 0.6
                       : material.name.includes("rear") ? 0.4 : 1;
-                    // Approximate a visible-band antireflection film (550 nm / 4n).
-                    // This is not Canon's proprietary multilayer prescription.
-                    const visibleFilm = 550 / (4 * material.iridescenceIOR);
-                    material.iridescenceThicknessRange = id === "70-200-f28"
-                      ? [visibleFilm, visibleFilm]
-                      : material.name.includes("rear")
-                        ? [350, 370]
-                        : [220, 240];
+                    material.iridescenceThicknessRange = material.name.includes("rear")
+                      ? [350, 370]
+                      : [220, 240];
                   }
                   if (["70-200-f28", "70-200-f4", "50", "35", "28-135"].includes(id)) {
                     // IBL has no barrel occlusion. Only reflect directions that
@@ -319,6 +314,19 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                   }
                   material.blending = THREE.AdditiveBlending;
                 } else material.color.setRGB(0.96, 0.98, 0.97);
+                if (id === "70-200-f28") {
+                  // Empirical coating reflectance from reference photos, not
+                  // measured optical data. A single film caused a false cyan
+                  // shift at oblique angles; use a neutral grazing response.
+                  material.iridescence = 0;
+                  const dielectricF0 = ((material.ior - 1) / (material.ior + 1)) ** 2;
+                  material.specularIntensity = 1;
+                  material.specularColor.setRGB(
+                    0.008 / dielectricF0,
+                    0.016 / dielectricF0,
+                    0.006 / dielectricF0,
+                  );
+                }
                 object.castShadow = false;
               }
               if (
@@ -358,6 +366,14 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
               }
             }
           });
+          if (import.meta.env.DEV && id === "70-200-f28" && new URLSearchParams(location.search).get("frontTrace") === "1") {
+            const { installFrontReflections } = await import("./optics/f28-front-reflections");
+            scene.traverse((object) => {
+              if (!(object instanceof THREE.Mesh) || !(object.material instanceof THREE.MeshPhysicalMaterial)) return;
+              if (object.material.name.includes("Inner optical glass")) object.visible = false;
+              else if (object.material.name.startsWith("Optical glass")) installFrontReflections({mesh:object,coating:new URLSearchParams(location.search).get("frontCoat") === "reference" ? "reference" : "film"});
+            });
+          }
           if (disposed) {
             dispose();
             return;
