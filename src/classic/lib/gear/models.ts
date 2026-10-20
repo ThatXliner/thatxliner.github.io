@@ -1,4 +1,5 @@
 import f28FrontGroup from "./optics/f28-front-group.json";
+import fiftyAperture from "./optics/50-aperture.json";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
@@ -261,7 +262,7 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                     // Match build_models.py openings; flatten sub-.002 blade offsets
                     // and soften the boundary across bevels.
                     const irises: Record<string, [number, number, number, number]> = {
-                      "50": [0.275, 0.185, 5, 0],
+                      "50": [fiftyAperture.centerZ + fiftyAperture.depth / 2, fiftyAperture.radius, fiftyAperture.segments, 0],
                       "35": [0.726, 0.225, 128, 0],
                       "70-200-f4": [3.12 * 0.46 + 0.008, 0.69 * 0.24, 96, 8],
                       "70-200-f28": [3.62 * 0.46 + 0.008, 0.805 * 0.28, 96, 8],

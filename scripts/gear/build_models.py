@@ -10,6 +10,7 @@ ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'../..'))
 OUT=os.path.join(ROOT,'public/models/gear')
 WORK=os.path.join(ROOT,'output/gear-modeling')
 with open(os.path.join(ROOT,'src/classic/lib/gear/optics/f28-front-group.json')) as f:F28_FRONT_GROUP=json.load(f)['elements']
+with open(os.path.join(ROOT,'src/classic/lib/gear/optics/50-aperture.json')) as f:FIFTY_APERTURE=json.load(f)
 os.makedirs(OUT,exist_ok=True);os.makedirs(WORK,exist_ok=True)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene
@@ -331,6 +332,10 @@ def eyecup(x,y,z,body='c200',housing=()):
         # ER eyecup shoulders taper inward above the wider lower rubber lip.
         # Keep the separate optical carrier and proximity sensor unchanged.
         verts=[(x+(vx-x)*(1-.10*max(0,min(1,(vy-y)/.48+.5))),vy,vz) for vx,vy,vz in verts]
+    elif body=='40d':
+        # Eb rear photographs show sloping shoulders above its wide lower feet.
+        # Taper the rubber hood without moving the independent optical carrier.
+        verts=[(x+(vx-x)*(1-.16*max(0,min(1,(vy-y)/.55+.5))),vy,vz) for vx,vy,vz in verts]
     mesh=bpy.data.meshes.new('Hollow eyecup');mesh.from_pydata(verts,[],faces);mesh.update()
     o=bpy.data.objects.new('Eyecup',mesh);scene.collection.objects.link(o);register(o,'Hollow molded eyecup','Focus rubber');finish(o,.002 if body=='c200' else .012,3)
     if body=='40d':
@@ -346,10 +351,16 @@ def eyecup(x,y,z,body='c200',housing=()):
     if body=='40d':y-=.065
     # Separate optical carrier inside the rubber cup; the DSLR has no eye sensor.
     if body=='r7':rounded_panel('Eyepiece inner carrier',(x,y,z-.045),(.59,.35,.034),.065,'Graphite polymer')
-    else:box('Eyepiece inner carrier',(x,y,z-.045),(.65,.44,.034) if body=='c200' else (.59,.38,.034),'Graphite polymer',.038)
+    elif body=='40d':
+        # The Eb carrier steps inward below the rubber feet. Its broad upper
+        # corner radii are independent of the thin frame's depth.
+        outline=[(-.295,.190),(.295,.190),(.295,-.105),(.235,-.105),(.235,-.190),(-.235,-.190),(-.235,-.105),(-.295,-.105)]
+        profile('Eyepiece inner carrier',[(x+dx,y+dy) for dx,dy in outline],z-.062,z-.028,'Graphite polymer',.003,rounding=[.045,.045,.008,.008,.008,.008,.008,.008])
+    else:box('Eyepiece inner carrier',(x,y,z-.045),(.65,.44,.034),'Graphite polymer',.038)
     optical_x=x+.035 if body=='r7' else x-.045 if body=='c200' else x
     if body=='r7':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.300,.275,.016),.029,'Deep black')
-    else:box('Eyepiece optical recess',(optical_x,y,z-.066),(.43,.38,.016) if body=='c200' else (.365,.275,.016),'Deep black',.029)
+    elif body=='40d':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.365,.275,.016),.029,'Deep black')
+    else:box('Eyepiece optical recess',(optical_x,y,z-.066),(.43,.38,.016),'Deep black',.029)
     # A shallow convex optical face catches reflections across its curved surface.
     sag=.022 if body=='c200' else .029 if body=='r7' else .024
     vertices=[(optical_x,y,z-.078-sag)];polygons=[];count=100;rows=32
@@ -425,6 +436,7 @@ def eyecup(x,y,z,body='c200',housing=()):
             rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.35,.30,.003),.018,'C200 finder field')
         elif body=='r7':
             rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.235,.205,.003),.018,'R7 finder field')
+        if body in ['r7','40d']:
             # Boolean caps must not retain the old bevel's interpolated loop
             # normals; those produce triangular highlights across the frame.
             for part in OBJECTS[eyecup_start:]:
@@ -2541,10 +2553,12 @@ def fifty_prime():
     # Block sightlines from the optical aperture onto the outer barrel's
     # unlined interior, which otherwise appears as a bright crescent.
     ring('Optical chamber lining',.341,.298,.279,.38,'Optical barrel flocking')
-    ring('Iris seat',.265,.275,.185,.012,'Anodized black')
+    # Show the lens at full aperture: the five straight blades retract behind
+    # the circular carrier. This envelope is not a calibrated entrance pupil.
+    ring('Iris seat',FIFTY_APERTURE['centerZ'],.375,FIFTY_APERTURE['radius'],FIFTY_APERTURE['depth'],'Anodized black',segments=FIFTY_APERTURE['segments'])
     for i in range(5):
         a=i*2*pi/5;b=a+2*pi/5
-        pts=[(.185*cos(a),.185*sin(a),.275),(.185*cos(b),.185*sin(b),.275),(.273*cos(b),.273*sin(b),.274),(.273*cos(a-.1),.273*sin(a-.1),.274)]
+        pts=[(.300*cos(a),.300*sin(a),.275),(.300*cos(b),.300*sin(b),.275),(.360*cos(b),.360*sin(b),.274),(.360*cos(a-.1),.360*sin(a-.1),.274)]
         mesh=bpy.data.meshes.new('Five blade iris');mesh.from_pydata(pts,[],[(0,1,2,3)])
         o=bpy.data.objects.new('Five blade iris',mesh);scene.collection.objects.link(o);register(o,'Iris blade','Anodized black')
     optical_element('Optical rear element',.16,.24,.017,.021,'Inner optical glass rear')

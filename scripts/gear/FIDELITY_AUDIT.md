@@ -2664,3 +2664,116 @@ The diagnostics direct the next review toward surface placement and curvature ac
 40D AF-ON lettering now projects through the local shoulder tangent plane rather than parallel to the rear axis, preserving its footprint on the approximately34-degree shoulder. Completed isolated Blender export and meshopt/WebP compression. Sampled3532 AF-ON points: no missing support hits or penetration; minimum rear-axis clearance .148282mm. Actual /classic upper rear oblique inspected, screenshot40d-afon-tangent-oblique.png; lettering legible, no browser errors. This remains a progress checkpoint, not full photographic acceptance.
 
 User requested shipping the current work. Includes the retained R7 continuous casting, rounded matte AF-ON cap, rear legend proportions, refreshed front previews, and40D ink corrections. Runtime/lazy-loading behavior unchanged. Experimental files remain outside the commit.
+
+
+### 2026-10-20 — 40D Eb eyecup taper
+
+Previous turn shipped checkpoint8b3e2a4 (progress). Compared40d-rear-lanteigne.jpg with the current actual viewer: the rubber Eb hood had nearly vertical sides whereas the reference narrows toward the upper shoulders. Added a height-dependent width taper up to16percent to the rubber loops only; optical carrier, glass, and retaining rail remain fixed. This is a photo-guided silhouette estimate, not a factory dimension. Full isolated Blender build/AO/export and meshopt/WebP compression succeeded.
+
+Matched rear Home31Right2Down3+ before/after; oblique4Left1+2ShiftUp; front Home12Right3+ inspected. Saved40d-eyecup-taper-{before,after,oblique,front}.png. Retained tapered silhouette; no visible carrier breakthrough in the inspected views and no browser console errors. Refreshed40D selector thumbnail. Source parse and diff checks pass. Local/unpushed.
+
+This does not resolve the wider body/material/optical fidelity goal. The carrier still looks angular relative to the rear photograph, and front casting contour/highlights need further reference comparison. Do not treat this narrow silhouette check as full photographic acceptance.
+
+40D metrics: {'bytes': 4234808, 'triangles': 465541, 'primitives': 26, 'sha256': 'd899062fc024a900ff1e94d78ec4b0e0976ea1d5d846127390af6da19468ecaf'}.
+
+
+### 2026-10-20 — 40D finder carrier shading repair
+
+Previous turn retained Eb taper (progress). Reference comparison showed broad apparent facets on the inner carrier. Source inspection found that the finder Boolean opening retained pre-cut weighted loop normals. R7 already rebuilds these meshes after cutting; extended that existing cleanup to40D. Carrier geometry, materials, glass, aperture dimensions and placements unchanged. Full Blender/AO/export and default meshopt/WebP compression succeeded.
+
+Actual /classic40D+50 comparison at Home27Right2Down4+2ShiftUp: false triangular bands around the rectangular opening disappear, leaving a flat carrier face. Before/after captures40d-carrier-normals-{before,after}.png; slight vertical pan difference in capture, same orbit. Normal rear Home31Right2Down3+ also inspected,40d-carrier-normals-rear.png. No console errors. Source parse and diff check pass. Front thumbnail unchanged because corrected faces point rearward. Local/unpushed.
+
+Retained as a shading repair, not proof of complete fidelity. Reference upper carrier corners are more rounded and lower outline steps inward; current box construction still needs geometry refinement. Full finder optical path remains provisional, and bodies/lenses still require broader reference acceptance.
+
+40D metrics: {'bytes': 4230448, 'triangles': 465541, 'sha256': 'b70df4892d579ed91ec78fab26f367845b68fb0fb0c760e36fdfa221d49ccf44'}.
+
+
+### 2026-10-20 — 40D stepped optical carrier outline
+
+Previous turn repaired carrier shading (progress). Replaced40D's box carrier with an extruded outline matching the rounded upper corners and narrower lower section visible in40d-rear-lanteigne.jpg. Retains .59x.38 overall footprint and .034 thickness; lower section width .47, step at y-.105, upper rounding .045. These are photograph-guided proportions, not factory dimensions. Optical recess now uses independent .029 outline radius instead of cube bevel limited by thickness. Optical aperture and glass remain fixed. R7/C200 unchanged.
+
+Blender/AO/export and meshopt/WebP compression passed. Actual viewer40D+50 rear Home31Right2Down4+2ShiftUp and oblique4Left inspected;40d-stepped-carrier-{rear,oblique}.png. Carrier fits between the rubber feet in those views, with the reference-like lower steps visible and no false triangular shading. No console errors; source parse and diff checks pass. Rear-only change, front preview unchanged. Local/unpushed.
+
+Full fidelity is still incomplete: carrier detail is closer, but body contours/materials and finder optical behavior require further work. These checks only establish this component's improvement, not completion of the complete loadout goal.
+
+40D metrics: {'bytes': 4273888, 'triangles': 466714, 'sha256': 'e771088c906268cf1f524d56f49c8c98a3d7425e3d8c181c03a58d6e8bdb4085'}.
+
+
+### 2026-10-20 — front/side audit and50mm open iris
+
+Previous turn refined40D carrier geometry (progress). Inspected actual40D+50 front Home5Right2Down2+ and terminal side Home18Right2Down3+ against40d.jpg. Saved40d-body-audit-{front,side}.png. Body shape/material acceptance remains incomplete. Front inspection exposed a distinct partially closed pentagonal iris while the displayed setup is f/1.8 maximum aperture. Canon official EF50mm f/1.8 II page confirms five diaphragm blades and maximum f/1.8: https://asia.canon/en/consumer/ef50mm-f-1-8-ii/main/product . Existing50ii.jpg reference has an unobstructed circular optical face.
+
+Retained five straight blades but moved their inner vertices from .185 to .300 radius, behind a circular carrier with .235 bore. Blade chord clearance .300*cos(pi/5)=.242705 exceeds bore .235. Carrier front lies ahead of the blades; outer blade portions are inside the barrel. This represents an open iris envelope, not a measured diaphragm mechanism or calibrated f-number; entrance-pupil magnification is not solved.
+
+Full isolated Blender/AO/export and meshopt/WebP succeeded. Actual front Home5Right2Down3+ and oblique6Right inspected,50-open-iris-{front,oblique}.png. Pentagonal occlusion gone; no exposed blade tips in inspected views, no console errors. Refreshed50 thumbnail. Source parse/diff checks pass. Local/unpushed. Wider aperture reveals the simplified rectangular40D mirror chamber, so optical appearance remains incomplete; do not hide that problem by closing the iris again or claim this as physical ray tracing.
+
+50 metrics: {'bytes': 962716, 'triangles': 133363, 'sha256': 'cfd7732e850a03e3124505d60285b789927afff33351bb6a4b1a394ea69d5612'}.
+
+
+### 2026-10-20 — identify50mm transmitted rectangle; local mirror probe rejected
+
+Previous turn opened the50mm iris (progress). Temporarily set only the40D Reflex mirror material emissive red in its GLB JSON. Actual viewer front test shows the red patch occupying the transmitted rectangle, establishing that the visible shape is the reflex mirror, not a generic render-target rectangle. Saved50-mirror-diagnostic.png. Restored40D GLB byte-for-byte afterward.
+
+Inspected production scene.ts: mirror environment intensity intentionally zero to avoid unoccluded studio cards in the chamber. Tested a DEV-only mirrorProbe=1 local128px cube capture at the mirror center with mirror mesh hidden, converted to PMREM, once per setup. Actual front and oblique tested,50-local-mirror-probe.png and50-local-mirror-probe-oblique.png. No console errors. Reflection makes the surface greyer but does not resolve the optical appearance: mirror edges and chamber still read directly through the simplified glass. Rejected as a fidelity fix; saved prototype scene-mirror-probe-trial.ts under ignored output and restored production scene.ts exactly. No capture work added to production.
+
+Current50mm generator has three approximate optical meshes, whereas Canon specifies six elements/five groups. Runtime explicitly replaces inner transmission with reflection layers because screen-space transmission cannot resolve stacked refractive groups. Thus the next optical work needs to address the lens path/representation; do not repeat a local mirror environment alone as a claimed solution or hide the mirror by closing the iris. Goal remains incomplete.
+
+
+### 2026-10-20 — synchronize50mm iris mesh and reflection visibility
+
+Previous turn identified transmitted mirror rectangle and rejected local probe (progress). Re-read existing audit before rebuilding optics: a six-element/five-group fitted assembly and CPU/GPU transport prototype already exist under ignored output (2026-10-13 entries). Do not duplicate that reconstruction; unresolved capture-dependent interior transport remains its next issue.
+
+Found a concrete regression from the recent open iris change: models.ts still occluded inner reflections against the old .185-radius pentagon at z.275. Added shared optics/50-aperture.json consumed by generator and runtime: carrier center .285, depth .012, radius .235,128 segments. Runtime tests its front plane z.291. Generator geometry is unchanged by this extraction; current50GLB remains valid. This prevents those independently authored constants drifting again.
+
+Adapted existing Blender iris-ray verifier to the current50 geometry.4053 samples at193 azimuths,7 radial factors and3 slopes agree with the geometric visibility calculation; excludes the narrow bevel/soft-boundary region.1737 sampled rays blocked, no mismatches. Report50-open-iris-check.json. Browser GPU ran the actual production shader kernel against these geometry samples plus center:4054 checks,0 mismatches,50-open-iris-gpu-result.txt. This proves sampled aperture visibility only, not full lens transport.
+
+Actual /classic40D+50 front Home5Right2Down3+ and oblique6Right inspected;50-open-iris-shader-{front,oblique}.png. No console errors.15-page production build and source/diff checks pass. No new render pass, texture or GLB payload. Full body/material/optical fidelity remains incomplete. Local/unpushed.
+
+
+### 2026-10-20 — resume and refresh existing six-element50mm candidate
+
+Previous turn fixed the stale production iris-reflection mask (progress). Read through existing six-element, sensor-return, screen-light and directional-cache work rather than reconstructing it. Latest prototype v15 had matched environment intensity and valid screen coverage; remaining gates include photo comparison, coating calibration and visitor cost. Reopened sequential-viewer.html with fittedAssembly,sensorReturn,screenLight,frameCache; current40D loads without shader errors. Enabled Frame lighting through lens explicitly. Full optics show substantially more glass reflections than production, but reflected-card shapes and color still lack matched-photo acceptance.
+
+One existing timer run reported baseline10.902ms versus prototype6.484ms at1440x975,10draws each. Do not use this as a production speedup: baseline is the fitted six-mesh raster candidate, not current three-mesh public50; one ordered run also does not establish repeatability. Capture/compilation excluded. No performance acceptance claimed.
+
+Rebuilt ignored50-fitted assembly using the current generator exterior, preserving the prior six glass meshes, fitted optical train and its own .2199212 pentagonal stop. Its apparent pupil was fitted with the complete train; it must not inherit the production approximation's .235 circular carrier without revalidating transport. Re-export/compression passed. Current ray-clearance check411 transmitted fixtures,0 opaque hits against61725 opaque polygons. This is sampled lens-assembly clearance, not arbitrary ray coverage or body intersection proof.
+
+Actual isolated40D+50 refreshed default oblique and near-front inspected,50-fitted-refreshed-{oblique,front}.png; current body and updated lens exterior intact, no browser errors. Updated fitted candidate stays under ignored output; public models/runtime unchanged this turn. Next assess the strong reflected cards against reference and measure a fair production-versus-candidate comparison before considering viewer integration. Full objective remains incomplete.
+
+Refreshed candidate: {'bytes': 1499220, 'triangles': 185587, 'sha256': 'd101e912a2c6948ea0ce08926222b7f5b2d5a409a9683ba42ad0027cedf8f2c1'}.
+
+
+### 2026-10-20 — fair public-lens/candidate draw comparison
+
+Previous turn refreshed fitted assembly (progress). Applied benchmark-checklist. Updated only ignored sequential-viewer-scene.ts benchmark: independently load current public50GLB, alternate its complete group with fitted analytical candidate at identical transforms, warm3draws plus gl.finish before timing,5 alternating runs per side with10draws/run. Preserve body/studio/view/resolution; record actual draw/triangle counts and fail on disjoint timer/WebGL errors. Dispose baseline library and restore candidate after timing. This compares warmed lens draw paths under the isolated studio, excluding load/capture/compile and the public HDR output pass. It is not end-to-end site or mobile performance. Host load3.37/4.53/6.21 on10logical CPUs; interleaved to limit drift.
+
+At1440x975 default oblique, median public7.300ms(range6.941–8.097),candidate7.696ms(7.158–8.398). Overlapping variation means no robust overall advantage from this view. At close front Home5Right2Down3+, public8.352ms(8.094–8.537),candidate23.791ms(22.639–28.248). Both render real work:79/77calls and1169280/1156864triangles respectively, including extra passes. Close view is materially slower despite similar geometry work; cost rises with optical pixel coverage. Screenshot50-fair-benchmark-close.png, full runs/summary retained. No browser errors.
+
+Profiling control disabled Frame lighting through lens at the same close pose: candidate median22.466ms, still22–30msrange versus public~8ms. Restored full lighting afterward. Disabling frame-cache evaluation does not remove the main cost; optical per-pixel transmission/reflection/BVH path is the next profiling target. Need isolate reflection branches before deciding optimization; do not claim the cache alone or geometry count is the bottleneck. Do not adopt candidate based on earlier misleading raster-fallback comparison. No public code/model changed this turn. Photographic acceptance and end-to-end visitor cost remain incomplete.
+
+
+### 2026-10-20 — isolate close-view optical branch costs
+
+Previous turn established a fair lens baseline and close-view slowdown (progress). Added ignored profileOptics=transmission/reflections controls to viewer-optics.ts; GLSL compile-time false conditions remove reflected-branch escape traversal or rear-body intersection/shading respectively. These are diagnostic ablations, not fidelity candidates. Default query preserves full optics.
+
+Same40D+50 fitted assembly, Frame lighting enabled, Home5Right2Down3+,1440x975,5interleaved runs/side,10draws/run. Transmission-only median16.686ms versus its public baseline8.568ms. Reflection-only median14.752ms versus its baseline9.394ms. Full earlier candidate23.791ms versus8.352ms. Independent runs/drift mean these cannot be subtracted into precise additive component costs. Both major optical paths contribute; frame-light removal alone from prior turn did not fix the slowdown. All draws retain77candidate/79public calls and consistent triangle counts; no WebGL/browser errors. Full runs50-profile-{transmission,reflections}.json.
+
+Actual transmission-only image is mostly dark, while reflection-only closely resembles the full front view because the transmitted screen is dim. This is not authorization to remove transmission: it would fail other angles/bodies and the requested physical appearance. Next optimization should bound optical pixel work or reduce both trace paths, preserving the complete result; reflection/coating-only shortcuts cannot count as completion. Reopened the full prototype after profiling. No public rendering change, no new push, full fidelity remains incomplete.
+
+
+### 2026-10-20 — bounded optical image prototype, cost not accepted
+
+Previous turn isolated reflection/transmission contributions (progress). Added ignored bounded-optics.ts and opticsResolution query to the isolated viewer. Complete optical material renders into a linear half-float target capped at512long-edge, then original front-cap geometry samples its projected image at normal viewer resolution with tone/color conversion once. Body/markings stay full resolution; both reflection and transmission paths retained. Hidden-object flags, clear color, target, tone mapping and shadow updates restore in finally. Render target/composite dispose with optical prototype. Fair benchmark now times both optical pass and final scene draw.
+
+Actual40D+50 close front Home5Right2Down3+ inspected,50-bounded-512-close.png. Reflections align and housing remains sharp, but limited inspection is not color/edge equivalence proof. No shader errors. First five-run comparison candidate~31ms versus public~8ms, so reduction in nominal pixel work did not improve total cost. Source inspection found Three transmission target cached by camera ID, making shared-camera offscreen/full-frame passes resize the target. Added a separate cloned camera, copying the current view each draw, to avoid this known resize coupling.
+
+Retest50-bounded-512-separate-camera.json still high/variable: candidate[21.863,34.534,21.819,35.355,24.973]ms versus public[8.021,8.002,8.202,8.594,8.502]ms. No reliable improvement over full-resolution optical candidate established; do not infer success from appearance or nominal resolution. Stats.calls/triangles only report the final renderer call, although GPU timed region includes both passes; they must not be interpreted as complete multipass counts. Need separate optical-pass/compositor profiling and allocation/resource checks before accepting this approach. Reopened unbounded full prototype after test. All experimental code stays under ignored output, no public renderer/asset change. Full fidelity/visitor performance goal incomplete.
+
+
+### 2026-10-20 — bounded-pass premise test and native prepass removal
+
+Previous turn tested bounded optics without reliable speedup (progress). Applied Attack the Premise: lowering nominal optical target resolution should reduce tracing cost if optical pixel work dominates. Added profilePasses to ignored benchmark with full, optical-only, and compositor-only draws,5runs each; renderer.info now accumulates both calls for the full path.512x347 target verified in visible resource snapshot. Optical-only median20.007ms, compositor~7.1ms;1optical draw/6016triangles versus78compositor draws.128x87 target reduces optical-only to~6.05ms, so cost does scale with pixel work, but the very low resolution is not accepted for fidelity. Scope remains warm desktop GPU draws only.
+
+Inspected custom physical material: it requests Three's native transmission prepass although the shader replaces transmission with its own traced result. Prototype v16 sets material.transmission=0 for render-list classification while retaining the USE_TRANSMISSION shader declaration and setting custom material.transmission=1 inside its replacement block. Both traced reflection and transmission remain active; redundant native transmission capture is not needed for this optical surface. No public renderer changed. Actual512target front view retains reflections and compiles without errors.50-bounded-no-prepass-close.png and profile retained. Optical-only observed~12.64ms median, full~23.65ms, but framing differs slightly from earlier screenshot, so this is not a controlled speedup claim.
+
+Identified a comparison weakness: keyboard reset during selection animation can fit changing assembly bounds, giving different camera distances despite identical key counts. Added benchmarkPose=front in ignored benchmark to settle lens offset, clear damping residual, set explicit camera(.08,.12,5) and target(0,.10,.30), and record camera pose in results. Next compare bounded/direct v16 at this exact pose and independently check image equivalence. Do not keep drawing quantitative cross-run conclusions from key sequences alone. Full photographic and visitor-performance acceptance remain incomplete.
