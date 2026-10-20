@@ -51,7 +51,7 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                 ? object.material
                 : [object.material];
               if (meshMaterials.every((material) =>
-                /^(Optical glass|Inner optical glass|40D ocular glass|C200 ocular glass)/.test(material.name),
+                /^(Optical glass|Inner optical glass|R7 ocular glass|40D ocular glass|C200 ocular glass)/.test(material.name),
               )) object.geometry.setAttribute("normal", opticalNormal);
               object.geometry.deleteAttribute("_optical_normal");
             }
@@ -352,7 +352,7 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
               }
               if (
                 material instanceof THREE.MeshPhysicalMaterial &&
-                /^(40D|C200) ocular glass/.test(material.name)
+                /^(R7|40D|C200) ocular glass/.test(material.name)
               ) {
                 object.updateWorldMatrix(true, false);
                 material.thickness = 0.024 / object.getWorldScale(new THREE.Vector3()).x;
@@ -361,6 +361,18 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
                 material.iridescenceThicknessRange = [110, 125];
+                if (material.name.startsWith("R7 ocular glass")) {
+                  // Appearance estimate from the coated ocular reference.
+                  // Avoid treating one effective film as Canon's prescription.
+                  material.iridescence = 0;
+                  const dielectricF0 = ((material.ior - 1) / (material.ior + 1)) ** 2;
+                  material.specularIntensity = 1;
+                  material.specularColor.setRGB(
+                    0.012 / dielectricF0,
+                    0.006 / dielectricF0,
+                    0.020 / dielectricF0,
+                  );
+                }
                 material.side = THREE.FrontSide;
                 object.castShadow = false;
               }

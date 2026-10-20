@@ -112,7 +112,8 @@ material('C200 grip rubber',(.009,.0095,.01),.66,0,LEATHER,1.0)
 material('Telephoto grip rubber',(.009,.009,.010),.68,0,FINE,.20)
 M['Telephoto grip rubber'].node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value=.30
 material('Blackened aperture steel',(.006,.007,.008),.42,.35)
-material('Eyepiece optical glass',(.008,.007,.012),.028,0)
+material('R7 ocular glass',(.98,.98,.99),.025,0,transmission=1)
+material('R7 finder field',(.003,.004,.005),.62,0)
 material('40D ocular glass',(.96,.98,.97),.028,0,transmission=1)
 material('C200 ocular glass',(.96,.98,.97),.028,0,transmission=1)
 material('C200 ocular glass inner',(.002,.002,.002),.03,0)
@@ -275,6 +276,13 @@ def eyecup(x,y,z,body='c200',housing=()):
     # behind its opening, rather than on top of a solid block.
     eyecup_start=len(OBJECTS)
     box('Eyecup mounting seat',(x,y,z+.035),(.77,.43,.05),'Graphite polymer',.045)
+    if body=='r7':
+        # Recess the inner carrier without cutting the roof above it, which
+        # supports the hot shoe. The outer rubber hood covers the joint.
+        cutter=rounded_panel('Eyecup mounting pocket cutter',(x,y,z-.17),(.610,.370,.46),.065,None)
+        for carrier in housing:
+            cut=carrier.modifiers.new('Seated eyecup mounting foot','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(carrier,cut)
+        OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
     verts=[];faces=[];steps=12;n=4*(steps+1)
     loops=[(.76,.43,.12,.02),(.84,.48,.14,-.145),(.49,.31,.065,-.151),(.40,.26,.045,.015)]
     if body=='r7':
@@ -310,7 +318,7 @@ def eyecup(x,y,z,body='c200',housing=()):
     if body=='r7':rounded_panel('Eyepiece inner carrier',(x,y,z-.045),(.59,.35,.034),.065,'Graphite polymer')
     else:box('Eyepiece inner carrier',(x,y,z-.045),(.65,.44,.034) if body=='c200' else (.59,.38,.034),'Graphite polymer',.038)
     optical_x=x+.035 if body=='r7' else x-.045 if body=='c200' else x
-    if body=='r7':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.365,.275,.016),.029,'Deep black')
+    if body=='r7':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.300,.275,.016),.029,'Deep black')
     else:box('Eyepiece optical recess',(optical_x,y,z-.066),(.43,.38,.016) if body=='c200' else (.365,.275,.016),'Deep black',.029)
     # A shallow convex optical face catches reflections across its curved surface.
     sag=.022 if body=='c200' else .029 if body=='r7' else .024
@@ -318,12 +326,12 @@ def eyecup(x,y,z,body='c200',housing=()):
     def optic_vertex(dx,dy,t):
         # A spherical optical surface for every body; rectangular iso-depth
         # rings caused a triangular reflection on the C200's larger ocular.
-        half_w,half_h=(.19,.165) if body=='c200' else (.155,.110)
+        half_w,half_h=(.19,.165) if body=='c200' else (.125,.110) if body=='r7' else (.155,.110)
         radius=(half_w**2+half_h**2+sag**2)/(2*sag)
         depth=z-.078-sag+radius-math.sqrt(radius*radius-dx*dx-dy*dy)
         vertices.append((optical_x+dx,y+dy,depth))
     for row in range(1,rows+1):
-        t=row/rows;w=(.38 if body=='c200' else .31)*t;h=(.33 if body=='c200' else .22)*t;r=.033*t;start_index=len(vertices)
+        t=row/rows;w=(.38 if body=='c200' else .25 if body=='r7' else .31)*t;h=(.33 if body=='c200' else .22)*t;r=.033*t;start_index=len(vertices)
         corners=[(w/2-r,h/2-r,0),(-w/2+r,h/2-r,pi/2),(-w/2+r,-h/2+r,pi),(w/2-r,-h/2+r,pi*1.5)]
         for corner,(cx,cy,angle) in enumerate(corners):
             for i in range(13):
@@ -339,14 +347,29 @@ def eyecup(x,y,z,body='c200',housing=()):
             j=(i+1)%count
             if row==1:polygons.append((0,start_index+j,start_index+i))
             else:polygons.append((start_index-count+i,start_index-count+j,start_index+j,start_index+i))
+    if body=='r7':
+        # Close the curved entrance element with a plane rear face. This is a
+        # reference-guided ocular envelope, not Canon's multi-element design.
+        outer_start=len(vertices)-count;back_start=len(vertices)
+        vertices.extend((vx,vy,z-.070) for vx,vy,vz in vertices[outer_start:outer_start+count])
+        back_center=len(vertices);vertices.append((optical_x,y,z-.070))
+        for i in range(count):
+            j=(i+1)%count
+            polygons.append((outer_start+i,outer_start+j,back_start+j,back_start+i))
+            polygons.append((back_center,back_start+i,back_start+j))
     mesh=bpy.data.meshes.new('Rectangular curved eyepiece optic');mesh.from_pydata(vertices,[],polygons);mesh.update()
-    optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','40D ocular glass' if body=='40d' else 'C200 ocular glass' if body=='c200' else 'Eyepiece optical glass')
+    optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','40D ocular glass' if body=='40d' else 'C200 ocular glass' if body=='c200' else 'R7 ocular glass')
     for face in mesh.polygons:face.use_smooth=True
-    if body in ['40d','c200']:
+    if body=='r7':
+        for face in mesh.polygons:
+            if face.index>=rows*count:face.use_smooth=False
+        split=optic.modifiers.new('Separate ocular polished face','EDGE_SPLIT')
+        split.split_angle=pi/4;split.use_edge_angle=True;apply(optic,split)
+    if body in ['r7','40d','c200']:
         # Give the optical finder real depth and an occluded off-axis view.
         # A field directly behind the ocular reads as an electronic display.
         carriers=[o for o in OBJECTS[eyecup_start:] if any(part in o.name for part in ['Eyecup mounting seat','Eyepiece inner carrier','Eyepiece optical recess'])]
-        cutter=rounded_panel('Finder channel cutter',(optical_x,y,z+.015),(.382,.332,.40) if body=='c200' else (.312,.222,.40),.025,None)
+        cutter=rounded_panel('Finder channel cutter',(optical_x,y,z+.015),(.382,.332,.40) if body=='c200' else (.252,.222,.40) if body=='r7' else (.312,.222,.40),.025,None)
         for carrier in [*housing,*carriers]:
             cut=carrier.modifiers.new('Open finder optical channel','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(carrier,cut)
             if carrier in carriers:
@@ -357,7 +380,7 @@ def eyecup(x,y,z,body='c200',housing=()):
                     if abs(face.normal.z)>.999:face.use_smooth=False
                 finish(carrier,smooth=False)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-        for depth,w,h in ([(-.040,.355,.305),(.075,.320,.265)] if body=='c200' else [(-.040,.285,.200),(.075,.250,.170)]):
+        for depth,w,h in ([(-.040,.355,.305),(.075,.320,.265)] if body=='c200' else [(-.040,.235,.205),(.075,.215,.185)] if body=='r7' else [(-.040,.285,.200),(.075,.250,.170)]):
             baffle=rounded_panel('Finder internal baffle',(optical_x,y,z+depth),(.43,.39,.012) if body=='c200' else (.35,.26,.012),.025,'Optical barrel flocking')
             cutter=rounded_panel('Finder baffle aperture',(optical_x,y,z+depth),(w,h,.06),.021,None)
             cut=baffle.modifiers.new('Optical pupil opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(baffle,cut)
@@ -366,6 +389,18 @@ def eyecup(x,y,z,body='c200',housing=()):
             OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
         if body=='c200':
             rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.35,.30,.003),.018,'C200 finder field')
+        elif body=='r7':
+            rounded_panel('Recessed finder field',(optical_x,y,z+.145),(.235,.205,.003),.018,'R7 finder field')
+            # Boolean caps must not retain the old bevel's interpolated loop
+            # normals; those produce triangular highlights across the frame.
+            for part in OBJECTS[eyecup_start:]:
+                if not any(label in part.name for label in ['Eyecup mounting seat','Eyepiece inner carrier','Eyepiece optical recess','Finder internal baffle']):continue
+                old=part.data;clean=bpy.data.meshes.new(old.name+' opened')
+                clean.from_pydata([v.co[:] for v in old.vertices],[],[tuple(f.vertices) for f in old.polygons])
+                for mat in old.materials:clean.materials.append(mat)
+                clean.update()
+                for face in clean.polygons:face.use_smooth=abs(face.normal.z)<.999
+                part.data=clean;bpy.data.meshes.remove(old)
         # The 40D is an optical finder. A diffuse panel facing the eye is not
         # its focusing screen (which sits horizontally below the pentaprism).
         # shortcut: the folded prism/three-element ocular path still needs
@@ -733,7 +768,11 @@ def body(which):
         bm=bmesh.new();bm.from_mesh(shell.data)
         for _ in range(6):
             bmesh.ops.triangulate(bm,faces=list(bm.faces))
-            edges=[e for e in bm.edges if e.calc_length()>.06 and max(v.co.x for v in e.verts)>.40]
+            # Sample the central finder transition before bending it too.
+            # Subdivision afterward preserves the old long face chords, which
+            # can project through the top of the rear display.
+            edges=[e for e in bm.edges if e.calc_length()>.06 and
+                   (max(v.co.x for v in e.verts)>.40 or max(v.co.y for v in e.verts)>.28)]
             if not edges:break
             bmesh.ops.subdivide_edges(bm,edges=edges,cuts=1,use_grid_fill=True)
         bmesh.ops.triangulate(bm,faces=list(bm.faces));bm.to_mesh(shell.data);bm.free()
@@ -1372,7 +1411,7 @@ def body(which):
             v=display.data.vertices[display.data.loops[loop].vertex_index].co
             uv.data[loop].uv=((v.x-screenX)/glass_w+.5,(v.y-screenY-.015)/glass_h+.5)
     if dslr:text('Rear Canon logo','Canon',(screenX,screenY-screenH/2+.047,rz-.074),.058,rotation=(0,pi,0),font='Canon')
-    eyecup(.04,.69,rz if dslr else -.432,which,housing=(shell,rear_cover) if dslr else ())
+    eyecup(.04,.69,rz if dslr else -.432,which,housing=(shell,rear_cover))
     if dslr:
         # The grip-side reference places the focal-plane symbol ahead of
         # the diopter wheel. Its stem is aligned with the modeled sensor plane.
@@ -2531,8 +2570,9 @@ def lens(which):
     l,r,range_,aperture,thread=specs[which];white=which.startswith('70-200');paint='White enamel' if white else 'Graphite polymer'
     # Hollow, stepped barrel: no opaque disk in front of the optical assembly.
     ring('EF bayonet',.044,.535,.43,.088,'Machined metal');ring('Rear gasket',.09,.55,.425,.034,'Deep black')
-    ring('Mount end',.19,r*.82,.41,.18,'Anodized black')
-    shoulder=ring('Taper shoulder',.32,r*.92,.43,.08,paint)
+    if which!='28-135':
+        ring('Mount end',.19,r*.82,.41,.18,'Anodized black')
+        shoulder=ring('Taper shoulder',.32,r*.92,.43,.08,paint)
     if white:
         # Exterior enamel must not continue into the light-facing barrel throat.
         # Split the existing faces so there are no overlapping lining surfaces.
@@ -2574,7 +2614,24 @@ def lens(which):
             face.use_smooth=True
             if face.index//n in [len(sections)-1,len(sections)]:face.material_index=1
         assert min(rr for zz,rr in sections)>r*.79
-    housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
+    if which=='28-135':
+        # Canon's product photograph shows a rounded mount-to-barrel flare,
+        # rather than a full-width rear-facing annulus at the control housing.
+        # The curve ends before the switch panel; dimensions are photo estimates.
+        controls=np.array([(.10,.55),(.14,.62),(.17,r*.97),(.265,r*.97)])
+        rear=[]
+        for j in range(33):
+            t=j/32
+            rear.append(tuple((1-t)**3*controls[0]+3*(1-t)**2*t*controls[1]+3*(1-t)*t*t*controls[2]+t**3*controls[3]))
+        section=rear+[(barrel_end,r*.97),(barrel_end,r*.79),(.265,r*.79),(.10,.43)]
+        n=128
+        verts=[(rr*cos(2*pi*i/n),rr*sin(2*pi*i/n),zz) for zz,rr in section for i in range(n)]
+        faces=[(row*n+i,row*n+(i+1)%n,((row+1)%len(section))*n+(i+1)%n,((row+1)%len(section))*n+i) for row in range(len(section)) for i in range(n)]
+        mesh=bpy.data.meshes.new('Rounded zoom rear housing');mesh.from_pydata(verts,[],faces);mesh.update()
+        housing=bpy.data.objects.new('Main lens housing',mesh);scene.collection.objects.link(housing);register(housing,'Main lens housing',paint)
+        for face in mesh.polygons:face.use_smooth=face.index//n not in [len(rear),len(section)-1]
+    else:
+        housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
     if white:
         for z,width in ([(l*.37,l*.26),(l*.76,l*.22)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
@@ -2752,7 +2809,12 @@ def lens(which):
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
     startSwitch=len(OBJECTS)
     f4=which=='70-200-f4'
-    switch_panel=box('AF IS switch panel',(0,0,0 if white else -.011),(.40,1.40,.026) if white else (.345,.87,.026),'White enamel' if white else 'Graphite polymer',.027)
+    if which=='28-135':
+        switch_panel=rounded_panel('AF IS switch panel',(0,0,-.011),(.345,.87,.026),.035,'Graphite polymer')
+        material('Zoom AF panel',(.055,.057,.060),.46,0)
+        af_panel=rounded_panel('AF upper panel',(0,.27,.001),(.300,.300,.006),.028,'Zoom AF panel')
+    else:
+        switch_panel=box('AF IS switch panel',(0,0,0 if white else -.011),(.40,1.40,.026) if white else (.345,.87,.026),'White enamel' if white else 'Graphite polymer',.027)
     items=[('AF  MF',.25),('STABILIZER\nON  OFF',-.13)] if which not in ['50','35'] else [('AF  MF',0)]
     if white:items=[('1.2m-∞  3m-∞' if f4 else '1.4m-∞  2.5m-∞',.49),('AF  MF',.16),('STABILIZER\nON  OFF',-.16),('STABILIZER MODE\n1   2',-.51)]
     for label_,y in items:
@@ -2806,11 +2868,16 @@ def lens(which):
             box('Slider position mark',(-.059 if stabilizer else -.016,key_y+.019 if stabilizer else key_y+.012,.0275 if stabilizer else .0175),(.008,.070 if stabilizer else .065,.001),'Deep black',.0004)
         elif which=='28-135':
             af=label_=='AF  MF'
-            box('Switch slot',(0,y-.007,.011),(.185,.089,.018) if af else (.235,.130,.018),'Deep black',.030)
-            box('Switch slider',(-.027,y-.007,.024),(.110,.077,.014) if af else (.155,.108,.014),'Graphite polymer',.018)
+            opening=(.185,.089,.10) if af else (.235,.138,.10)
+            cutter=rounded_panel('Switch opening cutter',(0,y-.007,0),opening,.040 if af else .053,None)
+            for panel in [switch_panel,af_panel] if af else [switch_panel]:
+                cut=panel.modifiers.new('Recessed zoom switch opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(panel,cut)
+            OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+            rounded_panel('Switch recess floor',(0,y-.007,-.020),(opening[0]-.002,opening[1]-.002,.002),.039 if af else .052,'Deep black')
+            rounded_panel('Switch slider',(-.018 if af else -.012,y-.007,.006 if af else .010),(.130,.075,.014) if af else (.195,.112,.016),.032 if af else .045,'Graphite polymer')
             if af:
-                for j in range(6):box('AF slider knurl',(-.070+j*.016,y-.007,.034),(.005,.055,.003),'Graphite polymer',.001)
-            box('Slider position mark',(-.027,y-.007,.037 if af else .032),(.008,.037 if af else .060,.002),'White ink',.0005)
+                for j in range(6):box('AF slider knurl',(-.070+j*.016,y-.007,.0145),(.005,.055,.003),'Graphite polymer',.001)
+            box('Slider position mark',(-.018 if af else -.012,y-.007,.017 if af else .019),(.008,.037 if af else .060,.002),'White ink',.0005)
         else:
             box('Switch slot',(0,y-.007,.025 if white else .011),(.16,.043,.024) if white else (.235,.103,.018),'Deep black',.013 if white else .040)
             box('Switch slider',(-.043,y-.007,.045 if white else .027),(.061,.041,.020) if white else (.103,.075,.020),'White enamel' if white else 'Graphite polymer',.007 if white else .023)
@@ -2825,8 +2892,8 @@ def lens(which):
         # Subdivide long panel edges before bending, so the inset follows the
         # cylinder at its center as well as at all four corners.
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        if 'panel' in o.name or (white and 'Switch recess floor' in o.name):
-            if white:
+        if 'panel' in o.name or ((white or which=='28-135') and 'Switch recess floor' in o.name):
+            if white or which=='28-135':
                 # Refine shared triangle edges before bending. Repeated partial
                 # n-gon subdivision creates collapsed faces around the cutouts.
                 import bmesh
@@ -2835,7 +2902,8 @@ def lens(which):
                 bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=1e-6)
                 bmesh.ops.dissolve_degenerate(bm,dist=1e-6,edges=list(bm.edges))
                 bm.to_mesh(o.data);bm.free()
-                refine_surface(o,lambda a,b:(a-b).length>.035,6)
+                # The zoom insert bends only across its circumferential axis.
+                refine_surface(o,lambda a,b:abs(a.y-b.y)>.040 if which=='28-135' else (a-b).length>.035,6)
             else:
                 import bmesh
                 bm=bmesh.new();bm.from_mesh(o.data)
@@ -2845,6 +2913,20 @@ def lens(which):
             u,vv,depth=v.co;angle=vv/(r*.97);radius=r*.97+depth-.008
             v.co=(-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
         o.data.update()
+        if which=='28-135' and ('panel' in o.name or 'Switch recess floor' in o.name):
+            # Constant-radius faces share cylindrical normals after bending.
+            # Keep the opening walls distinct instead of smoothing across them.
+            normals=[None]*len(o.data.loops)
+            for face in o.data.polygons:
+                radii=[math.hypot(o.data.vertices[i].co.x,o.data.vertices[i].co.y) for i in face.vertices]
+                cylindrical=max(radii)-min(radii)<1e-5
+                face.use_smooth=True
+                for loop in face.loop_indices:
+                    v=o.data.vertices[o.data.loops[loop].vertex_index].co
+                    normal=Vector((v.x,v.y,0)).normalized()
+                    if normal.dot(face.normal)<0:normal=-normal
+                    normals[loop]=tuple(normal if cylindrical else face.normal)
+            o.data.normals_split_custom_set(normals)
         if white and ('panel' in o.name or 'Switch recess floor' in o.name):
             old_mesh=o.data;formed=bpy.data.meshes.new('Formed telephoto switch panel')
             formed.from_pydata([v.co[:] for v in old_mesh.vertices],[],[tuple(f.vertices) for f in old_mesh.polygons])
@@ -2863,7 +2945,9 @@ def lens(which):
         o.matrix_world=Matrix.Translation(o.location)@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(pi/2,4,'Z')
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         for v in o.data.vertices:
-            x,y,z=v.co;radius=(rear_radius(z) if which=='70-200-f4' else r*.97 if z>=.265 else r*.82)+.002;length=math.hypot(x,y)
+            x,y,z=v.co
+            radius=(float(np.interp(z,[p[0] for p in rear],[p[1] for p in rear])) if which=='28-135' else rear_radius(z) if which=='70-200-f4' else r*.97 if z>=.265 else r*.82)+.002
+            length=math.hypot(x,y)
             v.co.x=x/length*radius;v.co.y=y/length*radius
     # Internal baffles recede toward the iris; glass elements have curved surfaces.
     ring('Front rim',l-.032,r,r*(.958 if which in ['28-135','70-200-f4'] else .845),.10,'Anodized black')
@@ -4281,7 +4365,7 @@ def export_asset(name,objects):
     if name in ['r7','40d','c200']:joined=bake_occlusion(name,joined)
     # Generic vector attributes do not follow object rotations during joining.
     # Preserve optical normals only after every assembly transform is resolved.
-    optical_materials=('Optical glass','Inner optical glass','40D ocular glass','C200 ocular glass')
+    optical_materials=('Optical glass','Inner optical glass','R7 ocular glass','40D ocular glass','C200 ocular glass')
     for o in joined:
         optical_vertices={vi for face in o.data.polygons
                           if o.data.materials[face.material_index].name.startswith(optical_materials)
