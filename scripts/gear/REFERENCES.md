@@ -3514,3 +3514,8 @@ Reused c200.jpg, the operator-side product photograph. The wheel left of REC pre
 ### C200 underside mounting system — 2026-10-13
 
 Canon C200/C200B instruction manual, saved c200-manual.pdf, pp.16 and42. Parts diagram identifies TB-1 tripod base, separate1/4-inch and3/8-inch mounting sockets and retaining screws. Rendered c200-bottom-parts.png and c200-tripod-manual.png. Cross-checked c200-right-used.jpg showing underside. Added a recessed panel/insert and holes; positions and profiles estimated from drawings. Nominal diameters are not yet preserved through the global body calibration, so these sockets are not dimensionally accepted.
+
+
+### LM-V1 shoulder transition — 2026-10-20
+
+Canon expansion guide English p.16 (PDF page76), local cinema-expansion.pdf, provides the outer shoulder outline in paths517,624,518. Case-width dimension runs x328.981..432.468 PDF points; the shoulder transition runs x346.123..370.172. The middle segment is straight, joined to horizontal shelves by approximately circular fillets (radius21.37 PDF points, tangent join6.173points from each end). Generator monitor_back_section uses these normalized horizontal proportions and curve shape. The existing shallow/deep shell depths remain estimated at.275/.360units; this is not a calibrated thickness reconstruction. Drawing width/depth views have different apparent scales/datums, so a single points-to-mm conversion has not been assumed for thickness. Extracted samples and derivative/profile check are under ignored output/gear-modeling/lmv1-shoulder-*.json.

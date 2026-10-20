@@ -2777,3 +2777,88 @@ Previous turn tested bounded optics without reliable speedup (progress). Applied
 Inspected custom physical material: it requests Three's native transmission prepass although the shader replaces transmission with its own traced result. Prototype v16 sets material.transmission=0 for render-list classification while retaining the USE_TRANSMISSION shader declaration and setting custom material.transmission=1 inside its replacement block. Both traced reflection and transmission remain active; redundant native transmission capture is not needed for this optical surface. No public renderer changed. Actual512target front view retains reflections and compiles without errors.50-bounded-no-prepass-close.png and profile retained. Optical-only observed~12.64ms median, full~23.65ms, but framing differs slightly from earlier screenshot, so this is not a controlled speedup claim.
 
 Identified a comparison weakness: keyboard reset during selection animation can fit changing assembly bounds, giving different camera distances despite identical key counts. Added benchmarkPose=front in ignored benchmark to settle lens offset, clear damping residual, set explicit camera(.08,.12,5) and target(0,.10,.30), and record camera pose in results. Next compare bounded/direct v16 at this exact pose and independently check image equivalence. Do not keep drawing quantitative cross-run conclusions from key sequences alone. Full photographic and visitor-performance acceptance remain incomplete.
+
+
+### 2026-10-20 — fixed-pose v16 bounded/direct comparison
+
+Previous turn shipped the verified production subset as 2c8b0a3 (progress). Resumed the live isolated prototype, confirmed 40D+50 selection, enabled Frame lighting, and completed bounded512 benchmark. Exact camera position [.08,.12,5], target [0,.1,.3], drawing buffer1440x975 match direct v16 measurement. Five alternating public/candidate runs,10draws each. Bounded median13.785ms (13.696–15.490), public7.304ms. Direct median21.725ms (20.997–24.173), public7.659ms. Repeated direct after bounded: median21.481ms (21.140–24.551), public7.663ms. Both direct images are pixel-identical. This supports lower warmed GPU cost for bounded optics at this pose, not mobile/loading/capture cost or general angle acceptance. Candidate remains slower than public optics.
+
+Screenshot inspection initially suggested body brightness changed; numerical comparison disproved that impression. All differing pixels lie within [392,351,561,497], the front glass. Grip, body badge and lens markings have exactly zero RGB differences. Glass-region mean absolute RGB error is [.711,.714,.976] on0–255 display scale, with local channel maxima up to57 at edges. This is image similarity to the existing prototype, not photographic accuracy. No browser errors. Evidence50-fixed-{full,bounded512}-v16.json/png, full-v16-repeat.json/png and50-fixed-v16-summary.json. Bounded512 now warrants further angle/edge checks; no production adoption yet. Camera silhouettes, materials and coating/reference acceptance remain incomplete. Experimental renderer remains ignored/local; current public renderer unchanged.
+
+
+### 2026-10-20 — bounded optics oblique edge rejection
+
+Previous goal turn completed controlled front comparison (progress). Added benchmarkPose=oblique only in ignored diagnostic scene: camera[3.2,1.3,4.1], target[0,.1,.3], settled lens transform. Compared direct/bounded512 with identical40D+50, frame lighting and1440x975 drawing buffer,5 alternating public/candidate runs of10draws. Direct candidate median7.023ms/public7.865; bounded candidate7.043/public8.166. Variation overlaps; bounded gives no meaningful benefit here, unlike the close front view. Both valid, no browser errors.
+
+Actual screenshots show stair-stepping in thin bright reflections in bounded512, especially the left inner reflection and lower-right curved card. Body and barrel remain unchanged; image differences confined to glass. Evidence50-oblique-{full,bounded512}-v16.json/png and summary. Reject512 as an unconditional replacement. Further design should preserve direct-resolution rendering for views where the optical path is already cheap, or improve edge sampling without losing front-view benefit. Do not choose a threshold from these two views alone. Canon50ii product reference inspected again; different lighting does not calibrate the prototype coating/card colors. Full reference-matched fidelity remains unproven. No public renderer/model changes or new push.
+
+
+### 2026-10-20 — resume C200 exterior review, distinguish monitor surfaces
+
+Previous goal turn found oblique bounded-optics aliasing (progress). Returned to production /classic available C200+f/2.8 and Canon c200-canon-hero.jpg plus lm-v1-rear-reference.png. Actual whole operator/front and closer monitor/body inspected; current screenshot c200-resumed-operator.png. Broad monitor back still appears uneven; this is an observation, not yet a verified normal regression. Re-read prior monitor-normal correction and ran existing check-monitor-normals.py against current generator in isolated Blender, completed successfully (check-monitor-normals-current.log).
+
+Checker reports95 near-planar faces,9 above1degree, maximum44.948degrees. The eight worst faces are new side-groove walls at x1.082,y.325,z-.166..-.329, not the broad rear. Their normals differ30.7–44.9degrees from the planar walls. Do not cite this aggregate number as recurrence of the broad-back defect. Need distinguish flat groove-wall normals from rounded groove ends, then inspect the correction in the actual viewer. Separately isolate AO/normal contribution to the broad back before changing its shape or lighting. No generator/asset changes retained this turn; full body/material/reference acceptance remains incomplete. Current shipped checkpoint remains2c8b0a3.
+
+
+### 2026-10-20 — C200 flat monitor-groove normals corrected
+
+Previous turn separated the broad-back shading observation from a measured groove-wall defect (progress). Updated only the LM-V1 normal assignment for flat Z-facing groove walls at the case edge: each receives its face normal; rounded ends retain their existing interpolation. No geometry dimensions/topology changes. Isolated generator check identifies exactly8straight walls, maximum normal error0degrees, compared with30.7–44.9degrees previously. c200-groove-normal-check.json and build-c200-groove-normals.py retain verification.
+
+Rebuilt/baked/exported C200 from current source, meshopt/WebP compression completed. Actual public /classic viewer close side groove before/after, operator/front and rear inspected without console errors. Corrected groove shading is subtle at the viewer's display scale; do not describe it as resolving broad-back unevenness or overall photorealism. Evidence c200-groove-normals-{before,after,front,rear}.png. Refreshed selector thumbnail. No new render pass, runtime code or dependencies. Build/source/diff checks pass for this asset-only change; production application build was already checked at2c8b0a3. Local/unpushed. Broad monitor-back shading and wider body/optics/material acceptance remain incomplete.
+
+
+### 2026-10-20 — C200 monitor texture isolation
+
+Previous turn corrected eight flat groove-wall normals (progress). In actual /classic C200+f/2.8, inspected monitor back close at Home12Right7+10ShiftUp after selection settled. Captured baseline, then independently removed only Graphite polymer's occlusionTexture and normalTexture from temporary GLB JSON variants, restoring the other texture for each trial. This avoids models.ts overriding AO intensity to.8. Camera pose and geometry held constant. Files c200-monitor-{ao-baseline,no-ao,no-normal-map}.png.
+
+Neither removal resolves the broad shading pattern. Upper-back region[645,290,795,345] mean absolute display RGB change on0–255 scale: AO removal[.115,.102,.089], grain-normal removal[.370,.353,.335]. Region excludes connector shadow; no broad/global texture-damage explanation established. No browser errors. Reference lm-v1-rear-reference.png visibly has a raised electronics shoulder: do not flatten it to erase legitimate shading. Next comparison should assess shoulder contour/tangent and lighting rather than remove material detail or rebake blindly.
+
+Restored public C200 byte-for-byte to reviewed groove-normal asset SHA256ba7f7800f30dbe4c5da1d01397e750af39dd645cb72d4c500f9fce9246b8fd93. No diagnostic material edit retained, no new shipment. Current local generator/GLB/thumbnail remain the prior groove-normal correction. Full photographic acceptance remains incomplete.
+
+
+### 2026-10-20 — LM-V1 shoulder vector reference recovered
+
+Previous turn ruled out AO/grain maps as the main broad-back shading cause (progress). Inspected Canon expansion guide Englishp16/PDFpage76 and saved lmv1-dimensions.png. The top-side profile has a shallow-to-deep shoulder with rounded end transitions and a nearly straight central segment. Current generator uses a cubic smoothstep over.40units at55mm/unit with.085unit depth increase, a narrower/shallower visual estimate.
+
+Extracted outer profile drawing paths517,624,518 into ignored lmv1-shoulder-reference.json using extract-lmv1-shoulder.py. Relative to119.9mm width dimension's103.487PDF-point span, reference transition occupies23.239% of width versus18.349% in currentmodel. Reference rise/width5.177% versus3.899% modeled. These are drawing ratios, not established CAD measurements. Independent vertical35.99mm annotation has a different scale and front datum from the width view, so do not directly convert every PDFcoordinate with one millimetres-per-point factor. Need resolve projection/datum or use normalized outline plus independently constrained shell depths. The recovered outline provides evidence for a broader transition, rather than flattening the housing or changing textures. No new source/asset edit retained this turn; prior verified groove-normal fix remains local/unpushed. Full fidelity goal incomplete.
+
+
+### 2026-10-20 — reference-shaped LM-V1 shoulder transition
+
+Previous turn recovered Canon vector outline (progress). Replaced the guessed.40unit cubic smoothstep with monitor_back_section: transition position/width follows the guide's width-relative coordinates, circular end blends join a straight central ramp. Both mesh coordinates and broad-face normals use the same profile/derivative. Current.275/.360shell depths remain independent estimates because the guide's thickness datum/scale was not established; normalized shape agreement is not a calibrated thickness claim.
+
+Compared the normalized analytic profile against extracted outer paths: maximum rise-fraction error.001008 (about0.10%); analytic slope agrees with1001finite-difference samples within4.57e-11. Full isolated C200 source rebuild, AO bake, export and meshopt/WebP compression passed; eight flat groove walls retain0degree normal error. The broader transition shades more evenly in actual /classic close rear-of-monitor view. Side seam, whole front/operator and rear assembly inspected without browser errors; refreshed selector thumbnail. Evidence c200-shoulder-profile-{after,side,whole,rear}.png, baseline c200-monitor-ao-baseline.png. No extra triangles, textures or render pass. Source/diff checks pass. This corrects the reference contour locally; remaining materials, optics, depth estimates and overall photographic acceptance are unfinished. Local/unpushed.
+
+{"bytes": 5455672, "triangles": 672876, "sha256": "8b55331c3a780980289cb73c0845859aca49b98aabb90f3bf11959c04124f773"}
+
+
+### 2026-10-20 — 40D main-wheel exposure correction
+
+Previous turn corrected the C200 monitor contour (progress). Fresh asset search returned previously catalogued R7 Sketchfab/TurboSquid and no newly verified source mesh for web distribution; did not acquire/extract anything. Re-read prior availability audit and returned to actual geometry work. Current /classic40D+50 top view compared with40d-top.jpg shows main command wheel as a broad ribbed block rather than a narrow exposed dial edge. Source wheel is circular radius.12, axle width.23, but shallow seating and.174longitudinal slot expose too much circumference.
+
+Lowered its center along the existing local up vector from.083 to.103below sampled shoulder (1.1mm further at55mm/unit), narrowed slot.174to.132. Wheel radius, rib geometry and axle direction unchanged. This is a photo-guided seating refinement, not a measured Canon internal wheel dimension. Full source build/bake/export/compression passes. Actual matched top baseline/after (Home31Right12Up3+), rear-oblique4Down and frontHome12Right3+ inspected, no browser errors. Wheel is less exposed and remains visible; top opening still differs from reference, so this is partial contour progress rather than full acceptance. Refreshed40Dpreview. Evidence40d-main-wheel-seating-{before,after,oblique,front}.png. No runtime/render-pass change. Local/unpushed; full fidelity goal remains incomplete.
+
+{"bytes": 4288420, "triangles": 466768, "sha256": "5d22d29fa23efd126513a242c4724cc74602457d6fd96c7c985e900a2155caec"}
+
+
+### 2026-10-20 — 40D command-wheel edge and opening coupled
+
+Previous turn reduced wheel exposure but top opening remained broad (progress). Actual elevated grip-side view confirmed a broad exposed circumference. Refined the photo-derived exposed rib edge to.009units (~.495mm in authoring scale), preserving.12core radius and.007rib depth. Wheel recess now derives from outer radius minus exposed edge; longitudinal opening derives from the corresponding circle chord plus.010clearance rather than an independent guessed slot width. This remains an estimated visible seat, not measured internal Canon hardware.
+
+Full source build/bake/export/compression passed. Actual /classic40D+50 top Home31Right12Up3+ and grip-sideHome6Left5Up5+ inspected; narrow ribbed edge remains visible/seated and top appearance is closer to40d-top.jpg. No console errors. Evidence40d-wheel-edge-{top,side}.png; previous40d-main-wheel-seating-after.png is the top baseline. Refreshed thumbnail. No runtime or extra render passes. Source/diff checks pass. Retained locally/unpushed; major body contours, finish and optical fidelity remain incomplete.
+
+{"bytes": 4282128, "triangles": 466810, "sha256": "407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465"}
+
+
+### 2026-10-20 — current 40D cover-join normal discontinuity
+
+Previous turn narrowed main-wheel exposure (progress). Reviewed current actual /classic40D+50 rear and saved40d-rear-casting-review.png against40d-rear-photo.jpg and40d-rear-lanteigne.jpg. Do not remove real finder/cover seams indiscriminately. Re-read prior double-bevel fix, then generated current unmerged40D geometry and sampled the upper envelope of shell/rear cover with BVHs. Interpolated actual custom corner normals barycentrically at hits, rather than comparing only face normals or old checkpoint geometry.
+
+At six sampled xsections, main surface switch occurs z-.508..-.512. Over.002unit sampling steps, height changes are -.0220..+.0129mm, but interpolated normals jump6.512..11.959degrees. This establishes a residual shading-direction discontinuity at a nearly level overlap, not a reopened large groove. Large64–80degree changes at x-.8/-1.1,z-.466 belong to the topLCD cutout and lack the separate display/bezel surfaces in this two-object probe; exclude them from the casting-join diagnosis. Evidence40d-current-join.json/log, probe-40d-current-join.py, current unmerged40d-current-join.blend.
+
+Next test localized normal continuity or a tangent-continuous join across the main overlap, preserving real seam placement and control/display surfaces. Do not repeat simple overlap extension or broad global smoothing without comparison. No additional generator/asset change retained this turn; earlier40Dwheel andC200monitor changes remain local/unpushed. Full photorealistic acceptance remains incomplete.
+
+
+### 2026-10-20 — shipping reviewed asset snapshot
+
+Ship the reviewed C200 monitor shoulder/groove-normal corrections and 40D command-wheel exposure refinement with their matching previews. The subsequent rear-cover normal-blending experiment remains deferred: numerical continuity improved, but matched visual acceptance was unfinished. Restored the generator to the reviewed wheel-refinement version, matching the public 40D SHA256407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465. Experimental optical rendering remains outside production. Overall photorealistic acceptance remains incomplete.
