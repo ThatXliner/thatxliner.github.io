@@ -483,6 +483,14 @@ def text(name,words,p,size=.08,mat='White ink',rotation=(0,0,0),font='Arial',ali
     curve=bpy.data.curves.new(name,'FONT');curve.body=words;curve.size=size;curve.align_x=align;curve.align_y='CENTER';curve.font=fonts[font];curve.resolution_u=6
     o=bpy.data.objects.new(name,curve);scene.collection.objects.link(o);o.location=p;o.rotation_euler=rotation;register(o,name,mat);active(o);bpy.ops.object.convert(target='MESH');return o
 
+def fit_ink_bounds(obj,width,height):
+    # Fit the printed footprint, not the font's em box, to the reference.
+    xs=[v.co.x for v in obj.data.vertices];ys=[v.co.y for v in obj.data.vertices]
+    cx=(min(xs)+max(xs))/2;cy=(min(ys)+max(ys))/2
+    sx=width/(max(xs)-min(xs));sy=height/(max(ys)-min(ys))
+    for v in obj.data.vertices:v.co.x=(v.co.x-cx)*sx;v.co.y=(v.co.y-cy)*sy
+    obj.data.update()
+
 def arc_text(words,z,radius,size=.048,start=None,span=None,mat='White ink',bottom=False):
     if span is None:
         # Bend the complete typeset line, preserving the font's glyph widths,
@@ -1418,10 +1426,10 @@ def body(which):
     rz=back-.042;screenX=.30 if dslr else .18;screenW=1.30 if dslr else 1.73;screenH=1.02 if dslr else 1.25;screenY=-.12 if dslr else -.175
     # Rear controls are seated in a separate rear cover. Their bezels were
     # previously suspended in front of the main casting's flat back plane.
-    # The DSLR cover must overlap the casting's rounded back edge. A shallow
+    # The cover must overlap the casting's rounded back edge. A shallow
     # overlap exposed both bevels as a separate slab along the body sides.
     # Reach beyond the shell's rear bevel so their crests do not form a trough.
-    rear_cover=profile('Rear control cover',outline,back-.083,back+(.12 if dslr else .012),'Crinkle painted metal',.055 if dslr else .030)
+    rear_cover=profile('Rear control cover',outline,back-.083,back+.12,'Crinkle painted metal',.055 if dslr else .030)
     bpy.ops.mesh.primitive_cube_add(size=1,location=(screenX,screenY,back-.06))
     opening=bpy.context.object;opening.scale=(screenW-.06,screenH-.08,.30)
     active(opening);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
@@ -1675,7 +1683,8 @@ def body(which):
         # Canon's rear close-up uses a reversed Q badge above the SET word.
         rounded_panel('Quick control Q background',(x,y+.022,rz-.0957),(.041,.038,.0004),.004,'White ink')
         text('Quick control Q','Q',(x,y+.022,rz-.0965),.039,'Deep black',rotation=(0,pi,0))
-        text('SET printed legend','SET',(x,y-.022,rz-.096),.040,rotation=(0,pi,0))
+        set_ink=text('SET printed legend','SET',(x,y-.022,rz-.096),.040,rotation=(0,pi,0))
+        fit_ink_bounds(set_ink,.075,.034)
         for a in [0,pi/2,pi,3*pi/2]:
             # Canon's rear close-up shows short molded ribs, not hairline ink.
             rib=rounded_panel('Rocker direction rib',(.150,0,0),(.050,.009,.005),.004,'Graphite polymer')
@@ -1764,9 +1773,14 @@ def body(which):
                 continue
         else:
             cyl('Rear button bezel '+t,(x,y,rz-.047),.071,.018,'Deep black')
-            # R7 product rear view: shallow flat key faces with rounded rims,
-            # not hemispherical caps. Retain the face plane under the legends.
-            cyl('Rear button '+t,(x,y,rz-.068),.055,.030,'Satin control plastic',vertices=64,bevel=.006)
+            # R7 printed keys have flat faces with rounded rims. The unprinted
+            # AF-ON key has a domed face in the rear product photograph.
+            if t=='AF-ON':
+                # Unprinted AF-ON has a rounded crown; its rear half seats
+                # inside the bezel while retaining the other keys' front plane.
+                sphere('Rear button '+t,(x,y,rz-.054),(.055,.055,.029),'Graphite polymer')
+            else:
+                cyl('Rear button '+t,(x,y,rz-.068),.055,.030,'Satin control plastic',vertices=64,bevel=.006)
         if dslr and t in ['▶','▥','Print/Share','Picture Style']:
             # Bottom-row legends sit above and to the right of each button.
             ix=x-.087 if y<0 else x;iy=y+.033 if y<0 else y+.098
@@ -1809,8 +1823,13 @@ def body(which):
             for dx in [-.006,.006]:line('Erase inner rib',[(x+dx,y+.008,rz-.086),(x+dx,y-.015,rz-.086)],.002,'Blue ink')
         else:
             label_x=x-.087 if dslr and y<0 else x
-            label_y=y+(.033 if y<0 else .086) if dslr else y if on_button else y-.09
-            text('Rear label '+t,'INFO.' if dslr and t=='INFO' else t,(label_x,label_y,rz-.045 if dslr else rz-.085),.045 if dslr else .040,rotation=(0,pi,0))
+            label_y=y+(.070 if y<0 else .086) if dslr else y if on_button else y-.09
+            ink=text('Rear label '+t,'INFO.' if dslr and t=='INFO' else t,(label_x,label_y,rz-.045 if dslr else rz-.085),.045 if dslr else .040,'Blue ink' if dslr and t=='JUMP' else 'White ink',rotation=(0,pi,0))
+            if dslr:
+                width,height={'MENU':(.138,.040),'AF-ON':(.155,.039),'JUMP':(.079,.043),'INFO':(.077,.041)}[t]
+            else:
+                width,height={'MENU':(.079,.034),'INFO':(.074,.035),'AF-ON':(.154,.035)}[t]
+            fit_ink_bounds(ink,width,height)
         if not dslr:
             # Body fitting changes button centers, not the manufactured circular
             # caps or their icons. MENU also lies in the compressed left shoulder.
@@ -1828,6 +1847,29 @@ def body(which):
             # Sample the curved shoulder within each printed stroke so long
             # triangles cannot cut back through the cover between fitted vertices.
             refine_surface(o,lambda a,b:(a-b).length>.015,4)
+            if o.name.endswith(' / Rear label AF-ON'):
+                # Preserve printed dimensions in the local shoulder plane.
+                # Parallel rear projection stretches the tops of these glyphs
+                # across the rolled edge above the AF-ON key.
+                refine_surface(o,lambda a,b:(a-b).length>.005,5)
+                cx=(min(v.co.x for v in o.data.vertices)+max(v.co.x for v in o.data.vertices))/2
+                cy=(min(v.co.y for v in o.data.vertices)+max(v.co.y for v in o.data.vertices))/2
+                hits=[tree.ray_cast(Vector((cx,cy,-3)),Vector((0,0,1)),4) for tree in rear_surfaces]
+                hits=[h for h in hits if h[0] is not None]
+                if not hits:raise RuntimeError('AF-ON printing center missed shoulder')
+                center,normal,_,_=min(hits,key=lambda h:h[0].z)
+                if normal.z>0:normal=-normal
+                u=(Vector((1,0,0))-normal*normal.x).normalized();v_axis=u.cross(normal).normalized()
+                for vertex in o.data.vertices:
+                    point=center+u*(vertex.co.x-cx)+v_axis*(vertex.co.y-cy)
+                    hits=[tree.ray_cast(point+normal*.20,-normal,.40) for tree in rear_surfaces]
+                    hits=[h for h in hits if h[0] is not None]
+                    if not hits:raise RuntimeError('AF-ON tangent print missed shoulder')
+                    hit,surface_normal,_,_=min(hits,key=lambda h:h[3])
+                    vertex.co=hit+normal*.003
+                o.data.update()
+                print('40D AF-ON print normal',tuple(normal),flush=True)
+                continue
             backmost=max(v.co.z for v in o.data.vertices)
             for v in o.data.vertices:
                 hits=[bvh.ray_cast(Vector((v.co.x,v.co.y,-3)),Vector((0,0,1)),4)[0] for bvh in rear_surfaces]
@@ -2379,8 +2421,26 @@ def body(which):
             diameters=[max(v[i] for v in points)-min(v[i] for v in points) for i in [0,1]]
             assert abs(diameters[0]-diameters[1])<.0001, (label,diameters)
             print('R7 circular control',label,'diameters mm',tuple(round(d*55,4) for d in diameters),flush=True)
+    if not dslr:
+        # One exterior at the shoulder junction, rather than two intersecting
+        # beveled skins whose visible edge moves with each contour adjustment.
+        active(shell)
+        join=shell.modifiers.new('Continuous rear casting junction','BOOLEAN')
+        join.operation='UNION';join.solver='MANIFOLD';join.object=rear_cover;apply(shell,join)
+        OBJECTS.remove(rear_cover);bpy.data.objects.remove(rear_cover,do_unlink=True)
+        junction=shell.vertex_groups.new(name='Terminal casting junction')
+        def junction_step(a,b,t):
+            t=max(0,min(1,(t-a)/(b-a)));return t*t*(3-2*t)
+        for v in shell.data.vertices:
+            x,y,z=v.co
+            weight=junction_step(.35,.50,x)*junction_step(.28,.42,y)
+            weight*=junction_step(-.23,-.17,z)*(1-junction_step(.02,.10,z))
+            if weight:junction.add([v.index],weight,'REPLACE')
+        blend=shell.modifiers.new('Continuous shoulder relaxation','SMOOTH')
+        blend.vertex_group=junction.name;blend.factor=.6;blend.iterations=24;apply(shell,blend)
+        shell.vertex_groups.remove(shell.vertex_groups['Terminal casting junction'])
     # Boolean pocket walls must not pull the exterior's smooth normals inward.
-    for casting in ([shell] if dslr else [shell,rear_cover]):
+    for casting in [shell]:
         if not dslr:
             bm=bmesh.new();bm.from_mesh(casting.data)
             assert all(e.is_manifold for e in bm.edges),'R7 casting must remain closed: '+casting.name

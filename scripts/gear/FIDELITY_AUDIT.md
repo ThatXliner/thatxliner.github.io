@@ -2581,3 +2581,86 @@ Restored scene.ts byte-for-byte and kept trial source in output/gear-modeling/sc
 ### 2026-10-20 — requested shipping checkpoint
 
 Shipping the reviewed C200 cable clamp and vector-referenced f/2.8 front elements. The pending R7 cubic shoulder interpolation experiment is saved under ignored output/gear-modeling; restored the reviewed compressed R7 and matching generator for this checkpoint. The local baked R7 experiment remains experimental. Photographic acceptance remains incomplete; reflection tracing stays development-only.
+
+
+### 2026-10-20 — R7 continuous interpolation comparison rejected
+
+Previous turn shipped reviewed checkpoint bc945a8 (progress). Resumed the saved cubic shoulder candidate, verified its completed Blender export, compressed the raw candidate with meshopt/WebP and inspected it in the actual /classic viewer with R7+50. Matched front Home12Right3+, terminal side Home18Right3+, rear Home31Right2Down2+. Evidence r7-shoulder-continuity-after.png, -side-after.png, -rear-after.png against the saved before captures and r7-terminal-canon-hires.png. No browser errors.
+
+The scalar interpolation continuity check passes, but front and side appearance change only marginally. Broad shoulder swelling and the rearward vertical ridge remain visibly unlike Canon's controlled side casting. Rejected as an adequate fidelity improvement; restored the reviewed compressed R7 byte-for-byte and left the shipped generator unchanged. Candidate source, compressed/raw GLBs and experimental baked file remain local evidence. No production runtime or preview changes.
+
+Inspection of body() shows the upper casting is still an extruded XY outline with layered deformations: a height drop, terminal forward displacement, rear finder extension, then a separate front finder displacement and deck uplift. Smoothing just the height interpolation does not correct this overall 3D section. Next modeling work should fit explicit front/middle/rear casting sections to the side/top references and preserve attached-control seating, rather than further tuning that interpolation. Photographic acceptance remains incomplete.
+
+
+### 2026-10-20 — R7 depth sections expose casting junction mismatch
+
+Previous comparison rejected cubic transverse interpolation (progress). Tried longitudinal roof sections at z[-.18,-.08,.08,.25] with drop fractions[0,0,.1,1], smoothstep interpolation, and flatter terminal-deck uplift (.012 versus finder .045). Isolated Blender build, AO, export and compression completed. Actual viewer front Home12Right3+, side Home18Right3+, rear Home31Right2Down2+ inspected. Evidence r7-depth-sections-{front,side,rear}.png, no console errors. Candidate still looks swollen and exposes a small crack/irregular seam near the rear shoulder, so rejected. Saved source/GLB under ignored output and restored reviewed source/GLB; raw and baked files still represent the experiment.
+
+Applied Attack the Premise: both attempts assumed the terminal shoulder could be corrected by changing the roof deformation while retaining the shell/rear-cover construction. Tested the alternative with check-r7-casting-junction.py on the generated unmerged candidate, scanning top ray hits at x[.48,.55,.62,.69,.76] and z[-.26,-.10] at .005 intervals. Report r7-casting-junction.json; unmerged blend saved. At x .55,.62,.76 overlapping hits put the cover roughly1.1–4.9mm above the shell; x.69 reaches11.03mm near curved boundaries. These are vertical ray-height differences, not normal seam widths or comprehensive collision distances. They establish that the two objects do not share a roof surface in this overlap. Rear cover uses only .012 depth overlap against an independently beveled .085 main casting; initial shell deformation is also absent from the rear cover.
+
+Next work should reconcile the rear-cover/front-shell junction and check both silhouettes and control seating, rather than repeat isolated height adjustments. Full fidelity remains incomplete; no new model shipped.
+
+
+### 2026-10-20 — rear-cover junction trials rejected; replacement-base search
+
+Previous turn isolated cover/casting mismatch (progress). Tried .12 overlap instead of .012: actual side comparison r7-junction-overlap-only-side.png shows the ridge moving forward. Sampled geometry still differs by roughly1–5mm vertically; MENU footprint support passes64/64. Then fitted forward shoulder vertices toward nearest shell surface with fades in x,y,z, keeping rear controls outside the changed region. At +.001 surface offset compressed render has jagged overlap line (r7-junction-fit-side.png). At -.008 buried offset the jagged line disappears but a broad patch boundary remains. Both rebuilt/baked/exported/compressed successfully, yet fail visual acceptance. Restored baseline source and compressed R7. Candidate source/GLBs, unmerged fit blend, raw/baked final experiment and checks remain in ignored output. Do not mistake the lap experiment raw/baked files for accepted baseline assets.
+
+The premise that independent overlapping rounded extrusions can be corrected through local blending is now contradicted by the visible patch boundaries. Do not add another local deformation to this junction. A continuous surface with deliberate panel topology, or a suitable licensed replacement base, is needed. Searched Canon R7 model listings. Sketchfab e85512672b174fdeb521f32dd0ee7d94 public API reports isDownloadable=false and no license; metadata retained in gear-reference/r7-sketchfab-metadata.json. TurboSquid2327213 lists Blender/glTF and editorial-use restrictions; not acquired and web redistribution permission not established. No third-party mesh copied. Full photographic acceptance remains incomplete.
+
+
+### 2026-10-20 — continuous R7 casting junction retained
+
+Previous turn rejected overlap/fitted-lap fixes (progress). Replaced the independent overlapping housings with a Boolean union after control fitting, using .12 rear-cover overlap. Removed the separate rear-cover object, then relaxed only the terminal upper junction (x fade .35–.50, y .28–.42, z -.23–.10). Rear controls stay behind the relaxation region. The first cleanup attempt hit a stale Blender vertex-group reference; resolved by looking up the group after modifier application. Exact Boolean solver failed the existing closed-manifold assertion; Blender5.1.2 MANIFOLD solver passes it. Retained that assertion rather than bypassing it. Build/bake/export and meshopt/WebP completed.
+
+Actual /classic R7+50 matched front Home12Right3+, side Home18Right3+, rear Home31Right2Down2+, and closer rear inspected. Evidence r7-continuous-junction-{front,side,rear}.png. Side no longer shows the separate raised rear strip or the prior fitted-lap patch boundary. A residual crease and broader shoulder contour mismatch remain; not full photographic acceptance. Rear controls remain visible/seated; no console errors. Refreshed R7 thumbnail and setup poster.
+
+Updated check samples MENU support against the unified casting:64/64 hits. Display check1271rays gives minimum depth clearance .104357units (~5.74mm), no casting ahead of glass; this only checks the sampled display region, not all internal intersections. Reports r7-continuous-junction-menu.json and -display.json. Source parse and diff checks pass. C200/40D/lenses/runtime untouched. Local/unpushed.
+
+Final R7 metrics: {'bytes': 4579596, 'triangles': 434646, 'primitives': 22, 'sha256': 'dd03377d96b1d37e381ab59b853553b3487d2007ffaebd9b8c4e948a121ca167'}.
+
+
+### 2026-10-20 — R7 rear legend proportions
+
+Previous turn retained continuous casting junction (progress). Compared actual rear and close views with r7-rear-ldlc.jpg. The R7 reference correctly has no Canon logo beneath the screen; do not add one from DSLR assumptions. Measured actual generated Arial glyph bounds at .040 em with measure-r7-labels.py: MENU .08386x.02189, INFO .06766x.02227, AF-ON .09110x.02227. With .11 button diameter these are too short vertically; AF-ON is also too narrow relative to its cap in the reference.
+
+Added glyph-footprint fitting, centered on actual outline bounds: MENU .079x.034, INFO .074x.035, AF-ON .154x.035; SET .075x.034 before existing .88 pad fit. These are estimated photograph proportions, not manufacturer printing dimensions. Source remains Arial-shaped; exact typeface matching is not claimed. Preserves button geometry, legend planes and circular-control fitting. Full Blender/AO/export/compression passed, no additional triangles or material primitives.
+
+Actual viewer normal rear Home31Right2Down2+, close +2, oblique4Left inspected. Evidence r7-rear-lettering-{whole,close,oblique}.png. Labels are clearer and remain visually on their surfaces; no console errors. The oblique view also shows prominent button housings requiring a reference depth/seating check next. Current body contour, materials, optics and overall photographic acceptance remain incomplete. Existing front-facing thumbnail/setup poster still depict unchanged visible geometry. Local/unpushed.
+
+R7 metrics: {'bytes': 4577040, 'triangles': 434646, 'primitives': 22, 'sha256': 'c36cbc48201dcb93cc990d76e6f5387dbf088c7fa74b9bcebeadb356879d5c16'}.
+
+
+### 2026-10-20 — R7 AF-ON crown and seating review
+
+Previous turn corrected rear lettering (progress). Inspected Canon high-resolution grip-side photo and rear photos (r7-right-canon-hires.png, r7-rear-ldlc.jpg, r7-rear.webp, r7-rear-snapshot-canon.jpg). Measured cap-to-casting depth via check-r7-button-depth.py on the accepted unified casting: seven buttons project2.31mm, cap backs sit .66mm ahead of casting but overlap their supporting bezels. Thus not floating caps; available reference does not justify flattening all controls. Report r7-button-depth-before.json.
+
+AF-ON is unprinted and visibly rounded in the reference, unlike the printed flat-face keys. Replaced only its flat cylinder with an oblate cap, radii(.055,.055,.029), centerz=rz-.054. Retains6.05mm diameter and frontmostz=rz-.083; underside enters bezel/casting. First satin-plastic render gave an overly concentrated highlight (r7-afon-cap-satin.png). Reused Graphite polymer (.52roughness) instead of satin (.24), then rebuilt/baked/exported/compressed. This is qualitative reference matching under different illumination, not a measured BRDF or exact curvature claim.
+
+Final actual viewer rear close Home31Right2Down4+ and oblique4Left inspected, saved r7-afon-polymer-{rear,oblique}.png. Retained rounded matte cap: smoother reference-like highlight and visually seated perimeter, no console errors. Other button depths unchanged. Build circular-control/manifold assertions and source/diff checks pass. Existing front previews show unchanged visible surfaces. Full body/material/optical fidelity remains incomplete. Local/unpushed.
+
+R7 metrics: {'bytes': 4614432, 'triangles': 434842, 'primitives': 22, 'sha256': '9e0afa85b23442b4a68f437972df082147f73f5fa8701c6a5f4da9db58e8e44c'}.
+
+
+### 2026-10-20 — 40D rear printed legend correction
+
+Previous turn refined R7 AF-ON (progress). Reviewed 40D+50 rear against40d-rear-photo.jpg and40d-rear-lanteigne.jpg. MENU/AF-ON were undersized, lower JUMP/INFO lettering too short, and JUMP incorrectly white. Reused actual-glyph footprint fitting: MENU .138x.040, AF-ON .155x.039, JUMP .079x.043, INFO. .077x.041, in model units. JUMP now Blue ink. These are photograph-based footprint estimates, not exact factory typefaces or measurements.
+
+Initial rebuilt/compressed close viewer exposed partial occlusion of JUMP/INFO by button rims. Raised lower labels from y+.033 to y+.070. Trying to raise upper labels to+.102 failed the existing projected-surface coverage assertion for AF-ON and MENU; kept their+.086 height, did not bypass the assertion. Final build/AO/export/compression succeeds. Actual rear whole, lower close, oblique and upper close inspected, evidence40d-rear-lettering-final-{close,oblique}.png and40d-rear-lettering-upper.png. Lower words now clear the buttons; upper AF-ON remains affected by the shoulder curvature in oblique views, requiring contour review before full acceptance. No browser errors. Source/diff checks pass. Other bodies/assets/runtime unchanged; front-facing40D thumbnail need not change for rear-only ink. Local/unpushed. Full photographic goal incomplete.
+
+40D metrics: {'bytes': 4256900, 'triangles': 464894, 'primitives': 26, 'sha256': '4aee64814d36bb5affd84ece31ec9404205a2817feceead1a927874393fc45aa'}.
+
+
+### 2026-10-20 — 40D upper-ink diagnostic
+
+Previous turn improved rear lettering (progress). Before changing the shoulder, tested whether the warped AF-ON appearance comes from ink penetration or normals. check-40d-ink-clearance.py samples triangle centroids and edge midpoints against rear cover and thumb overmold. AF-ON920samples, MENU928, JUMP1232, INFO832: no missing surface hits or negative clearances. Minimum AF-ON clearance .03987mm, MENU .08009mm, others approximately.165mm. Sampling is not proof over every surface point. Report40d-ink-clearance-before.json.
+
+check-40d-ink-normals.py repeats exporter bmesh normal recalculation: no forward-facing polygons before or after in any of the four labels. Thus the specific flipped-face hypothesis is unsupported. Because the smallest gap is narrow, compared16-bit position meshopt export against default at matched actual-viewer Home28Right2Down5+3ShiftUp. No visible improvement in AF-ON distortion; saved40d-ink-precision16.png. No console errors. Restored smaller accepted40D export byte-for-byte, retained trial only under output. No production source/material change this turn.
+
+The diagnostics direct the next review toward surface placement and curvature across the shoulder edge. Do not repeat normal recalculation or higher-precision compression as a claimed fix without new evidence. Full photographic goal remains incomplete.
+
+
+### 2026-10-20 — ship current R7/40D checkpoint
+
+40D AF-ON lettering now projects through the local shoulder tangent plane rather than parallel to the rear axis, preserving its footprint on the approximately34-degree shoulder. Completed isolated Blender export and meshopt/WebP compression. Sampled3532 AF-ON points: no missing support hits or penetration; minimum rear-axis clearance .148282mm. Actual /classic upper rear oblique inspected, screenshot40d-afon-tangent-oblique.png; lettering legible, no browser errors. This remains a progress checkpoint, not full photographic acceptance.
+
+User requested shipping the current work. Includes the retained R7 continuous casting, rounded matte AF-ON cap, rear legend proportions, refreshed front previews, and40D ink corrections. Runtime/lazy-loading behavior unchanged. Experimental files remain outside the commit.
