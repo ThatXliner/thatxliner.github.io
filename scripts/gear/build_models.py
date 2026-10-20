@@ -9,6 +9,7 @@ from math import sin, cos, pi
 ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'../..'))
 OUT=os.path.join(ROOT,'public/models/gear')
 WORK=os.path.join(ROOT,'output/gear-modeling')
+with open(os.path.join(ROOT,'src/classic/lib/gear/optics/f28-front-group.json')) as f:F28_FRONT_GROUP=json.load(f)['elements']
 os.makedirs(OUT,exist_ok=True);os.makedirs(WORK,exist_ok=True)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene
@@ -3204,21 +3205,18 @@ def lens(which):
         # its relative face curvatures while preserving the front apex.
         optical_element('Optical front element',l-.105,r*.799,.050,.030,back_sag=.030)
     elif which=='70-200-f28':
-        # Canon's EF365 section shows a biconvex first element: its sag is
-        # about a tenth of the clear radius, not the generic shallow window.
-        # Keep the front apex at l-.040 while deepening the curved element.
-        optical_element('Optical front element',l-.124,r*.799,.065,.038,back_sag=-.057,spherical=True)
+        # Canon's vector construction drawing resolves the first air gap.
+        # Shared spherical fits preserve the separate front elements.
+        e=F28_FRONT_GROUP[0]
+        optical_element('Optical front element',e['z'],e['r'],e['front'],e['edge'],back_sag=e['back'],spherical=True)
     else:optical_element('Optical front element',l-.085,r*.799,.026,.038)
     if which=='70-200-f4':
         # The first internal group is visibly more curved than the thin
         # front meniscus in Canon's diagram; avoid a nearly planar reflector.
         optical_element('Optical inner element',l*.87,r*.74,.065,.015,'Inner optical glass',back_sag=-.030)
     elif which=='70-200-f28':
-        # EF365's second element is a strong positive meniscus, close behind
-        # the first element. The next front group has a smaller clear radius.
-        # Profiles follow the section diagram; they are not a lens prescription.
-        optical_element('Optical inner element',l-.380,.570,.130,.018,'Inner optical glass',back_sag=.110,spherical=True)
-        optical_element('Optical next front group',l-.607,.460,.130,.015,'Inner optical glass',back_sag=.105,spherical=True)
+        for e in F28_FRONT_GROUP[1:]:
+            optical_element(e['name'],e['z'],e['r'],e['front'],e['edge'],'Inner optical glass',back_sag=e['back'],spherical=True)
     else:
         optical_element('Optical inner element',l-.43 if which=='28-135' else l*.87,r*(.407 if which=='28-135' else .74),.055 if which=='28-135' else .021,.029,'Inner optical glass')
     if white:optical_element('Optical middle element',l*.58,r*.43,.014,.03,'Inner optical glass')
@@ -4354,7 +4352,20 @@ def cinema():
     boot=register(bpy.context.object,'UN-5 monitor strain relief','Focus rubber');finish(boot,.003,2)
     boot.matrix_world=Matrix.Translation(monitor_end+cable_exit*.09)@Vector((0,0,1)).rotation_difference(cable_exit).to_matrix().to_4x4()
     monitor_end+=cable_exit*.18
-    cable_points=[monitor_end,monitor_end+cable_exit*.16,monitor_end+cable_exit*.24+Vector((0,-.30,0)),camera_exit+Vector((-.25,.90,.25)),camera_exit+Vector((-.20,.35,.32)),camera_exit+Vector((0,0,.16)),camera_exit]
+    # LA-V1's cable clamp hangs below its front mounting base (manual p.17/29).
+    # Keep this small accessory at cable scale, independent of the body fit.
+    base=next(o for o in arm_objects if o.name.endswith(' / LA-V1 front mounting base'))
+    base_lo,base_hi=bounds([base])
+    clamp_center=Vector(((base_lo.x+base_hi.x)/2,base_lo.y-.075,(base_lo.z+base_hi.z)/2))
+    clamp=ring('LA-V1 cable clamp band',0,.090,.068,.12,'Focus rubber',segments=64)
+    clamp.rotation_euler.y=pi/2;clamp.location=clamp_center
+    box('LA-V1 cable clamp attachment',tuple(clamp_center+Vector((0,.088,0))),(.12,.046,.065),'Graphite polymer',.006)
+    box('LA-V1 cable clamp release tab',tuple(clamp_center+Vector((0,-.075,.067))),(.12,.025,.085),'Focus rubber',.008)
+    cable_points=[monitor_end,monitor_end+cable_exit*.16,
+        Vector((monitor_end.x-.12,clamp_center.y+.35,clamp_center.z+.20)),
+        clamp_center+Vector((.26,0,0)),clamp_center,clamp_center-Vector((.26,0,0)),
+        camera_exit+Vector((-.25,.90,.25)),camera_exit+Vector((-.20,.35,.32)),
+        camera_exit+Vector((0,0,.16)),camera_exit]
     line('Monitor cable',[tuple(v) for v in cable_points],.05,'Focus rubber',smooth=True)
 
     bpy.context.view_layer.update()

@@ -1,3 +1,4 @@
+import f28FrontGroup from "./optics/f28-front-group.json";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
@@ -159,8 +160,9 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                   // multiplies volume thickness by that scale in the shader.
                   object.updateWorldMatrix(true, false);
                   const scale = object.getWorldScale(new THREE.Vector3()).x;
-                  const centerThickness = id === "70-200-f28" ? 0.160 : id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.02764;
-                  const edgeThickness = id === "70-200-f28" ? 0.038 : id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.12594;
+                  const f28Front = f28FrontGroup.elements[0];
+                  const centerThickness = id === "70-200-f28" ? f28Front.edge + f28Front.front - f28Front.back : id === "35" ? 0.030 : id === "50" ? 0.085 : id === "70-200-f4" ? 0.050 : 0.02764;
+                  const edgeThickness = id === "70-200-f28" ? f28Front.edge : id === "35" ? 0.025 : id === "50" ? 0.006 : id === "70-200-f4" ? 0.030 : 0.12594;
                   const maxThickness = Math.max(centerThickness, edgeThickness);
                   material.thickness = maxThickness / scale;
                   const geometry = object.geometry;
@@ -189,6 +191,11 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                         ? edgeThickness + [0.08090, 0.17920].map((sag) => {
                             const radius = (0.569687 ** 2 + sag ** 2) / (2 * sag);
                             return Math.sqrt(radius ** 2 - 0.569687 ** 2 * r2) - (radius - sag);
+                          }).reduce((front, rear) => front - rear)
+                        : id === "70-200-f28"
+                        ? edgeThickness + [f28Front.front, f28Front.back].map((sag) => {
+                            const radius = (f28Front.r ** 2 + sag ** 2) / (2 * Math.abs(sag));
+                            return Math.sign(sag) * (Math.sqrt(radius ** 2 - f28Front.r ** 2 * r2) - (radius - Math.abs(sag)));
                           }).reduce((front, rear) => front - rear)
                         : centerThickness + (edgeThickness - centerThickness) * r2;
                       pixels[offset + 1] = Math.round(thickness / maxThickness * 255);
