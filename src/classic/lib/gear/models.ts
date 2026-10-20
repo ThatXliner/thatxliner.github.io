@@ -361,6 +361,11 @@ export async function loadModelLibrary(initialIds: string[], urls: Record<string
                 material.iridescence = 1;
                 material.iridescenceIOR = 1.38;
                 material.iridescenceThicknessRange = [110, 125];
+                if (material.name.startsWith("C200 ocular glass inner")) {
+                  // Preserve the authored violet reflectance; the shared film
+                  // approximation turns this internal reflection green.
+                  material.iridescence = 0;
+                }
                 if (material.name.startsWith("R7 ocular glass")) {
                   // Appearance estimate from the coated ocular reference.
                   // Avoid treating one effective film as Canon's prescription.

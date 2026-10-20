@@ -359,6 +359,10 @@ def eyecup(x,y,z,body='c200',housing=()):
             polygons.append((back_center,back_start+i,back_start+j))
     mesh=bpy.data.meshes.new('Rectangular curved eyepiece optic');mesh.from_pydata(vertices,[],polygons);mesh.update()
     optic=bpy.data.objects.new('Eyepiece optic',mesh);scene.collection.objects.link(optic);register(optic,'Rectangular curved eyepiece optic','40D ocular glass' if body=='40d' else 'C200 ocular glass' if body=='c200' else 'R7 ocular glass')
+    if body=='c200':
+        # The AO bake replaces shaders with opaque emission. Exclude this
+        # transmitting window so it cannot cast a false shadow on the ocular.
+        optic['skip_baked_ao']=True
     for face in mesh.polygons:face.use_smooth=True
     if body=='r7':
         for face in mesh.polygons:
@@ -2312,7 +2316,7 @@ def fifty_prime():
     ring('Plastic EF bayonet',.044,.535,.36,.088,'Graphite polymer')
     ring('Mount shoulder',.14,.59,.36,.16,'Graphite polymer')
     ring('Fixed barrel core',.405,.610,.48,.43,'Graphite polymer')
-    ring('Smooth fixed barrel',.475,.62,.610,.29,'Graphite polymer')
+    smooth_barrel=ring('Smooth fixed barrel',.475,.62,.610,.29,'Graphite polymer')
     # Canon C21-6241, YA2-0425: short axial grooves in the rear outer
     # barrel. These belong to the lens, independently of its ribbed dust cap.
     segments=768;verts=[];faces=[]
@@ -2387,10 +2391,12 @@ def fifty_prime():
     arc_text('CANON INC.   Ø52mm',.751,.578,.060,start=-pi*.73)
     # Bend both printed legends and the compact AF/MF recess onto the shell.
     detail_start=len(OBJECTS)
-    rounded_panel('AF MF recess',(0,0,-.001),(.235,.23,.006),.025,'Satin control plastic')
+    switch_panel=rounded_panel('AF MF recess',(0,0,-.001),(.235,.23,.006),.025,'Satin control plastic')
     text('AF MF legend','AF  MF',(0,.060,.004),.039)
-    rounded_panel('Focus mode track',(0,-.037,.004),(.145,.061,.008),.023,'Deep black')
-    rounded_panel('Focus mode slider',(-.033,-.037,.013),(.066,.053,.013),.021,'Graphite polymer')
+    rounded_panel('Focus mode track floor',(0,-.037,-.005),(.145,.061,.002),.023,'Deep black')
+    rounded_panel('Focus mode slider',(-.033,-.037,-.001),(.066,.053,.012),.021,'Graphite polymer')
+    cutter=rounded_panel('Focus mode aperture cutter',(0,-.037,-.008),(.147,.063,.08),.024,None)
+    cut=switch_panel.modifiers.new('Open focus mode insert','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(switch_panel,cut)
     for o in OBJECTS[detail_start:]:
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         # Sample the panel interior before cylindrical projection. Its old
@@ -2411,6 +2417,19 @@ def fifty_prime():
         mesh.from_pydata([tuple(v.co) for v in old.vertices],[],[tuple(p.vertices) for p in old.polygons])
         for mat in old.materials:mesh.materials.append(mat)
         mesh.update();o.data=mesh;bpy.data.meshes.remove(old);finish(o)
+    # The floor lies inside the thin outer shell, above the fixed barrel core.
+    # Cut the conformed aperture through that shell rather than layering a
+    # raised black track over it.
+    cut=smooth_barrel.modifiers.new('Seated focus mode track','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(smooth_barrel,cut)
+    OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+    normals=[None]*len(smooth_barrel.data.loops)
+    for face in smooth_barrel.data.polygons:
+        for li in face.loop_indices:
+            v=smooth_barrel.data.vertices[smooth_barrel.data.loops[li].vertex_index].co
+            radial=Vector((v.x,v.y,0)).normalized()
+            outer_skin=abs(math.hypot(v.x,v.y)-.62)<.001 and face.normal.dot(radial)>.65
+            normals[li]=tuple(radial if outer_skin else face.normal)
+    smooth_barrel.data.normals_split_custom_set(normals)
     # Canon's product photo has white distance lettering and a yellow flower,
     # on the far shoulder of the barrel rather than beneath the 50mm legend.
     marking_start=len(OBJECTS)
@@ -2530,12 +2549,18 @@ def tamron_prime():
     detail_start=len(OBJECTS)
     # Product side view: a tall rounded surround and shallow pill-shaped key.
     # Explicit planar corner radii avoid bevels clamped by thin box depth.
-    rounded_panel('AF MF panel',(0,0,.002),(.30,.64,.012),.047,'Graphite polymer')
-    rounded_panel('AF MF inset',(0,0,.008),(.255,.56,.005),.042,'Deep black')
-    rounded_panel('Switch slot',(0,0,.012),(.11,.25,.006),.043,'Deep black')
-    rounded_panel('AF slider',(0,.047,.017),(.076,.125,.010),.032,'Graphite polymer')
-    text('AF legend','AF',(0,.19,.012),.050)
-    text('MF legend','MF',(0,-.19,.012),.050)
+    switch_panel=rounded_panel('AF MF panel',(0,0,.002),(.30,.64,.012),.047,'Graphite polymer')
+    switch_inset=rounded_panel('AF MF inset',(0,0,.008),(.255,.56,.005),.042,'Deep black')
+    cutter=rounded_panel('Switch aperture cutter',(0,0,0),(.11,.25,.10),.043,None)
+    for panel in [switch_panel,switch_inset]:
+        cut=panel.modifiers.new('Recessed AF MF opening','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(panel,cut)
+    OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
+    rounded_panel('Switch slot floor',(0,0,.002),(.106,.246,.002),.041,'Deep black')
+    # The long key moves axially toward AF (the lens front), not around the
+    # barrel. The side photograph places the legends beside its long edges.
+    rounded_panel('AF slider',(.022,0,.0075),(.052,.215,.009),.024,'Graphite polymer')
+    text('AF legend','AF',(.103,0,.012),.040,rotation=(0,0,pi/2))
+    text('MF legend','MF',(-.103,0,.012),.040,rotation=(0,0,pi/2))
     text('Manufacturing origin','MADE IN JAPAN',(-.025,-.61,.006),.026,rotation=(0,0,pi/2))
     for o in OBJECTS[detail_start:]:
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -3710,6 +3735,16 @@ def cinema():
               (-1.980,.810,.615,.175,.944),(-1.830,.815,.625,.178,.950),
               (-1.670,.790,.610,.171,.965),(-1.510,.735,.566,.154,.989),
               (-1.370,.665,.505,.132,1.013),(-1.265,.620,.468,.119,1.024)]
+    # The rear product photograph shows a narrow circumferential housing joint
+    # behind the eyecup. Recess the profile rather than overlay a dark ring.
+    joint_z=-1.925
+    a,b=sections[2:4]
+    joint_sections=[]
+    for offset,inset in [(-.010,0),(-.005,.006),(.005,.006),(.010,0)]:
+        zz=joint_z+offset;t=(zz-a[0])/(b[0]-a[0])
+        w,h,r,cy=[av+(bv-av)*t for av,bv in zip(a[1:],b[1:])]
+        joint_sections.append((zz,w-2*inset,h-2*inset,r-inset,cy))
+    sections[3:3]=joint_sections
     verts=[];faces=[];steps=16;count=4*(steps+1)
     for zz,w,h,r,cy in sections:
         for cx,yy,angle in [(w/2-r,h/2-r,0),(-w/2+r,h/2-r,pi/2),(-w/2+r,-h/2+r,pi),(w/2-r,-h/2+r,3*pi/2)]:
@@ -3723,7 +3758,28 @@ def cinema():
     mesh=bpy.data.meshes.new('Tapered EVF housing');mesh.from_pydata(verts,[],faces);mesh.update()
     eye=bpy.data.objects.new('Rear EVF',mesh);scene.collection.objects.link(eye);register(eye,'Rear EVF','Graphite polymer')
     for face in mesh.polygons:face.use_smooth=abs(face.normal.z)<.999
+    # Average mesh normals depend on the unequal areas of the long flat sides
+    # and short corner strips. Use the loft derivatives so opposite ends of a
+    # straight side share the same normal and cannot form diagonal highlights.
+    loft_normals=[]
+    for row in range(len(sections)):
+        before=max(0,row-1);after=min(len(sections)-1,row+1)
+        dz=sections[after][0]-sections[before][0]
+        for i in range(count):
+            corner,step=divmod(i,steps+1)
+            angle=corner*pi/2+step*pi/(2*steps)
+            nx,ny=cos(angle),sin(angle)
+            delta=Vector(verts[after*count+i])-Vector(verts[before*count+i])
+            loft_normals.append(Vector((nx,ny,-(nx*delta.x+ny*delta.y)/dz)).normalized())
     eyecup(.31,.94,-2.08,housing=(eye,))
+    # The channel Boolean rebuilds the mesh; apply the exterior normals after it.
+    by_position={tuple(round(c,6) for c in vertex):normal for vertex,normal in zip(verts,loft_normals)}
+    mesh=eye.data
+    mesh.normals_split_custom_set([
+        tuple(by_position.get(tuple(round(c,6) for c in mesh.vertices[mesh.loops[li].vertex_index].co),face.normal)
+              if face.use_smooth else face.normal)
+        for face in mesh.polygons for li in face.loop_indices
+    ])
     box('EVF diopter recessed track',(.31,.638,-1.84),(.30,.024,.124),'Deep black',.020)
     box('EVF diopter sliding lever',(.31,.619,-1.84),(.101,.028,.086),'Graphite polymer',.014)
     for xx in [.282,.302,.322,.342]:box('EVF diopter thumb rib',(xx,.602,-1.84),(.007,.008,.070),'Focus rubber',.002)
