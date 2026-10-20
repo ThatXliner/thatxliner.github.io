@@ -2437,3 +2437,80 @@ Final R7 metrics: {'bytes': 4765144, 'triangles': 461190, 'primitives': 22, 'sha
 ### 2026-10-20 — shipping checkpoint
 
 Shipping the reviewed f/2.8 lens refinements and R7 directional-pad update at the user's request. Restored the reviewed compressed R7 asset and matching generator before committing; the subsequent thumb-grain experiment remains only in ignored output files pending visual review. Production R7 and lens hashes match the final metrics recorded above. Full photographic fidelity remains incomplete.
+
+
+### 2026-10-20 — R7 rear thumb texture scale
+
+Previous turn shipped the reviewed checkpoint (progress). Rebuilt the thumb-grain experiment from current source after comparing r7-rear-ldlc.jpg with the prior matched rear close view. Reduced only Rear thumb rubber UV tile span from .55/.7 to .40; estimated mean cell pitch changes from .90 to .46 mm. These are texture-derived estimates, not measured Canon specifications. Front palm and 40D values remain unchanged; no new materials, textures or draw passes.
+
+Isolated Blender build/AO bake/export and meshopt/WebP optimization passed. Actual /classic matched rear close and adjacent oblique show finer grain closer to the reference; accepted that relative improvement, not full material fidelity. Front whole-assembly inspected with no browser errors. Evidence r7-thumb-grain-{rear,oblique,front}.png; baseline r7-rocker-depth-after.png. Refreshed selector thumbnail and retained raw/baked output. Source parsing and diff checks pass. Local/unpushed. Rear plastic finish, exact contours, optics and overall photographic acceptance remain incomplete.
+
+Final R7 metrics: {'bytes': 4774664, 'triangles': 461190, 'primitives': 22, 'sha256': '13c3f72582f8ba9bee0d6bb8bdfc0f81290a3419728585d8040f1667a365664c'}.
+
+
+### 2026-10-20 — R7 MENU shoulder placement
+
+Previous turn improved thumb-grain scale (progress). Full rear review exposed MENU surround extending beyond the outer shoulder. In the current generated model, 7 of 64 radial samples around the surround missed the rear cover. Translating that ring inward by .078 world units (4.29 mm at the model scale) gives 64/64 support hits. Evidence check-r7-menu-support.py and r7-menu-support.json/log. The test compares old and translated perimeter samples against the same generated cover; it is not a full assembly collision test.
+
+Moved the R7 MENU authoring center from x.83 to .71, accounting for .65 left-shoulder compression. Height, diameter, face depth and legend are unchanged. Reference r7-rear-ldlc.jpg supports moving the key farther inboard. Rebuilt/baked/exported and meshopt/WebP compressed. Actual /classic matched rear before/after, rear close, outer-side and front inspected with no browser errors. Evidence r7-menu-{before,after,close,side,front}.png. Updated raw export, baked project and selector thumbnail. Source parse and diff checks passed. Local/unpushed.
+
+The overhang is corrected, but the MENU-to-LCD spacing still appears tighter than the reference; shoulder/display proportions need a matched-projection check before any further contour edit. Rear material and overall body/lens photographic fidelity remain incomplete.
+
+Final R7 metrics: {'bytes': 4763724, 'triangles': 461190, 'primitives': 22, 'sha256': '9d613b357796a136e9d1328e03637aa725187c15fd5105ca375aefd7c5d96e35'}.
+
+
+### 2026-10-20 — R7 MENU/display spacing and shoulder contour
+
+Previous turn removed MENU's lateral overhang (progress). Compared r7-rear-ldlc.jpg against current rear view: approximate reference MENU center575, screen bezel top657/bottom1300 gives gap/screen-height .1275. Authoring ratio was (.52-.45)/1.25=.056; raised MENU to y.61 gives .128. Common vertical body fit cancels in this ratio; photograph/pixel estimates are not calibrated manufacturer dimensions. Saved r7-menu-screen-ratios.json. Screen size/position retained.
+
+Raised the R7-specific outer shoulder outline at x.65/.92/1.05 to y.75/.68/.48. An initial edit affected the shared outline that R7 overrides; caught it and rebuilt the correct branch, with no acceptance of the first export. The raised contour initially introduced a dip toward the finder: side inspection rejected that transition, then raised the adjoining x.43 vertex to y.82 for a continuous descent from the finder. All 40D outline values remain unchanged.
+
+Independent generated candidate support check (before the final inner-shoulder smoothing) has 64/64 MENU perimeter hits, center(.619,.5307); saved check-r7-shoulder-support.py and r7-shoulder-support.json/log. Final source build asserts closed castings and circular rear caps, and completes bake/export/meshopt/WebP optimization. Final actual /classic rear close, terminal-side and exposed front with50mm inspected with no browser errors. Saved r7-shoulder-final-{rear,side,front}.png; intermediate r7-shoulder-height-* shows the rejected inner dip. Refreshed selector thumbnail and setup poster, verified lazy-load poster in actual page (r7-shoulder-final-poster.png).
+
+Retained as a contour/spacing improvement, not exact profile acceptance: front/side references support a continuous shoulder, but shell highlights remain overly soft/plastic-like; geometry and material contributions still need separation. Body/lens photographic fidelity remains incomplete. Local/unpushed. Source parsing and diff checks pass.
+
+Final R7 metrics: {'bytes': 4769016, 'triangles': 462714, 'primitives': 22, 'sha256': 'ba1b55c13221e6d3f079e3caf35a2199c538fb1f18686ebbf2ac9380a391b61e'}.
+
+
+### 2026-10-20 — R7 shell appearance isolation
+
+Previous turn improved shoulder spacing/contour (progress). Tested suspected excessive shell gloss before committing another material change. Current source already uses roughness map mean about .60 (.48+.12), normal scale .45. Three temporary JSON-only GLB variants changed only the R7 casting material while preserving geometry and binary payload: constant roughness .72 without its roughness texture; normal scale0 with original roughness; removal of shell AO binding with original roughness/normal. All viewed at identical actual /classic R7+50 pose (Home,12Right,3+).
+
+Higher roughness dulls the shell but does not resolve the broad mottled highlight pattern. Removing grain also leaves it visible. Initial AO-strength0 test was inconclusive because src/classic/lib/gear/models.ts overrides strength to .8; inspected loader, repeated with the AO binding removed, and the broad highlight pattern remained. No runtime changes. Saved r7-shell-roughness-trial-front.png, r7-shell-no-grain-front.png and r7-shell-no-ao-front.png against r7-shoulder-final-front.png.
+
+Rejected the matte trial rather than masking the unresolved shape/shading issue. Restored public R7 byte-for-byte to ba1b55c13221e6d3f079e3caf35a2199c538fb1f18686ebbf2ac9380a391b61e; source, baked/raw outputs and previews remain the reviewed shoulder version. These tests rule out fine grain or baked AO as sole causes in this view, not all lighting/material contributions. Source already rebuilds shell/cover mesh normals after deformation; do not assume stale pre-bend normals without further evidence. Next useful check is the formed casting's macro geometry and vertex-normal interpolation around the finder/shoulder, including the tessellation used for deformation. Full photographic goal incomplete.
+
+
+### 2026-10-20 — R7 remesh-resolution diagnostic, rejected
+
+Previous material-isolation turn yielded evidence (progress). Tested whether coarse voxel remeshing/reduction caused broad finder/shoulder highlights. R7 trial changed voxel .012→.008units (.66→.44mm), base smoothing12→27 and local grip smoothing180→405 iterations to approximately preserve diffusion distance; reduction.22→.10 aimed to preserve mesh budget. 40D branch unchanged. Full isolated build, closed casting/circular control assertions, AO/export and meshopt optimization passed, but actual matched R7+50 front view showed no convincing improvement.
+
+Independent check-r7-crown-sampling.py reads old and candidate baked projects, filters R7 casting triangles, ray-samples81×25points over x[-.25,.55], y[.48,.72] (step.01units/.55mm), and interpolates corner normals. Both hit2019points. Local residual is the angle between each interpolated normal and its four-neighbor mean, not photographic error; curvature/bevel crossings also contribute. Median residual .153→.159degrees,95th percentile .995→1.420, maximum3.341→13.152. Surface-depth difference RMS.01124mm,95th absolute.0231,max.1466. Report r7-crown-sampling.json/log. The denser remesh with stronger reduction did not provide a useful smoothness gain on this patch; this does not isolate remeshing from decimation or rule out all resolution changes.
+
+Rejected the trial. Saved r7-remesh-resolution-trial-front.png, trial generator/GLB/raw/blend in ignored output. Restored reviewed generator, compressed asset, raw export and baked project; previews remain unchanged. R7 checksum restored to ba1b55c13221e6d3f079e3caf35a2199c538fb1f18686ebbf2ac9380a391b61e. Source parsing and diff check pass. No material/runtime changes retained. Further work should inspect macro surface construction and local normal interpolation rather than repeating global roughness or voxel-resolution adjustments. Full photographic goal incomplete.
+
+
+### 2026-10-20 — projection/finder trials and independent front shoulder
+
+Previous remesh turn yielded diagnostic evidence (progress). Applied attack-the-premise check before another highlight fix. Temporarily tested viewer FOV20 instead of32 with existing automatic fit. It changes proportions but not the broad shell highlight issue; restored scene.ts byte-for-byte. Requested camera-view design advice via Claude per project instructions (job-99d2e4b00f); account session limit prevented a recommendation. Setup confirmed installation/login only. No UI/runtime changes retained. Evidence r7-fov20-{front,default}-trial.png.
+
+Tested replacing the broad finder bulge with a flat-center quintic transition: plateau within |x|.24, fade to zero by.60. Matched front/top inspection did not establish a clearer photographic improvement, so rejected. Independent sampled normal residuals were also higher (95th percentile1.414degrees vs.995baseline), though that is not a fidelity metric. Saved trial source/GLB/raw/blend, r7-finder-profile-{front,top}.png and sampling report; restored original finder formula.
+
+Comparing Canon top/terminal-side references with the prior shoulder update exposed a structural coupling: the shared front/rear casting outline raised the front shoulder when providing rear MENU clearance. Retained the raised rear outline and tapered only upper front casting downward. Photo-estimated drop across x[.28,.43,.65,.92,1.05,1.07] is[0,.09,.11,.09,.08,0]units, faded from y.28to.60 and from rear to front. Maximum prescribed drop before common body fitting is.11units; this is not a manufacturer measurement. Badge and strap projection follow the resulting casting. Rear cover, MENU height, finder formula, materials and viewer camera stay unchanged.
+
+Full final source build passes casting/control/support assertions, AO bake/export and meshopt/WebP optimization. Actual /classic front with50mm, neighboring badge view, rear MENU close and terminal-side inspected. Lower front shoulder differentiates finder/front shoulder more clearly while preserving rear clearance; no browser errors. Evidence r7-shoulder-loft-{front,badge,rear,side}.png. Refreshed body thumbnail and setup poster, verified lazy-load poster on the actual page. This is a relative contour improvement; exact side profiles, soft highlight response and all-body/lens photographic acceptance remain incomplete. Local/unpushed. Source parse/diff checks passed.
+
+Final R7 metrics: {'bytes': 4758380, 'triangles': 458430, 'primitives': 22, 'sha256': '346fe7891948090cd63efcda4fe4d55a39f5bdabd984b50fa252146291d0b74e'}.
+
+
+### 2026-10-20 — C200 monitor VIDEO cable connection
+
+Previous turn improved R7 front/rear shoulder separation (progress). Whole C200 review against c200-canon-hero.jpg and c200-canon-assembled-rear.jpg exposed an incorrect connection: existing thin monitor cable terminated in an invented side fitting while the real front VIDEO terminal remained capped. Canon manual p.29 (saved c200-manual.txt) explicitly connects camera VIDEO to monitor VIDEO using UN-5 and routes through attachment-unit cable clamp.
+
+Removed the fictitious side fitting and detachable front cap from the assembled setup. Added camera locking collar, barrel and tapered/ribbed strain relief at the calibrated front socket, plus monitor-end tapered strain relief. Routed a thicker cable between these ends with a front loop clear of the lens. Diameter5.5mm and plug dimensions are photographic estimates, not manufacturer dimensions. Preserved core calibration before removing the cap; final core/EVF envelope checks still pass after cap removal. No runtime edits or new material types.
+
+Independent generator check-c200-video-cable.py verifies two cable boundary loops, endpoint centers within.000015mm of boot ends, collar seating error below.000004mm, and absence of capped terminal/fictitious fitting. These numerical tolerances establish generated contact, not real-world manufacturing accuracy or full collision clearance. Saved c200-video-cable-check.json/log and unmerged.blend. Full isolated build, dimensional/circular-control assertions, AO bake/export and meshopt/WebP compression passed. Actual /classic operator/front whole view, front plug close, rear and grip-side inspected with no browser errors; cable visibly clear of lens and controls in those views. Evidence c200-video-cable-{before,after,front-close,rear,grip-side}.png. Refreshed selector preview.
+
+Kept correct terminal connection and more substantial cable as fidelity progress. The attachment-unit cable clamp remains unmodeled and precise cable path/plug dimensions need further refinement. Overall body/lens photographic acceptance remains incomplete. Source parse/diff checks passed. Local/unpushed.
+
+Final C200 metrics: {'bytes': 5480396, 'triangles': 670580, 'primitives': 24, 'sha256': '15e464c8426a7b153cb0a578548811a5fa21bddd81ea59c74fdebebdaa319245'}.

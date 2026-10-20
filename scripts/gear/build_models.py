@@ -769,7 +769,7 @@ def body(which):
     global current;current=which;start=len(OBJECTS);dslr=which=='40d'
     outline=[(-1.43,-.83),(-1.48,-.68),(-1.48,.38),(-1.41,.60),(-1.2,.69),(-.84,.66),(-.64,.64),(-.44,.78),(-.30,1.03 if dslr else .91),(.27,1.03 if dslr else .91),(.42,.77),(.65,.63),(.94,.59),(1.05,.42),(1.07,-.65),(.98,-.83)]
     if not dslr:
-        outline=[(-1.43,-.83),(-1.48,-.65),(-1.48,.40),(-1.39,.65),(-1.19,.73),(-.83,.77),(-.48,.78),(-.34,.94),(.28,.94),(.43,.73),(.65,.64),(.92,.59),(1.05,.40),(1.07,-.65),(.98,-.83)]
+        outline=[(-1.43,-.83),(-1.48,-.65),(-1.48,.40),(-1.39,.65),(-1.19,.73),(-.83,.77),(-.48,.78),(-.34,.94),(.28,.94),(.43,.82),(.65,.75),(.92,.68),(1.05,.48),(1.07,-.65),(.98,-.83)]
     back=-.58 if dslr else -.18;front=.28 if dslr else .25
     shell=profile('Continuous cast housing',outline,back,front,'Crinkle painted metal',bevel=.055 if dslr else .085)
     if dslr:
@@ -813,6 +813,11 @@ def body(which):
             x,y,z=v.co
             terminal=max(0,min(1,(x-.45)/.45));terminal=terminal*terminal*(3-2*terminal)
             forward=max(0,min(1,(z-back)/(front-back)))
+            # The rear MENU shoulder rises above the lower front badge shoulder.
+            # Keep its rear outline while tapering the upper casting forward.
+            roof_drop=float(np.interp(x,[.28,.43,.65,.92,1.05,1.07],[0,.09,.11,.09,.08,0]))
+            roof_weight=max(0,min(1,(y-.28)/.32));roof_weight=roof_weight*roof_weight*(3-2*roof_weight)
+            v.co.y-=roof_drop*roof_weight*forward
             # The terminal shoulder sits behind the flange in Canon's top
             # view. Retain the lower cover depth but taper the upper casting.
             shoulder=max(0,min(1,(y-.28)/.30));shoulder=shoulder*shoulder*(3-2*shoulder)
@@ -1719,7 +1724,7 @@ def body(which):
         from mathutils.bvhtree import BVHTree
         bpy.context.view_layer.update()
         rear_surfaces=[BVHTree.FromObject(o,bpy.context.evaluated_depsgraph_get()) for o in [rear_cover,rear_thumb]]
-    rear_buttons=[(-1.36,.51,'*'),(-1.36,.35,'▣'),(-1.0,.52,'AF-ON'),(-.78,.08,'INFO'),(-.87,-.66,'▶'),(-1.07,-.66,'▥'),(.83,.52,'MENU')]
+    rear_buttons=[(-1.36,.51,'*'),(-1.36,.35,'▣'),(-1.0,.52,'AF-ON'),(-.78,.08,'INFO'),(-.87,-.66,'▶'),(-1.07,-.66,'▥'),(.71,.61,'MENU')]
     if dslr:rear_buttons=[(-.89,.55,'AF-ON'),(-1.08,.53,'*'),(-1.27,.48,'▣'),(.85,.46,'MENU'),(.65,.49,'Print/Share'),(.84,-.73,'▶'),(.62,-.73,'▥'),(.40,-.73,'JUMP'),(.18,-.73,'INFO'),(-.05,-.73,'Picture Style')]
     for x,y,t in rear_buttons:
         rear_button_start=len(OBJECTS)
@@ -3316,6 +3321,7 @@ def cinema():
         text('Front function number '+n,n,(x,-.88,.526),.066)
         text('Front function label '+n,label_,(x,-1.006,.4365),.045)
     cyl('VIDEO terminal surround',(-.73,.92,.425),.189,.05,'Deep black')
+    video_cap_start=len(OBJECTS)
     # Product front photograph: a rolled cap shoulder with a broad flat face
     # and a pull tab rising from its upper edge, rather than a thin flat disk.
     cap_section=[(0,.438),(.153,.438),(.168,.443),(.176,.454),
@@ -3331,6 +3337,7 @@ def cinema():
     for face in mesh.polygons:face.use_smooth=abs(face.normal.z)<.999
     profile('VIDEO cap pull tab',[(-.819,1.058),(-.819,1.183),(-.750,1.183),(-.674,1.108)],.423,.458,'Graphite polymer',.008,rounding=.012)
     text('VIDEO terminal label','VIDEO',(-.73,.92,.5075),.049)
+    video_cap_objects=set(OBJECTS[video_cap_start:])
     # The front tally lamp is an unlit pale diffuser seated in a dark bezel.
     rounded_panel('Front tally light seat',(-.476,1.117,.427),(.078,.117,.022),.012,'Deep black')
     rounded_panel('Front tally diffuser',(-.476,1.117,.441),(.061,.092,.010),.010,'White ink')
@@ -4162,8 +4169,7 @@ def cinema():
     for o in monitor_objects:o.matrix_world=tr@o.matrix_world
     cable_top=tr@Vector((pod_inner+.128,0,-.43))
     cable_exit=tr.to_3x3()@Vector((1,0,0))
-    monitor_cable_points=[cable_top,cable_top+cable_exit*.16,cable_top+cable_exit*.24+Vector((0,-.32,0)),Vector((1.38,1.60,.31)),Vector((1.29,1.19,-.22)),Vector((.99,.76,-.46))]
-    cyl('Monitor cable connector',(.99,.76,-.46),.049,.09,'Anodized black','x',48)
+
     for o in OBJECTS[accessories_start:]:o.location.y+=.16
     # C200B's 144 x 146 x 137 mm core is an independent constraint on the
     # shared housing; using only C200's 179 mm envelope made the core too long.
@@ -4326,7 +4332,31 @@ def cinema():
 
     anchor=monitor_anchor+Vector((0,.16,0))
     monitor_shift=calibration@anchor-anchor+arm_shift
-    line('Monitor cable',[tuple(v+Vector((0,.16,0))+monitor_shift) if i<3 else tuple(calibration@(v+Vector((0,.16,0)))) for i,v in enumerate(monitor_cable_points)],.024,'Focus rubber',smooth=True)
+    # The assembled LM-V1 uses the camera's front VIDEO socket (manual p.29).
+    # Remove its detachable cover, not the socket, and replace the old side stub.
+    core_body=[o for o in core_body if o not in video_cap_objects]
+    for o in video_cap_objects:
+        OBJECTS.remove(o);bpy.data.objects.remove(o,do_unlink=True)
+    socket=calibration@Vector((-.73,.92,.45))
+    plug_start=len(OBJECTS)
+    cyl('UN-5 camera locking collar',(0,0,.045),.145,.09,'Machined metal',vertices=64,bevel=.006)
+    cyl('UN-5 camera plug barrel',(0,0,.220),.125,.28,'Anodized black',vertices=64,bevel=.008)
+    for zz in [.10,.14,.18]:ring('UN-5 collar grip',zz,.130,.121,.012,'Focus rubber',segments=64)
+    bpy.ops.mesh.primitive_cone_add(vertices=64,radius1=.108,radius2=.050,depth=.20,location=(0,0,.45))
+    boot=register(bpy.context.object,'UN-5 camera strain relief','Focus rubber');finish(boot,.004,2)
+    for zz in [.375,.415,.455,.495]:
+        radius=.108-(zz-.35)/.20*.058
+        ring('UN-5 strain relief rib',zz,radius+.004,radius-.003,.014,'Focus rubber',segments=64)
+    for o in OBJECTS[plug_start:]:o.matrix_world=Matrix.Translation(socket)@o.matrix_world
+    camera_exit=socket+Vector((0,0,.55))
+    monitor_end=cable_top+Vector((0,.16,0))+monitor_shift
+    bpy.ops.mesh.primitive_cone_add(vertices=64,radius1=.085,radius2=.05,depth=.18)
+    boot=register(bpy.context.object,'UN-5 monitor strain relief','Focus rubber');finish(boot,.003,2)
+    boot.matrix_world=Matrix.Translation(monitor_end+cable_exit*.09)@Vector((0,0,1)).rotation_difference(cable_exit).to_matrix().to_4x4()
+    monitor_end+=cable_exit*.18
+    cable_points=[monitor_end,monitor_end+cable_exit*.16,monitor_end+cable_exit*.24+Vector((0,-.30,0)),camera_exit+Vector((-.25,.90,.25)),camera_exit+Vector((-.20,.35,.32)),camera_exit+Vector((0,0,.16)),camera_exit]
+    line('Monitor cable',[tuple(v) for v in cable_points],.05,'Focus rubber',smooth=True)
+
     bpy.context.view_layer.update()
     hc=[o.matrix_world@Vector(c) for o in handle_objects for c in o.bound_box]
     hd=tuple((max(v[i] for v in hc)-min(v[i] for v in hc))*55 for i in range(3))
@@ -4540,10 +4570,12 @@ def export_asset(name,objects):
                 uv_area+=abs(sum(a.x*b.y-b.x*a.y for a,b in zip(points,points[1:]+points[:1])))*.5
             if uv_area<1e-9:raise RuntimeError('Textured finish has no usable surface UVs: '+o.name)
             # Calibrated camera grain is authored here without viewer tiling:
-            # about .9 mm R7 cells, .63 mm 40D cells and .2 mm shell grain.
+            # Estimated grain pitch: R7 palm .9 mm, thumb .46 mm; 40D .63 mm; shell .2 mm.
             tile_span=1.4
             if name in ['r7','40d']:
-                if 'Molded grip rubber' in o.data.materials[0].name:tile_span=.55/.7 if name=='r7' else .55
+                if 'Molded grip rubber' in o.data.materials[0].name:
+                    tile_span=.55/.7 if name=='r7' else .55
+                    if name=='r7' and o.name.endswith(' / Rear thumb rubber'):tile_span=.40
                 elif 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.18
             elif name=='c200':
                 if 'Crinkle painted metal' in o.data.materials[0].name:tile_span=.26
