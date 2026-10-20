@@ -2862,3 +2862,59 @@ Next test localized normal continuity or a tangent-continuous join across the ma
 ### 2026-10-20 — shipping reviewed asset snapshot
 
 Ship the reviewed C200 monitor shoulder/groove-normal corrections and 40D command-wheel exposure refinement with their matching previews. The subsequent rear-cover normal-blending experiment remains deferred: numerical continuity improved, but matched visual acceptance was unfinished. Restored the generator to the reviewed wheel-refinement version, matching the public 40D SHA256407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465. Experimental optical rendering remains outside production. Overall photorealistic acceptance remains incomplete.
+
+
+### 2026-10-20 — rear-cover normal trial visually rejected
+
+Previous turn shipped reviewed assets as3a1b180 (progress). Completed the deferred actual-viewer comparison of shipped40D against the saved normal-blend candidate917cb351780b7ded1839c538fdfd2ed8814bacbc079547c2f34e8c58c5fb9218. Both used40D+50, settled selection, Home34Right4Up3+ and the same1280x720 viewport. Evidence40d-join-normal-oblique-before.png and40d-join-normal-oblique-confirm.png. No browser errors. The broad stepped-looking highlight above the rear controls remains; local shading differences do not establish a persuasive reference-fidelity improvement. Compared again with40d-rear-photo.jpg: the real shoulder rolls into the control surface without the same prominent layered appearance. Different photographic lighting prevents treating brightness alone as a dimensional measurement.
+
+Candidate improved previously sampled overlap normals, but that narrow numerical result does not resolve the visible whole-shoulder defect. Reject this isolated normal-transfer fix for retention. Screenshot rear-shoulder region[590,365,866,455] mean absolute RGB difference[.910,.906,.915] on0–255 scale, local max32; this quantifies limited image change, not photographic accuracy or exact pixel correspondence. Next work should inspect the complete shoulder profile/curvature rather than repeat local normal tweaks. Restored public40D byte-for-byte to shipped407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465; generator and preview already match that snapshot. No production model/runtime change retained. Full fidelity goal remains incomplete.
+
+
+### 2026-10-20 — full shoulder sections and broader-roundover study
+
+Previous turn rejected isolated normal transfer after matched visual comparison (progress). Built probe-40d-shoulder-roll.py using current source and world-space BVHs for the shell, rear cover, top LCD surround and LCD. Samples eight xsections along91 radial directions from the upper interior, including the complete top-to-rear turn. Initial local-space BVH draft misplaced translated LCD parts; corrected to transformed vertices before retaining baseline. Intentional LCD recess transitions are explicitly distinct from casting overlaps. Baseline40d-shoulder-roll-baseline.json shows a flat strip before the tight rear turn and small geometric normal reversals at some overlap sections. These are geometric diagnostics, not calibrated photographic dimensions.
+
+Tested an isolated generator variant with rear-cover bevel.09 instead of.055 and hidden front overlap back+.17 instead of+.12. Export, AO bake and meshopt/WebP compression passed, candidate saved as40d-shoulder-roll-candidate.glb; production source unchanged. Broader curve removes sampled terminal-side reversals at x.7/.85 but retains grip-side overlap reversals. Actual /classic40D+50 elevated rear comparison at Home34Right4Up3+ and full rearHome31Right2+ inspected, no browser errors. Evidence40d-shoulder-roll-trial-{oblique,rear}.png. Upper shoulder transition appears softer, but this trial globally rounds the rear cover; it has not earned acceptance for side/base contours or control support.
+
+Keep the exported trial and editable40d-shoulder-roll-trial.blend as an isolated study. Next implement curvature locally at the upper shoulder, preserving other edges, then check control/marking support and front/side/rear references. Restored public40D to shipped407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465. No model/runtime change retained or pushed; overall fidelity goal remains active/incomplete.
+
+
+### 2026-10-20 — localized weighted-bevel trial rejected
+
+Previous turn isolated a broader rear roundover (progress). Implemented a trial optional rear_upper_bevel in profile, applying.09 only to rear perimeter edges above y.30 with smooth transition to y.55; kept.055 elsewhere and original hidden front overlap. Tested generated baseline/candidate profiles bidirectionally with BVHs. Blender overlap clamping unexpectedly changed lower/front geometry by nearly1mm; disabling clamping restored the front within.000058mm but left lower-side changes up to.0765mm. Added outline stations at y.30/.55 to bound transition spans. These local distances are not photographic fidelity or surface-intersection proofs.
+
+Full source build, AO bake, export and compression succeeded. Actual /classic40D+50 matched oblique, grip-side and rear inspected; evidence40d-local-shoulder-{oblique,side,rear}.png. The upper curve is softer but full rear reveals an unacceptable jagged outer shoulder/side transition. Reject the weighted-bevel variant rather than retain it on the strength of the close shoulder image. No source/model change retained. Trial generator and GLB saved under ignored output as build_models-local-shoulder-trial.py and40d-local-shoulder-trial.glb.
+
+Four-label clearance probe reports no penetration, but the wider first-hit visibility probe finds5 MENU triangles hidden by its button bezel. Reran that probe against restored shipped source: the same5 are hidden there too, so this is an existing separate issue, not evidence of a new trial regression. Baseline/trial sample totals differ with projected label triangulation. Other sampled controls/legends hit themselves.
+
+Applied Attack the Premise: premise was that a generic weighted bevel could broaden the upper cover independently while preserving adjacent surfaces. The direct geometry comparison and full rear viewer contradict exact/local preservation, even after clamp/station changes. Do not continue radius tweaks on this construction. Next inspect an explicit shoulder section/surface construction and its intersection with the casting/overmold, and address the independently reproduced MENU/bezel occlusion. Restored generator to pretrial source and public40D SHA256407804c2b91b1034c320b21f322ed4d77792d93548282e10deed851a85fb4465; preview remains matching shipped asset. Experimental raw40d.blend/uncompressed40d.glb now contain the rejected trial and must not be re-exported as production. Full objective remains incomplete.
+
+
+### 2026-10-20 — MENU printing clears its button bezel
+
+Previous turn rejected the weighted-bevel construction and reproduced an independent MENU-label overlap in shipped source (progress). Compared40d-rear-photo.jpg: printing has a visible gap above the bezel. Raised only the40D MENU label by.012authoring units (.66mm at55mm/unit), retaining its glyph size and surface projection. Expanded rear-control first-hit probe now reports2549 samples with0occlusions; previously5 MENU triangles hit the MENU bezel first. This covers sampled rear-axis visibility, not every viewing direction.
+
+Rebuilt current source, baked AO, exported and compressed40D successfully. Actual /classic40D+50 rearHome31Right3+ and elevated rearHome34Right4Up3+ inspected: label clears the bezel and remains legible; no browser errors. Evidence40d-menu-print-{rear,oblique}.png,40d-menu-print-clearance.log and40d-menu-print-build.log. Refreshed selector thumbnail. Current raw40d.blend/uncompressed40d.glb now match this accepted source, replacing the rejected shoulder trial. Source parse/diff checks pass. No runtime or extra render-pass changes. Retained locally/unpushed. Explicit shoulder reconstruction and full front/side/rear photographic acceptance remain open.
+
+{"bytes": 4279432, "triangles": 466810, "sha256": "4f8050b8f5ee76c4b81756f688e80653430d28f426ca96839ad036d451dd99cc"}
+
+
+### 2026-10-20 — explicit swept 40D rear-cover surface retained
+
+Previous turn fixed MENU print clearance (progress). Replaced the40D cover's generic bevel construction with dslr_rear_cover: sampled outline sections, explicit quarter-circle rear/front turns, and side strips connecting them. Rear radius varies from.055 to.09 above y.30..55; front radius remains.055. These are photo-guided authoring estimates, not measured Canon dimensions. Mesh construction checks closed manifold edges and nonzero polygon areas before cutouts. This avoids global bevel clamping and variable-weight miter artifacts encountered in the rejected trial; no claim of dimensional identity for every other cover surface.
+
+Isolated full assembly build, AO bake, export and meshopt/WebP compression passed. Actual /classic40D+50 obliqueHome34Right4Up3+, rearHome31Right2+, terminal sideHome24Right3+, and frontHome12Right2+ inspected. The upper roundover appears softer, and the jagged outer rear-side transition from the weighted-bevel trial is absent in inspected views. Evidence40d-explicit-cover-{oblique,rear,side,front}.png; no browser errors. Broader reference fidelity, finder proportions, finish and optics remain unfinished.
+
+Integrated the exact trial construction into production generator, then reran rear-control first-hit verification from that source: every sampled control/legend hit itself. The MENU correction remains included. Refreshed selector thumbnail. No runtime or added render pass; asset size4314240bytes, roughly32KB above shipped checkpoint. Accepted raw GLB is output/gear-modeling/uncompressed/40d.glb; editable unmerged source artifact is40d-explicit-cover-unmerged.blend. The generic40d.blend still represents the prior MENU-only build and should not be used to overwrite this model. Source parse/diff checks pass. Retained locally/unpushed; full goal remains active/incomplete.
+
+{"bytes": 4314240, "triangles": 482008, "sha256": "b4ced0aa4336cd81556b0e2d2550b0c38f72d462eb02925c8da493ddb153d44b"}
+
+
+### 2026-10-20 — shipping rear-cover and lens-label checkpoint
+
+Enlarged and repositioned the 28–135 AF/MF, STABILIZER and ON/OFF legends to better match the existing product-photo reference (output/gear-reference/28-135-controls.jpg). Switch geometry is unchanged. Rebuilt, baked and compressed the lens, then refreshed its thumbnail and setup poster. The label layout check finds no overlapping legend/tick bounds; all 940 surface-clearance samples remain above the panel, with minimum clearance .004001877 authoring units. Actual /classic viewer checks on R7 with Control Ring adapter and native-EF 40D showed clearer labels and no console errors. Evidence: 28-135-label-scale-side.png, 28-135-label-scale-40d.png, 28-135-label-layout.json and 28-135-switch-recess-check.json under ignored output/gear-modeling. These checks do not establish complete photographic fidelity.
+
+28–135 public asset: 1,821,280 bytes; 264,290 triangles; SHA256 1515844954256915020a00b3a7d2e4b0d6ee3c3a34dedaa86a570830e4e2aa22.
+
+User requested shipping the current checkpoint. Includes the accepted explicit 40D rear cover, MENU clearance correction, lens legends and matching previews. No production rendering code or loading behavior changes; experimental ray tracing remains outside production. Overall photorealistic acceptance remains incomplete.

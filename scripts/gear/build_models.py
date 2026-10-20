@@ -786,6 +786,49 @@ def mount(z=.48,mirror=False,rf=False,cinema=False):
     for i in range(12 if rf else 10):
         a=pi*(1.18 if rf else 1.20)+i*(.18 if rf else .059);cyl('Gold electrical contact',(cos(a)*.455,sin(a)*.455,z+(.070 if rf else .032)),.012,.006,'Gold engraving',vertices=16)
 
+def dslr_rear_cover(points,back,front):
+    # Swept quarter-circle sections avoid bevel-clamp changes at adjacent edges.
+    # Radii remain photo-derived estimates, not measured Canon dimensions.
+    import bmesh
+    points=list(points)
+    if sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))<0:points.reverse()
+    points=smooth_outline(points,radius=.10)
+    # Bound the longitudinal length of the variable-radius shoulder strips.
+    sampled=[]
+    for a,b in zip(points,points[1:]+points[:1]):
+        count=max(1,math.ceil(float(np.linalg.norm(b-a))/.025))
+        sampled.extend(a+(b-a)*i/count for i in range(count))
+    points=sampled;n=len(points);insets=[];radii=[]
+    for i,p in enumerate(points):
+        a=p-points[i-1];b=points[(i+1)%n]-p
+        a=a/np.linalg.norm(a);b=b/np.linalg.norm(b)
+        na=np.array([-a[1],a[0]]);nb=np.array([-b[1],b[0]])
+        insets.append((na+nb)/(1+float(np.dot(na,nb))))
+        t=max(0,min(1,(p[1]-.30)/.25));radii.append(.055+.035*t*t*(3-2*t))
+    vertices=[];faces=[];steps=10
+    for side in ['rear','front']:
+        for j in range(steps+1):
+            angle=(1-j/steps if side=='rear' else j/steps)*pi/2
+            for p,inset,rear_radius in zip(points,insets,radii):
+                radius=rear_radius if side=='rear' else .055
+                xy=p+inset*radius*(1-cos(angle))
+                z=back+radius*(1-sin(angle)) if side=='rear' else front-radius*(1-sin(angle))
+                vertices.append((float(xy[0]),float(xy[1]),z))
+    rings=2*(steps+1)
+    for row in range(rings-1):
+        for i in range(n):
+            j=(i+1)%n;faces.append((row*n+i,row*n+j,(row+1)*n+j,(row+1)*n+i))
+    faces.extend([tuple(reversed(range(n))),tuple(range((rings-1)*n,rings*n))])
+    mesh=bpy.data.meshes.new('Explicit curved rear cover');mesh.from_pydata(vertices,[],faces);mesh.update()
+    for face in mesh.polygons:face.use_smooth=len(face.vertices)==4
+    bm=bmesh.new();bm.from_mesh(mesh)
+    assert all(e.is_manifold for e in bm.edges),'Open rear-cover surface'
+    assert all(f.calc_area()>1e-12 for f in bm.faces),'Degenerate rear-cover face'
+    bm.free()
+    o=bpy.data.objects.new('Rear control cover',mesh);scene.collection.objects.link(o)
+    register(o,'Rear control cover','Crinkle painted metal')
+    return o
+
 def body(which):
     global current;current=which;start=len(OBJECTS);dslr=which=='40d'
     outline=[(-1.43,-.83),(-1.48,-.68),(-1.48,.38),(-1.41,.60),(-1.2,.69),(-.84,.66),(-.64,.64),(-.44,.78),(-.30,1.03 if dslr else .91),(.27,1.03 if dslr else .91),(.42,.77),(.65,.63),(.94,.59),(1.05,.42),(1.07,-.65),(.98,-.83)]
@@ -1444,7 +1487,7 @@ def body(which):
     # The cover must overlap the casting's rounded back edge. A shallow
     # overlap exposed both bevels as a separate slab along the body sides.
     # Reach beyond the shell's rear bevel so their crests do not form a trough.
-    rear_cover=profile('Rear control cover',outline,back-.083,back+.12,'Crinkle painted metal',.055 if dslr else .030)
+    rear_cover=dslr_rear_cover(outline,back-.083,back+.12) if dslr else profile('Rear control cover',outline,back-.083,back+.12,'Crinkle painted metal',.030)
     bpy.ops.mesh.primitive_cube_add(size=1,location=(screenX,screenY,back-.06))
     opening=bpy.context.object;opening.scale=(screenW-.06,screenH-.08,.30)
     active(opening);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
@@ -1839,6 +1882,7 @@ def body(which):
         else:
             label_x=x-.087 if dslr and y<0 else x
             label_y=y+(.070 if y<0 else .086) if dslr else y if on_button else y-.09
+            if dslr and t=='MENU':label_y+=.012
             ink=text('Rear label '+t,'INFO.' if dslr and t=='INFO' else t,(label_x,label_y,rz-.045 if dslr else rz-.085),.045 if dslr else .040,'Blue ink' if dslr and t=='JUMP' else 'White ink',rotation=(0,pi,0))
             if dslr:
                 width,height={'MENU':(.138,.040),'AF-ON':(.155,.039),'JUMP':(.079,.043),'INFO':(.077,.041)}[t]
@@ -3061,12 +3105,12 @@ def lens(which):
             line('Second position tick',[(.012,y+.061,.018),(.012,y+.081,.018),(.050,y+.081,.018)],.0016,'Deep black')
         elif which=='28-135':
             if label_=='AF  MF':
-                text('Autofocus legend','AF',(-.045,y+.108,.008),.055,'White ink')
-                text('Manual focus legend','MF',(.067,y+.074,.008),.055,'White ink')
+                text('Autofocus legend','AF',(-.045,y+.120,.008),.075,'White ink')
+                text('Manual focus legend','MF',(.095,y+.074,.008),.075,'White ink')
             else:
-                text('Stabilizer legend','STABILIZER',(0,y+.190,.008),.055,'White ink')
-                text('Stabilizer off legend','OFF',(.066,y+.134,.008),.050,'White ink')
-                text('Stabilizer on legend','ON',(-.074,y+.084,.008),.050,'White ink')
+                text('Stabilizer legend','STABILIZER',(0,y+.215,.008),.065,'White ink')
+                text('Stabilizer off legend','OFF',(.066,y+.134,.008),.065,'White ink')
+                text('Stabilizer on legend','ON',(-.095,y+.084,.008),.065,'White ink')
             line('Switch first position tick',[(-.036,y+.049,.009),(-.036,y+.073,.009)],.0025,'White ink')
             line('Switch second position tick',[(.024,y+.049,.009),(.024,y+.073,.009)],.0025,'White ink')
         else:
