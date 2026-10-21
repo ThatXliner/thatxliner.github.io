@@ -25,10 +25,10 @@ jobs:
       - name: Compile resume PDF
         run: pdflatex -interaction=nonstopmode -output-directory=public resume.tex
       - name: Install, build, and upload your site
-        uses: withastro/action@v2
+        uses: withastro/action@v5
         with:
-          package-manager: bun@latest
-          node-version: 24
+          package-manager: npm@10.9.9
+          node-version: 24.22.1
         env: # Or as an environment variable
           ASTRO_GITHUB_TOKEN: ${{ secrets.ASTRO_GITHUB_TOKEN }}
 
