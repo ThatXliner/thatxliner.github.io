@@ -3044,22 +3044,22 @@ def lens(which):
     joint_positions=[l*.68,l-.04] if which=='70-200-f28' else [l*.68,l*.9,l-.04]
     for z in joint_positions:ring('Machined barrel joint',z,r*.977,r*.954,.012,'Anodized black')
     # Recessed distance-scale window and fine barrel lettering.
-    wz=l*.20 if not white else l*.57
+    wz=l*(.33 if which=='28-135' else .20) if not white else l*.57
     telephoto_window=white
-    if telephoto_window:
+    if telephoto_window or which=='28-135':
         # Seat the scale window inside the painted casting, rather than
         # stacking a black frame and glass above the uninterrupted barrel.
-        cutter=box('Distance window pocket cutter',(0,0,0),(.646,.316,.070),None,.026)
+        cutter=box('Distance window pocket cutter',(0,0,0),(.646,.246 if which=='28-135' else .316,.070),None,.026)
         active(cutter);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         import bmesh
         bm=bmesh.new();bm.from_mesh(cutter.data);bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=12,use_grid_fill=True);bm.to_mesh(cutter.data);bm.free()
         for v in cutter.data.vertices:
             u,vv,d=v.co;angle=u/(r*.97);rr=r*.97+d
-            v.co=(rr*sin(angle),rr*cos(angle),wz-vv)
+            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which=='28-135' else (rr*sin(angle),rr*cos(angle),wz-vv)
         cutter.data.update()
         cut=housing.modifiers.new('Inset distance scale window','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(housing,cut)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-    if which=='70-200-f28':
+    if which in ['28-135','70-200-f28']:
         # Preserve the continuous cylindrical finish beside the cut window.
         normals=[None]*len(housing.data.loops)
         for face in housing.data.polygons:
@@ -3070,8 +3070,8 @@ def lens(which):
                 normals[loop]=tuple(radial if outer_skin else face.normal)
         housing.data.normals_split_custom_set(normals)
     window_start=len(OBJECTS)
-    box('Distance scale frame',(0,0,.007),(.64,.31,.024) if telephoto_window else (.42,.19,.024),'Anodized black',.024)
-    box('Distance scale glass',(0,.0475 if which=='70-200-f28' else 0,.020),(.425,.155,.008) if which=='70-200-f28' else (.61,.28,.008) if telephoto_window else (.35,.13,.008),'Inactive display glass',.016)
+    box('Distance scale frame',(0,0,.007),(.64,.24 if which=='28-135' else .31,.024) if telephoto_window or which=='28-135' else (.42,.19,.024),'Graphite polymer' if which=='28-135' else 'Anodized black',.024)
+    box('Distance scale glass',(0,-.035 if which=='28-135' else .0475 if which=='70-200-f28' else 0,.020),(.49,.11,.008) if which=='28-135' else (.425,.155,.008) if which=='70-200-f28' else (.61,.28,.008) if telephoto_window else (.35,.13,.008),'Inactive display glass',.016)
     if telephoto_window:
         # Canon manual ENG-10: feet above metres, infinity compensation and
         # the red 100/70 infrared indexes below the selected distance.
@@ -3092,6 +3092,19 @@ def lens(which):
         text('Infrared 70 legend','70',(.174,-.087,.025),.031,'Red lacquer')
         text('Top focal range','70–200mm',(.525,0,.002),.071,'Deep black')
         if which=='70-200-f4':text('Top USM mark','USM',(.735,-.020,.002),.032,'Red lacquer')
+    elif which=='28-135':
+        for x,feet,metres in [(-.19,'15','5'),(-.10,'50','10')]:
+            text('Feet scale',feet,(x,-.010,.025),.036,'Green ink')
+            text('Metre scale',metres,(x,-.055,.025),.044,'White ink')
+        text('Feet unit','ft',(.278,-.010,.025),.035,'Green ink')
+        text('Metre unit','m',(.278,-.055,.025),.038,'White ink')
+        text('Infinity distance','∞',(.16,-.055,.025),.055,'White ink')
+        line('Infinity compensation mark',[(0,-.037,.025),(0,-.065,.025),(.10,-.065,.025)],.002,'White ink')
+        line('Distance index',[(0,.030,.025),(0,.105,.025)],.002,'White ink')
+        for x,number in [(.040,'135'),(.090,'70'),(.140,'50'),(.190,'35'),(.240,'28')]:
+            text('Infrared legend '+number,number,(x,.082,.025),.026,'Red lacquer')
+            foot=.040+(x-.040)*.58
+            line('Infrared index '+number,[(foot,.017,.025),(foot,.030,.025),(x,.058,.025)],.0012,'Red lacquer')
     else:
         text('Distance marks','1  3  5  ∞',(0,-.014,.025),.044)
         text('Distance units','m     ft',(0,.042,.026),.03,'Green ink')
@@ -3102,13 +3115,21 @@ def lens(which):
             bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=6 if which in ['28-135','70-200-f4'] else 12,use_grid_fill=True);bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,d=v.co
-            if telephoto_window and not any(name in o.name for name in ['Top focal range','Top USM mark']):d-=.026
+            if (telephoto_window or which=='28-135') and not any(name in o.name for name in ['Top focal range','Top USM mark']):d-=.026
             angle=u/(r*.97);rr=r*.97+d
-            v.co=(rr*sin(angle),rr*cos(angle),wz-vv)
+            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which=='28-135' else (rr*sin(angle),rr*cos(angle),wz-vv)
         o.data.update()
     for i,number in enumerate(['28','35','50','70','100','135'] if which=='28-135' else ['70','100','135','200'] if white else [range_]):
         a=pi/2+(i-2)*.18;z=l*.31 if which=='28-135' else l*(.25 if which=='70-200-f4' else .27) if white else l*.66
-        if which=='70-200-f4':
+        if which=='28-135':
+            # Zoom markings occupy the band between the focus and zoom grips.
+            z=l*.56;a=pi/2+[0,.23,.45,.70,.98,1.27][i]
+            o=text('Focal length scale',number,(0,0,0),.064,'White ink')
+            for vertex in o.data.vertices:
+                u,v,depth=vertex.co;angle=a+u/(r*.97);rr=r*.97+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),z+v)
+            o.data.update()
+        elif which=='70-200-f4':
             # The wider exposed band carries outward-facing zoom numbers;
             # their angular spacing and size follow the top product reference.
             a=pi/2+[-.68,-.16,.23,.65][i]
@@ -3121,6 +3142,19 @@ def lens(which):
         else:
             o=text('Focal length scale',number,(r*.985*cos(a),r*.985*sin(a),z),.055,'White ink' if not white else 'Deep black',rotation=(pi/2,0,0))
             o.rotation_euler=(pi/2,pi/2-a,0)
+    if which=='28-135':
+        zoom_index=box('Zoom position index',(0,0,0),(.014,l*.010,.001), 'White ink',0)
+        for vertex in zoom_index.data.vertices:
+            u,v,depth=vertex.co;angle=pi/2-u/(r*.97);rr=r*.97+.0015+depth
+            vertex.co=(rr*cos(angle),rr*sin(angle),l*.540-v)
+        zoom_index.data.update()
+        for label,words,offset,z,size in [('Top focal range','28-135mm',.46,l*.33,.068),('Top stabilizer image','IMAGE',0,.340,.055),('Top stabilizer label','STABILIZER',0,.280,.055)]:
+            o=text(label,words,(0,0,0),size,'White ink',font='Bold')
+            for vertex in o.data.vertices:
+                u,v,depth=vertex.co;zz=z+v;angle=pi/2+(offset+u)/(r*.97)
+                rr=float(np.interp(zz,[p[0] for p in rear],[p[1] for p in rear]))+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),zz)
+            o.data.update()
     # Mold the entire control recess onto the barrel, including its lettering.
     # A tangent rectangle leaves its corners floating visibly above the cylinder.
     if which=='28-135':
@@ -3131,7 +3165,7 @@ def lens(which):
         bm=bmesh.new();bm.from_mesh(cutter.data);bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=16,use_grid_fill=True);bm.to_mesh(cutter.data);bm.free()
         for v in cutter.data.vertices:
             u,vv,d=v.co;angle=vv/(r*.97);rr=r*.97+d
-            v.co=(-rr*cos(angle),rr*sin(angle),l*.25+u)
+            v.co=(rr*cos(angle),rr*sin(angle),l*.25-u)
         cutter.data.update()
         cut=housing.modifiers.new('Recessed AF IS control pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(housing,cut)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
@@ -3245,7 +3279,7 @@ def lens(which):
                 bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,depth=v.co;angle=vv/(r*.97);radius=r*.97+depth-.008
-            v.co=(-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
+            v.co=(radius*cos(angle),radius*sin(angle),l*.25-u) if which=='28-135' else (-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
         o.data.update()
         if which=='28-135' and ('panel' in o.name or 'Switch recess floor' in o.name):
             # Constant-radius faces share cylindrical normals after bending.
@@ -3276,7 +3310,9 @@ def lens(which):
     if which=='70-200-f28':text('Telephoto USM inscription','ULTRASONIC',(-r*.97,.11,l*.90),.045,'Red lacquer',rotation=(0,-pi/2,pi/2))
     if which=='28-135':text('USM inscription','ULTRASONIC',(-r*.97,.10,l*.91),.045,'Gold engraving',rotation=(0,-pi/2,pi/2))
     for o in OBJECTS[mark_start:]:
-        o.matrix_world=Matrix.Translation(o.location)@Matrix.Rotation(-pi/2,4,'Y')@Matrix.Rotation(pi/2,4,'Z')
+        control_side=which=='28-135' and 'Lens side brand' in o.name
+        if control_side:o.location.x=-o.location.x
+        o.matrix_world=Matrix.Translation(o.location)@Matrix.Rotation(pi/2 if control_side else -pi/2,4,'Y')@Matrix.Rotation(pi/2,4,'Z')
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
         for v in o.data.vertices:
             x,y,z=v.co
@@ -3429,6 +3465,9 @@ def lens(which):
     for i in range(8):
         a=pi*1.15+i*.075;cyl('Lens electrical contact',(cos(a)*.468,sin(a)*.468,.012),.013,.012,'Gold engraving',vertices=16)
     pip=sphere('Mount alignment pip',(0,rear_radius(.20)+.002 if which=='70-200-f4' else r*.89,.20 if which=='70-200-f4' else .24),(.018,.014,.018),'Red lacquer')
+    if which=='28-135':
+        pip.location=(math.sqrt((r*.97+.008)**2-.13**2),.13,.24)
+        pip.scale=(.014/.018,.018/.014,1)
     if which=='70-200-f4':pip.matrix_world=Matrix.Rotation(pi/3,4,'Z')@pip.matrix_world
     return OBJECTS[start:]
 
