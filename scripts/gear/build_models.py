@@ -1842,9 +1842,19 @@ def body(which):
             radius={'AF-ON':.054,'*':.070,'▣':.064}.get(t,.054)
             ring('Rear button bezel '+t,-.006,radius+.017,radius+.003,.015,'Satin control plastic',segments=64)
             if t in ['AF-ON','*','▣']:
-                # The upper cluster has shallow convex caps of different sizes;
-                # the reference's lower-row keys retain their flat faces.
-                cap=sphere('Rear button '+t,(0,0,-.010),(radius,radius,.013),'Satin control plastic')
+                # The rear reference shows a broad inset face and rounded lip,
+                # rather than an ellipsoid projecting above the bezel.
+                segments=64;verts=[(0,0,-.012)];faces=[]
+                for fraction,depth in [(.70,-.012),(.82,-.014),(.91,-.0145),(.97,-.013),(1,-.010),(1,.001)]:
+                    cap_ring_start=len(verts)
+                    verts.extend((radius*fraction*cos(i*2*pi/segments),radius*fraction*sin(i*2*pi/segments),depth) for i in range(segments))
+                    for i in range(segments):
+                        j=(i+1)%segments
+                        faces.append((0,cap_ring_start+j,cap_ring_start+i) if cap_ring_start==1 else (cap_ring_start-segments+i,cap_ring_start-segments+j,cap_ring_start+j,cap_ring_start+i))
+                faces.append(tuple(range(len(verts)-segments,len(verts))))
+                mesh=bpy.data.meshes.new('Inset rear key');mesh.from_pydata(verts,[],faces);mesh.update()
+                cap=bpy.data.objects.new('Rear button '+t,mesh);scene.collection.objects.link(cap);register(cap,'Rear button '+t,'Satin control plastic')
+                for face in mesh.polygons:face.use_smooth=segments<=face.index<len(mesh.polygons)-1
             else:
                 cap=cyl('Rear button '+t,(0,0,-.010),radius,.016,'Satin control plastic',vertices=64,bevel=.004)
             if t=='▥':
@@ -2936,7 +2946,7 @@ def lens(which):
         housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
     if white:
-        for z,width in ([(l*.37,l*.26),(l*.76,l*.22)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
+        for z,width in ([(l*.38,l*.23),(l*.76,l*.22)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
             grip_mat='Telephoto grip rubber'
             ring('Rubber ring',z,r*.997,r*.89,width,grip_mat)
             # The original f/2.8 zoom ring has narrow alternating breaks.
@@ -3097,9 +3107,20 @@ def lens(which):
             v.co=(rr*sin(angle),rr*cos(angle),wz-vv)
         o.data.update()
     for i,number in enumerate(['28','35','50','70','100','135'] if which=='28-135' else ['70','100','135','200'] if white else [range_]):
-        a=pi/2+(i-2)*.18;z=l*.31 if which=='28-135' else l*(.225 if which=='70-200-f4' else .27) if white else l*.66
-        o=text('Focal length scale',number,(r*.985*cos(a),r*.985*sin(a),z),.055,'White ink' if not white else 'Deep black',rotation=(pi/2,0,0))
-        o.rotation_euler=(pi/2,pi/2-a,0)
+        a=pi/2+(i-2)*.18;z=l*.31 if which=='28-135' else l*(.25 if which=='70-200-f4' else .27) if white else l*.66
+        if which=='70-200-f4':
+            # The wider exposed band carries outward-facing zoom numbers;
+            # their angular spacing and size follow the top product reference.
+            a=pi/2+[-.68,-.16,.23,.65][i]
+            o=text('Focal length scale',number,(0,0,0),.090,'Deep black')
+            for vertex in o.data.vertices:
+                u,v,depth=vertex.co;zz=z+v;angle=a+u/rear_radius(z)
+                rr=rear_radius(zz)+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),zz)
+            o.data.update()
+        else:
+            o=text('Focal length scale',number,(r*.985*cos(a),r*.985*sin(a),z),.055,'White ink' if not white else 'Deep black',rotation=(pi/2,0,0))
+            o.rotation_euler=(pi/2,pi/2-a,0)
     # Mold the entire control recess onto the barrel, including its lettering.
     # A tangent rectangle leaves its corners floating visibly above the cylinder.
     if which=='28-135':
