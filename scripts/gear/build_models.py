@@ -2964,7 +2964,7 @@ def lens(which):
                 active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
                 for v in o.data.vertices:
                     u,vv,d=v.co;angle=u/(r*.97);rr=r*.97+d
-                    v.co=(rr*sin(angle),rr*cos(angle),badge_z-vv)
+                    v.co=(-rr*sin(angle),rr*cos(angle),badge_z+vv)
                 o.data.update()
             # Short molded rear ribs stop around the smooth badge area.
             rear_rib_count=64 if which=='70-200-f4' else 128
@@ -3037,7 +3037,23 @@ def lens(which):
         else:radial_ribs('Zoom grip fine ribs',zoom[0],r,zoom[1]*.92,160)
         if which=='28-135':
             ring('Manual focus grip',l*.48,r*.974,r*.88,l*.11,'Focus rubber');radial_ribs('Fine focus ribs',l*.48,r*.975,l*.10,144)
-            ring('Ultrasonic gold line',l*.915,r*.978,r*.94,.018,'Gold engraving')
+            # Diagonal printed strokes leave a gap for the top USM legend.
+            stripe_vertices=[];stripe_faces=[]
+            for i in range(240):
+                a=2*pi*i/240
+                if abs((a-pi/2+pi)%(2*pi)-pi)<.29:continue
+                base=len(stripe_vertices)
+                for du,dz in [(-.007,-.012),(.007,-.012),(.016,.012),(.002,.012)]:
+                    angle=a+du/(r*.97);rr=r*.97+.0015
+                    stripe_vertices.append((rr*cos(angle),rr*sin(angle),l*.915+dz))
+                stripe_faces.append((base,base+1,base+2,base+3))
+            stripe_mesh=bpy.data.meshes.new('USM segmented print');stripe_mesh.from_pydata(stripe_vertices,[],stripe_faces);stripe_mesh.update()
+            stripe_object=bpy.data.objects.new('USM segmented print',stripe_mesh);scene.collection.objects.link(stripe_object);register(stripe_object,'Ultrasonic segmented gold line','Gold engraving')
+            legend=text('Top ultrasonic inscription','ULTRASONIC',(0,0,0),.035,'Gold engraving')
+            for vertex in legend.data.vertices:
+                u,v,depth=vertex.co;angle=pi/2+u/(r*.97);rr=r*.97+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),l*.915+v)
+            legend.data.update()
         if which=='35':ring('Tamron accent ring',.24,r*.86,r*.82,.016,'Machined metal')
     # The f/2.8 front white band is continuous behind the red ring. A generic
     # joint at .90 length cuts directly through its Canon/ULTRASONIC markings.
@@ -3055,7 +3071,7 @@ def lens(which):
         bm=bmesh.new();bm.from_mesh(cutter.data);bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=12,use_grid_fill=True);bm.to_mesh(cutter.data);bm.free()
         for v in cutter.data.vertices:
             u,vv,d=v.co;angle=u/(r*.97);rr=r*.97+d
-            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which=='28-135' else (rr*sin(angle),rr*cos(angle),wz-vv)
+            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which in ['28-135','70-200-f4','70-200-f28'] else (rr*sin(angle),rr*cos(angle),wz-vv)
         cutter.data.update()
         cut=housing.modifiers.new('Inset distance scale window','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(housing,cut)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
@@ -3117,14 +3133,21 @@ def lens(which):
             u,vv,d=v.co
             if (telephoto_window or which=='28-135') and not any(name in o.name for name in ['Top focal range','Top USM mark']):d-=.026
             angle=u/(r*.97);rr=r*.97+d
-            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which=='28-135' else (rr*sin(angle),rr*cos(angle),wz-vv)
+            v.co=(-rr*sin(angle),rr*cos(angle),wz+vv) if which in ['28-135','70-200-f4','70-200-f28'] else (rr*sin(angle),rr*cos(angle),wz-vv)
         o.data.update()
     for i,number in enumerate(['28','35','50','70','100','135'] if which=='28-135' else ['70','100','135','200'] if white else [range_]):
         a=pi/2+(i-2)*.18;z=l*.31 if which=='28-135' else l*(.25 if which=='70-200-f4' else .27) if white else l*.66
         if which=='28-135':
             # Zoom markings occupy the band between the focus and zoom grips.
-            z=l*.56;a=pi/2+[0,.23,.45,.70,.98,1.27][i]
+            z=l*.568;a=pi/2+[0,.23,.45,.70,.98,1.27][i]
             o=text('Focal length scale',number,(0,0,0),.064,'White ink')
+            for vertex in o.data.vertices:
+                u,v,depth=vertex.co;angle=a+u/(r*.97);rr=r*.97+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),z+v)
+            o.data.update()
+        elif which=='70-200-f28':
+            a=pi/2+[-.42,-.02,.34,.68][i]
+            o=text('Focal length scale',number,(0,0,0),.080,'Deep black')
             for vertex in o.data.vertices:
                 u,v,depth=vertex.co;angle=a+u/(r*.97);rr=r*.97+.0015+depth
                 vertex.co=(rr*cos(angle),rr*sin(angle),z+v)
@@ -3142,6 +3165,20 @@ def lens(which):
         else:
             o=text('Focal length scale',number,(r*.985*cos(a),r*.985*sin(a),z),.055,'White ink' if not white else 'Deep black',rotation=(pi/2,0,0))
             o.rotation_euler=(pi/2,pi/2-a,0)
+    if which=='70-200-f28':
+        o=text('Top ultrasonic inscription','ULTRASONIC',(0,0,0),.070,'Red lacquer',font='Bold')
+        for vertex in o.data.vertices:
+            u,v,depth=vertex.co;angle=pi/2+u/(r*.97);rr=r*.97+.0015+depth
+            vertex.co=(rr*cos(angle),rr*sin(angle),l*.90+v)
+        o.data.update()
+    if which=='70-200-f4':
+        zoom_index=box('Zoom position index',(0,0,0),(.014,.052,.001),'Deep black',0)
+        import bmesh
+        bm=bmesh.new();bm.from_mesh(zoom_index.data);bmesh.ops.subdivide_edges(bm,edges=list(bm.edges),cuts=12,use_grid_fill=True);bm.to_mesh(zoom_index.data);bm.free()
+        for vertex in zoom_index.data.vertices:
+            u,v,depth=vertex.co;zz=l*.231+v;angle=pi/2+u/rear_radius(zz);rr=rear_radius(zz)+.0015+depth
+            vertex.co=(rr*cos(angle),rr*sin(angle),zz)
+        zoom_index.data.update()
     if which=='28-135':
         zoom_index=box('Zoom position index',(0,0,0),(.014,l*.010,.001), 'White ink',0)
         for vertex in zoom_index.data.vertices:
@@ -3154,6 +3191,13 @@ def lens(which):
                 u,v,depth=vertex.co;zz=z+v;angle=pi/2+(offset+u)/(r*.97)
                 rr=float(np.interp(zz,[p[0] for p in rear],[p[1] for p in rear]))+.0015+depth
                 vertex.co=(rr*cos(angle),rr*sin(angle),zz)
+            o.data.update()
+    if which=='28-135':
+        for name,words,offset,ink in [('Macro legend','MACRO',.60,'Gold engraving'),('Minimum focus legend','0.5m/1.6ft',.75,'White ink')]:
+            o=text(name,words,(0,0,0),.026,ink)
+            for vertex in o.data.vertices:
+                u,v,depth=vertex.co;angle=pi/2+(offset+u)/(r*.97);rr=r*.97+.0015+depth
+                vertex.co=(rr*cos(angle),rr*sin(angle),l*.544+v)
             o.data.update()
     # Mold the entire control recess onto the barrel, including its lettering.
     # A tangent rectangle leaves its corners floating visibly above the cylinder.
@@ -3279,7 +3323,7 @@ def lens(which):
                 bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,depth=v.co;angle=vv/(r*.97);radius=r*.97+depth-.008
-            v.co=(radius*cos(angle),radius*sin(angle),l*.25-u) if which=='28-135' else (-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
+            v.co=(radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)-u) if which in ['28-135','70-200-f4','70-200-f28'] else (-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
         o.data.update()
         if which=='28-135' and ('panel' in o.name or 'Switch recess floor' in o.name):
             # Constant-radius faces share cylindrical normals after bending.
@@ -3307,10 +3351,8 @@ def lens(which):
             bm.free()
     mark_start=len(OBJECTS)
     brand=text('Lens side brand','Canon' if which!='35' else 'TAMRON',(-r*.97,-.13,l*(.90 if which=='70-200-f28' else .14)),.082,font='Canon' if which!='35' else 'Bold',rotation=(0,-pi/2,pi/2),mat='Deep black' if white else 'White ink')
-    if which=='70-200-f28':text('Telephoto USM inscription','ULTRASONIC',(-r*.97,.11,l*.90),.045,'Red lacquer',rotation=(0,-pi/2,pi/2))
-    if which=='28-135':text('USM inscription','ULTRASONIC',(-r*.97,.10,l*.91),.045,'Gold engraving',rotation=(0,-pi/2,pi/2))
     for o in OBJECTS[mark_start:]:
-        control_side=which=='28-135' and 'Lens side brand' in o.name
+        control_side=which in ['28-135','70-200-f4','70-200-f28'] and 'Lens side brand' in o.name
         if control_side:o.location.x=-o.location.x
         o.matrix_world=Matrix.Translation(o.location)@Matrix.Rotation(pi/2 if control_side else -pi/2,4,'Y')@Matrix.Rotation(pi/2,4,'Z')
         active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
@@ -3466,9 +3508,13 @@ def lens(which):
         a=pi*1.15+i*.075;cyl('Lens electrical contact',(cos(a)*.468,sin(a)*.468,.012),.013,.012,'Gold engraving',vertices=16)
     pip=sphere('Mount alignment pip',(0,rear_radius(.20)+.002 if which=='70-200-f4' else r*.89,.20 if which=='70-200-f4' else .24),(.018,.014,.018),'Red lacquer')
     if which=='28-135':
-        pip.location=(math.sqrt((r*.97+.008)**2-.13**2),.13,.24)
+        pip_angle=.243/(r*.97)
+        pip.location=((r*.97+.008)*cos(pip_angle),(r*.97+.008)*sin(pip_angle),.24)
         pip.scale=(.014/.018,.018/.014,1)
-    if which=='70-200-f4':pip.matrix_world=Matrix.Rotation(pi/3,4,'Z')@pip.matrix_world
+    if which=='70-200-f28':
+        pip.location=((r*.97+.004)*cos(pi/6),(r*.97+.004)*sin(pi/6),.45)
+        pip.scale=(.014/.018,.018/.014,1)
+    if which=='70-200-f4':pip.matrix_world=Matrix.Rotation(-pi/3,4,'Z')@pip.matrix_world
     return OBJECTS[start:]
 
 def monitor_back_section(x,width):
