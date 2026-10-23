@@ -34,13 +34,11 @@ export async function createStudio(
     factory.dispose();
     throw error;
   }
-  // Cap pixel work on high-density screens, especially handheld devices.
-  renderer.setPixelRatio(
-    Math.min(
-      devicePixelRatio,
-      matchMedia("(pointer: coarse)").matches ? 1.25 : 1.5,
-    ),
-  );
+  const coarsePointer = matchMedia("(pointer: coarse)");
+  const interactionPixelRatio = Math.min(devicePixelRatio, coarsePointer.matches ? 1.25 : 1.5);
+  let settledPixelRatio = interactionPixelRatio;
+  let interacting = false;
+  renderer.setPixelRatio(interactionPixelRatio);
   // Composite optical reflections in linear HDR before tone mapping once.
   const linearTarget = renderer.extensions.has("EXT_color_buffer_float") || renderer.extensions.has("EXT_color_buffer_half_float")
     ? new THREE.WebGLRenderTarget(1, 1, {
@@ -72,8 +70,8 @@ export async function createStudio(
     [0, 5, 0, 3, 3, 2],
     [3, -2, 5, 2, 3, 2], // Low bounce card keeps glass legible at the default angle.
     [-3, 3, -5, 3, 4.5, 5],
-    [-5, 0, 1, 3, 4, 2], // Side bounce reveals molded controls on the grip side.
-    [0, 1, 6, 2, 3, 0.8], // Front fill reveals convex glass when viewed along the optical axis.
+    // The prescription preview needs a narrower fill to separate internal reflections.
+    reviewOptics ? [0.75, 1, 6, 0.65, 2.4, 0.8] : [0, 1, 6, 2, 3, 0.8],
     [0, 1, -6, 2, 3, 0.8], // Matching rear fill reveals the ocular's curved reflection.
   ]) {
     const card = new THREE.Mesh(
@@ -125,7 +123,7 @@ export async function createStudio(
     return model;
   }
   scene.environment = env.texture;
-  scene.environmentIntensity = 0.65;
+  scene.environmentIntensity = 0.9;
   pmrem.dispose();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   const studioLights: THREE.SpotLight[] = [];
@@ -216,6 +214,11 @@ export async function createStudio(
   let currentBody = initialBody,
     currentLens = initialLens;
   let needsRender = true;
+  controls.addEventListener("start", () => { interacting = true; });
+  controls.addEventListener("end", () => {
+    interacting = false;
+    lastMotion = performance.now();
+  });
   controls.addEventListener("change", () => {
     needsRender = true;
     lastMotion = performance.now();
@@ -312,6 +315,7 @@ export async function createStudio(
     assembly.add(lensModel);
     needsRender = true;
     animationStart = performance.now();
+    lastMotion = animationStart;
     renderer.shadowMap.needsUpdate = true;
     lensOffset = animate && !reduced.matches ? 1.3 : 0;
     if (setupChanged) reset();
@@ -326,6 +330,12 @@ export async function createStudio(
     const { width, height } = host.getBoundingClientRect();
     if (!width || !height) return;
     stopOptics();
+    lastMotion = performance.now();
+    // Refine a stationary desktop image without raising the moving-image cost.
+    // Never increase resolution beyond 1.5 million pixels or native 2x density.
+    settledPixelRatio = Math.max(interactionPixelRatio,
+      Math.min(devicePixelRatio, 2, Math.sqrt(1_500_000 / (width * height))));
+    renderer.setPixelRatio(interactionPixelRatio);
     renderer.setSize(width, height, false);
     const pixels = renderer.getDrawingBufferSize(new THREE.Vector2());
     linearTarget?.setSize(pixels.x, pixels.y);
@@ -348,6 +358,16 @@ export async function createStudio(
       lensOffset * (1 - ease);
     lensModel.rotation.z = lensOffset * 0.12 * (1 - ease);
     controls.update();
+    const settled = visible && !document.hidden && !coarsePointer.matches && !reviewOptics
+      && !interacting && !selectionLoading && lensOffset === 0
+      && performance.now() - lastMotion > 400;
+    const pixelRatio = settled ? settledPixelRatio : interactionPixelRatio;
+    if (renderer.getPixelRatio() !== pixelRatio) {
+      renderer.setPixelRatio(pixelRatio);
+      const pixels = renderer.getDrawingBufferSize(new THREE.Vector2());
+      linearTarget?.setSize(pixels.x, pixels.y);
+      needsRender = true;
+    }
     if (needsRender || (lensOffset > 0 && t < 1)) {
       renderStudio();
       needsRender = false;

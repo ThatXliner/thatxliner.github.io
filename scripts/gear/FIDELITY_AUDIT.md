@@ -3209,3 +3209,1227 @@ Compared 70-200-f28-controls.jpg and f28-ebay-side3.webp with the actual C200 se
 Blender export/save succeeded. Compressed with WebP and meshopt using 16-bit position quantization. Final asset 2,851,612 bytes, 380944 triangles, SHA256 be5c88b0714d4f4e13214dbdc042aaffa19ee05bec1ab7190664a9643bfd7248. Actual C200 viewer inspected top, operator side, front and rear: f28-orientation-after-top.png, f28-after-upright.png, f28-orientation-side.png, f28-orientation-front.png and f28-orientation-rear.png. Upright print, readable controls, exposed pip and intact assembly verified; this is not full photographic acceptance. Refreshed and inspected the f/2.8 thumbnail.
 
 User requested shipping the current work. Includes the retained 28–135 and f/4 corrections documented above. No experimental optical shader, lossless texture trial or runtime/loading changes retained. Full photorealism remains unfinished.
+
+
+### 2026-10-22 — f/2.8 collar spacing and alignment indexes
+
+Previous turn shipped checkpoint e500499 (progress). Reopened f28-ebay-side3.webp alongside the actual viewer front-up capture. Reference shows separate fixed zoom and collar indexes; the model omitted both and placed its collar against the focal-number band. Shifted the full collar/foot/knob assembly from .22*l to .20*l, preserving its dimensions, to expose the fixed index band. Added a short black zoom index at z.91 and a longer collar index centered on the collar, both wrapped flush to their respective radii with .0015 surface offset. Dimensions remain photographic estimates.
+
+Blender export/save and WebP/meshopt with 16-bit positions succeeded. Actual C200 viewer checked top Home6Left11Up3+ and operator side Home18Right3+: f28-index-top.png, f28-index-upright.png and f28-index-side.png. Both indexes are visible and separate; collar/foot remain clear of the body. Refreshed the thumbnail. Final 2852380 bytes/380968 triangles/SHA256 129b0df3a9af7208bb8c31d0682826749cb8eab8a822cecbd33f61714061f2f0. No runtime/loading changes; local only.
+
+This corrects two visible reference omissions but does not establish photographic quality. The side capture still shows conspicuous segmented bright reflections inside the C200 handle opening and excessively uniform white lens finish; these larger material/shape mismatches warrant attention before more minor lettering. Earlier global handle roughness trial was rejected and should not be repeated without isolating the cause. Goal remains active.
+
+
+### 2026-10-22 — C200 handle specular isolation
+
+Previous turn corrected f/2.8 collar spacing/indexes (progress). Reopened c200-canon-hero.jpg: the handle opening is black textured casting with soft highlights, unlike the viewer's segmented bright interior. Tested copies of the shipped compressed C200 only in dist; source/public stayed untouched. First removed just the Crinkle painted metal normalTexture: c200-no-normal-side.png/handle crop retain the bright bands, ruling out the grain normal map as their primary cause. Inspected saved Blender assembly: it contains an empty material slot but zero polygons assigned to it. Unlit unique material-color diagnostic c200-material-id.png identifies the entire inner opening as the same Crinkle painted metal as its outside, ruling out an accidental white material assignment.
+
+Setting only this material's KHR_materials_specular factor to zero removes the bands (c200-no-specular-side.png), establishing a specular contribution rather than white diffuse paint. A separate constant roughness .65 trial with original normal map and ordinary specular response (c200-rough065-side.png) darkens and softens them but still leaves the segmented interior; not accepted as a fidelity fix. All inspections use actual C200 viewer Home18Right3+ and the same crop(1300,1260)-(1740,1480). No trial promoted; restored dist C200 from public. No shader/runtime changes retained.
+
+Next investigation should examine interior face/custom normals and the reflected studio environment's occlusion, with a local surface test. Do not repeat generic roughness or grain escalation: those now have direct negative viewer evidence. Material identity and specular isolation narrow the cause but do not prove an occlusion or normal defect. Prior local f/2.8 corrections remain. Goal incomplete.
+
+
+### 2026-10-22 — handle normals and environment-light isolation
+
+Previous goal turn isolated the specular contribution (progress). Inspected the authoritative saved C200 mesh with inspect-c200-normals.py. The main inner floor face246025 at world(0,1.761,-1.055) has upward normal and every corner normal dot face normal1.0. Major planar side/top faces likewise retain1.0; sampled curved return faces have minimum dot approximately.999. This does not prove every bevel normal is ideal, but contradicts a malformed broad-floor shading normal as the cause.
+
+Temporarily assigned an explicit environment map with intensity0 only to C200 Crinkle painted metal, leaving material roughness/grain and shadowed direct lights unchanged. Production build15pages passed. Actual viewer Home18Right3+ capture c200-no-ibl-side.png/handle crop removes the bright inner bands and retains exterior textured direct highlights. This establishes environment lighting as their source. Disabling it on all casting is not accepted: useful surrounding reflection detail is lost. Saved diagnostic source, restored scene.ts byte-for-byte and rebuilt production.
+
+Do not overstate this as proven missing geometric occlusion. Supplementary mesh rays from floor(0,1.763,-1.055) toward normalized(+-1,.24,0), representing side-view grazing reflection directions, both escape without intersection. Therefore part of the bright environment can genuinely be visible through the open sides. The upward ray hits nearby geometry at.00948, but this single ray is not an occlusion integral. Next useful test should separate the relevant studio card directions or calibrate the reflection lighting against reference, instead of simply painting the inner surface dark or globally disabling reflections. Lighting contribution is established; exact visibility/illumination cause remains unresolved. No runtime change retained; local f/2.8 improvements preserved. Full goal incomplete.
+
+
+### 2026-10-22 — identify and remove the offending side reflection card
+
+Previous turn proved the handle bands originate in environment lighting (progress). Temporarily color-coded studio cards: side bounce at(-5,0,1) blue, overhead yellow, others red. Actual C200 operator-side viewer capture c200-card-id-side.png shows the objectionable floor/return bands blue, identifying the side bounce contribution rather than requiring global reflection removal. Restored neutral colors and removed only that card from classic scene.ts; seven remaining reflection cards, all shadowed direct lights, geometry, material values and optics remain unchanged.
+
+Production build15pages passed. Actual interactive viewer checks: C200 sideHome18Right3+, frontHome5Right2Down1+, rearHome31Right1+; R7 defaultHome1+ and grip-sideHome6Left1+; 40D rearHome31Right1+. Screens c200-no-side-card-{side,front,rear}.png, r7-no-side-card-{front,grip}.png, 40d-no-side-card-rear.png and assembled inspection crops. The formerly white inner handle floor is now subdued black/gray with visible texture and no overwhelming bands; C200 operator/rear controls, lens reflections, R7 grip detail and 40D rear markings remain visible. R7→40D preserved28–135 and changed Control Ring to nativeEF. This is a retained lighting correction, not full photographic acceptance. Refreshed default static poster with the same card removed from the capture helper.
+
+Change adds no render pass, geometry, downloads or shader complexity; removes one mesh from one-time environment generation. Individual thumbnails retain their independent thumbnail lighting. No claim that all optics/materials now match references. Other finish and contour discrepancies remain. Local/unpushed; goal active.
+
+
+### 2026-10-22 — owned f/4 focus-grip proportions
+
+Last human clarified their telephoto is EF f/4; prior acknowledgement alone made no model progress. Revalidated current owned selector and generated f/4 object list: no collar/foot. Checked switch-text outward normals before and after export normal recalculation: glyph face radial dots remain >=.9988, so no reversed-text defect established. Actual40D+f/4 control-side screenshot f4-control-audit-side.png shows readable labels at close range. Retained existing font weight/material.
+
+Reference70-200-f4-top.jpg shows focus grip roughly175pixels long versus zoom grip255pixels (ratio~.69, approximate photographic bounds). Model used widths .22*l/.23*l (~.96). Narrowed f/4 focus grip to.16*l and moved center.76*l→.78*l, giving ratio.696. Moved adjacent barrel joint.68*l→.70*l, distance window center.57*l→.595*l and switch section center.575*l→.60*l to follow the wider exposed middle barrel in the reference. These remain photograph-derived proportions, not CAD measurements; f/2.8 unchanged.
+
+Blender export/save and meshopt/WebP compression passed. Actual R7+f/4 inspected sideHome18Right2+, topHome6Left11Up2+, frontHome5Right2Down: f4-proportions-{side,top,front}.png. Focus grip is narrower, switches/window clear both grips, EF Control Ring remains attached, no tripod bracket. Earlier rear verification covers unchanged rear/body geometry; no new full rear fidelity claim. Updated thumbnail. Final 2463152bytes/333884triangles/SHA256 bdc5a59c007504c099cd325fa736c0da14cff299b2484a42b791f979ca78d098. No additional runtime changes.
+
+Front capture still has a broad smooth brown optical wash and simplified circular internal reflections. This is not accepted photographic optics; investigate against a real f/4 axial-front reference next rather than treating corrected barrel proportions as completion. Local/unpushed; full goal active.
+
+
+### 2026-10-22 — f/4 internal reflection isolation
+
+Previous turn improved owned f/4 barrel proportions (progress). Reopened70-200-f4-front.jpg and70-200-f4-optics.png. Product photograph has separated blue/green/amber reflections; it does not support a uniform brown glass tint. Current geometry uses one simplified front meniscus and three internal elements, omitting several compound groups visible in the section. Their surfaces/coatings are approximations, not a recovered lens prescription.
+
+Diagnostic copy of compressed f/4 removed only the Inner optical glass primitive (one merged primitive). Served only in dist. Actual R7+f/4 axial Home5Right2Down screenshot f4-no-inner-front.png removes the broad brown wash while preserving front glass and the chamber. This locates the wash in the internal reflection layers; removing those layers is not a proposed fix. Public asset remained unchanged.
+
+Restored full lens and temporarily suppressed reflectedLight.directSpecular only on f/4 internal glass after lights_fragment_end, with a distinct shader cache key to avoid cross-lens reuse. Built15pages and inspected same actual viewer pose: f4-no-direct-front.png retains the wash. Screenshot ROI(1220,1430)-(1500,1630) mean absoluteRGBdifference .441875/.440911/.445214of255 relative to pretrial f4-proportions-front.png: small response, no convincing fidelity improvement. Direct specular suppression rejected. Saved diagnostic source, restored models.ts byte-for-byte, rebuilt accepted runtime. No optical shader/asset trial retained.
+
+Next action should address simplified internal curvature and environment/coating response together with section evidence, not front-glass tint or disabling direct lights. Existing internal surfaces share .6 additive opacity and the same thin-film range, so a common colored environment response can accumulate; this is a code observation, not yet proof that opacity alone is the right correction. Full goal remains incomplete; prior local improvements preserved.
+
+
+### 2026-10-22 — recover full optical candidate and refresh its exterior
+
+Previous turn repeated an older internal-layer isolation finding; its direct-light trial added limited evidence, but rereading earlier optical work changes the next action substantially. Canon EF391 official page confirms the original EF70–200f/4L IS has20elements/15groups (https://global.canon/en/c-museum/product/ef391.html). More importantly, the repository already has a patent-derived20-element candidate, numerical/ray validation, worker preparation and a development-only actual-viewer integration documented above. Do not restart from the small raster diagram or treat four-element recoloring as the path to fidelity.
+
+Ran existing assemble-f4-patent-candidate.py against the current70-200-f4.blend. It retains the corrected collar-free exterior, applies the existing172mm registration scaling, replaces the old glass with20patent elements and repositions the iris toZ1.433128834/minimum radius14.285mm. Export/compression with --join false preserved20individually addressable Patent element nodes. Updated only the separate development candidate public/models/gear/70-200-f4-prescription.glb:2,756,192bytes,SHA256ff1acd1dc1a21bd9aa12596fab0cc824b07a89795a7ae617ca4da41012d623fc. Standard asset/production optical gate unchanged. This rebuild does not rerun all historical ray/housing checks; those need revalidation before activation.
+
+Development server4321 returned200; actual/classic/?optics=1 loaded R7+f/4 after a Vite dependency refresh. Console confirms Optical refinement complete r7 70-200-f4. First setup logged wall551.2ms/uploadCpu49.9ms/334047triangles/568890pixels; opening docked DevTools resized viewer and triggered another setup625.3ms/5.2ms/299925pixels. Different sizes and preparation states prevent a performance comparison. Console also shows an Astro toolbar Outdated Optimize Dep504 and PCFSoftShadowMap deprecation warning; neither is evidence of optical shader failure. No error-free-console claim.
+
+Inspected settled front and side captures f4-current-prescription-{front,side}.png. Candidate has refracted blue reflections rather than production's brown wash, but remains too uniform for photographic acceptance. Side preserves current focus-grip proportions, control layout and collar-free EF adapter fit. Added a concise candidate checkpoint to ASSET-CANDIDATES.md to prevent repeatedly rediscovering superseded four-element experiments. No public activation, new shader changes or push. Goal active.
+
+## 2026-10-22 — refreshed f/4 candidate housing recheck
+
+Ran `check-f4-patent-housing.py` against the refreshed
+`f4-patent-assembly.blend`, rather than relying on the older assembly's report.
+The opaque BVH contains 301,116 triangles. All 16,317
+existing sampled optical ray segments cleared it; no optical mesh/housing
+triangle intersections were reported. See `output/gear-modeling/
+f4-current-housing-check.log` and `f4-patent-housing-fit.json`.
+
+The generated 45-section barrel profile equals the runtime JSON exactly.
+This is a synchronization check, not an independent measurement of the mesh.
+The sampled rays do not establish clearance at every view or zoom setting,
+and these geometry results do not establish coating accuracy, photorealism,
+or acceptable browser costs. The existing overly uniform blue reflections
+remain unresolved; keep the full optical candidate development-only.
+
+Current compressed candidate: 2,756,192 bytes, SHA-256
+`ff1acd1dc1a21bd9aa12596fab0cc824b07a89795a7ae617ca4da41012d623fc`.
+No model, material, runtime code, or production activation changed in this check.
+
+## 2026-10-22 — f/4 front-fill reflection isolation
+
+Previous turn verified the refreshed housing (progress). In the actual
+`/classic/?optics=1` viewer, captured settled R7+f/4 near-front baseline at
+Home, five Right, two Down. Temporarily ran only the 12 reflection batches:
+the broad blue rings remained visually dominant. Restored studio.ts byte-for-byte
+to retain all 12 transmission strips and 12 reflection batches.
+
+Temporarily removed only the front fill card at (0,1,6), size 2×3, strength .8.
+The broad rings largely disappeared, leaving isolated internal highlights.
+This identifies the card as a major source of the wash; it does not prove that
+the single-film coating or internal geometry is accurate. The reference
+70-200-f4-front.jpg has more varied window reflections and blue/green/amber hues.
+
+Retained a narrower offset fill at (.75,1,6), size .65×2.4, same strength .8,
+only when the existing development optical-review flag is enabled. Normal
+visitor front lighting is unchanged. The full near-front candidate now has
+separated reflections and dark gaps instead of the broad overlapping rings.
+Default oblique also inspected: glass is dark with a distinct side reflection;
+this is not full photographic acceptance. No new geometry, material override,
+coating recolor, per-frame pass, or public optical activation. Earlier removal
+of the C200 side bounce remains intact.
+
+Evidence: f4-channel-{baseline,reflection-only,no-front-fill,narrow-front-fill}.png,
+f4-{channel,front-fill,narrow-fill}-comparison.png, and
+f4-narrow-fill-oblique.png. Narrow fill is an authored studio-light estimate,
+not a measured reconstruction of the reference room. Coating spectral/angular
+response, broader body fidelity, and visitor performance gates remain open.
+
+Validation: first build failed on an empty GitHub GraphQL JSON response while
+prerendering `/`; the completed retry passed all 15 pages in 27.99s. See
+`f4-narrow-fill-build{,-retry}.log`. Production JS contains none of the checked
+optical shader/setup identifiers (`fgReflections`, `createF4Optics`,
+`patent-36-spheres`, `fgCoatingLUT`). `git diff --check` passes. No push.
+
+## 2026-10-22 — 40D diopter axis, seating and ridges
+
+Previous turn retained a development-only f/4 lighting improvement (progress).
+Returned to normal `/classic/` rendering and compared the actual 40D rear with
+40d-rear-photo.jpg, 40d-rear-lanteigne.jpg, 40d-top.jpg and the multi-view40d.jpg.
+The model's diopter axle ran across the body (X); reference rear views show the
+dial face and radial ridges, consistent with an axle along the optical axis (Z).
+The old model therefore exposed a vertical cylindrical drum beside the eyecup.
+
+Corrected only the 40D branch to a Z-axis axle. Initial viewer candidate exposed
+too much of its plain face. Moved its center inward .055 and downward .025
+authoring units and replaced36 tiny perimeter bars with24 broader rounded radial
+ridges. These dimensions and ridge count are photo-guided estimates, not measured
+factory CAD. The existing R7 branch retains its original geometry.
+
+Rebuilt complete 40D geometry/AO/export in isolated Blender and compressed with
+meshopt/WebP. Final actual-viewer rear Home31Right1+ shows a ridged arc tucked
+behind the eyecup instead of the drum. Grip-side Home6Left1+ shows the dial seated
+against the upper housing; front Home5Right2Down1+ shows no added protrusion.
+This front view is lens-dominated and does not establish complete body contour
+fidelity. Reference and result still differ in material/ocular appearance.
+
+Evidence:40d-current-rear-review.png,40d-diopter-axis-rear.png (initial rejected
+exposure),40d-diopter-final-{rear,side,front}.png and inspection crops. Updated
+selector thumbnail from40d-rear-icon-preview(29).png. Raw export and saved
+40d.blend match the final generator. Final GLB 4,250,684bytes,
+479,554triangles,26primitives,SHA256
+`f7f90114b10bbbbab066b3bcf76163e1e3c6297a4e6a1c58fe2bb0ed0df0e452`. Previous4,270,476bytes/481,426triangles/26primitives.
+No added render pass or loading change. No new site build needed for this
+asset-only correction; actual compressed asset was tested in the viewer.
+Changes local/unpushed; full photographic acceptance remains incomplete.
+
+## 2026-10-22 — 40D finder prototype polished normals and path-traced check
+
+Previous turn corrected the visible diopter wheel (progress). Reopened the actual
+normal /classic 40D viewer at Home31Right2Down5+3ShiftUp; saved
+40d-ocular-current-close.png. It remains a dark rectangular ocular. Read the
+existing rejected three-element finder work before making changes: its full-field
+coverage remains134/225, and the production renderer cannot trace the folded path.
+No claim that offline success alone would fix the interactive appearance.
+
+Added local render-40d-finder-diagnostic.py: Cycles64samples, denoising,24total/
+16transmission/8glossy bounces,640x480, fixed camera and rear/front area lighting.
+Initial field-prototype render produced striped glass reflections. Inspection
+found trace-40d-finder-refraction.py's closure mesh discarded use_smooth on all
+3400 polygons. Corrected that source and saved a separately named polished field
+prototype with3200 smooth front faces,200 flat side/back faces, and a45degree
+edge split. Same-light rerender removes the stripes. This changes shading normals,
+not the authored optical surface positions or the existing full-field layout.
+
+Evidence:40d-finder-pathtraced-diagnostic.png (old flat closure),
+40d-finder-pathtraced-polished.png (corrected normals), and associated logs.
+Front-light-off old-closure render retains the main glare; rear-light-off polished
+render exposes the transmitted field with an upper-right rectangular clip. That
+clipping contradicts complete optical coverage. Different isolation variants must
+not be treated as an exact pixel A/B, since polished normals are only in the latter.
+The same-light full/polished pair is the normal-fix comparison.
+
+Lighting, coatings, clear apertures, prism jig and focusing screen remain
+approximations. Camera/body geometry in this old prototype also predates the
+latest diopter correction. No production GLB, source renderer or preview changed
+this turn; no build or push. Full actual-viewer optical acceptance remains open.
+
+## 2026-10-22 — 40D finder passage alignment
+
+Previous turn repaired prototype shading normals (progress). Added image-ray
+tracing with interpolated optical corner normals. Its first assumed camera mapping
+incorrectly reported a clear path through the rendered corner obstruction. An
+emissive-screen diagnostic retained the dark region, rejecting the illumination
+shadow hypothesis; opaque-object color IDs identified the mount boss there.
+
+Resolved the tracer/render discrepancy using Blender camera.view_frame and
+matrix_world. The previous track quaternion produced an X-axis pi rotation: the
+render was upside-down relative to world Y. Changed the fixed diagnostic camera
+to explicit Y-axis pi rotation. The obstructed corner is lower-left in the upright
+image. The corrected image-ray mapping identifies the boss at the obstructed
+pixels, agreeing with the color-ID render. Original upside-down color/visibility
+diagnostics remain available; 40d-finder-upright-baseline.png preserves the new
+upright baseline. Do not interpret the earlier image-axis description as a
+physical location or rely on the superseded manual ray mapping.
+
+The .20-unit-wide boss passage was centered atX=0; the ocular center isX=.04.
+Created center-40d-finder-channel.py from the existing field prototype builder,
+changing only that cutter's horizontal center to .04 and retaining polished
+outer normals. Controlled same-camera/light render
+40d-finder-centered-pathtraced-rear-off.png no longer shows the corner clip.
+No artificial emission material was retained in this candidate.
+
+New smooth-normal ray comparisons use the same225 diagnostic pupil/angle samples
+for both meshes: prior polished142/225, centered157/225. Boss failures reduce
+37→22; rear-baffle30, casting10 and flash-cover6 failures remain. Central pupil
+only improves17/25→18/25. Earlier134/225 used triangle face normals, so it is
+not the controlled baseline for this comparison. These diagnostic angular/pupil
+samples are not an independently verified Canon field specification.
+
+check-40d-centered-envelope.py compares prior polished and centered candidates:
+front3805/rear3725/left3667/right3667/top3448 samples; no silhouette mismatch
+or depth change above1e-4units, excluding the eyepiece opening. This supports
+sampled exterior preservation, not exhaustive proof. Reports and logs are local
+under output/gear-modeling. Latest candidate is40d-finder-centered-field-prototype.blend.
+
+The three estimated ocular elements and two-mirror jig still omit the real roof
+prism prescription; broad-field coverage and an actual interactive renderer remain
+unresolved. No production model/material/runtime change, build, or push this turn.
+
+## 2026-10-22 — finder baffle diagnostic and reference-correct 40D outer curvature
+
+Previous turn centered the internal passage (progress). The30 baffle-terminal
+ray points lie withinX[-.08689,.16689],Y[.53563,.71437]. Tested a .29-wide
+opening instead of.25, preserving.19height,.021corner radius and.35frame width
+(.03side margins). All30 baffle hits clear, but coverage only increases157/225
+to165/225: casting20,boss28,flash cover11,screen retainer1 failures remain.
+Central pupil remains18/25. Same five-view exterior grid has no silhouette
+or depth changes above1e-4units against the centered candidate.
+
+Added render-40d-finder-eye-field.py: eye22mm behind the outer vertex,85mm camera
+lens,640x426, existing optics/mirrors, diagnostic emissive screen and no lights.
+Both centered and wide-baffle Cycles images show substantial deep-field clipping.
+These are visibility diagnostics, not proposed emissive finder materials or
+actual-browser acceptance. The enlarged baffle is retained only in the separate
+40d-finder-wide-baffle-prototype.blend experiment.
+
+Re-rendered Canon whitepaper page14 with Poppler and inspected its enlarged
+Viewfinder Optics section (40d-finder-section-detail.png). The outer eye-facing
+surface of eyepiece lens3 is concave; both the old production window and the
+experimental outer element were convex. Changed only40D production surface's
+curvature sign, retaining its estimated.024corner sag, dimensions, placement and
+existing material. R7/C200 geometry follows the original branch unchanged.
+This is a reference-supported curvature direction, not recovered optical radii
+or a completed meniscus/three-element prescription.
+
+Full isolated40D build/AO/export and meshopt/WebP compression pass. Saved-mesh
+check finds6300ocular triangles,473254other triangles,zero intersection pairs;
+all ocular geometric normals face rearward (Z from-.9999974 to-.9736115).
+Actual normal /classic viewer inspected matched close rear Home31Right2Down5+
+3ShiftUp, adjacent+3Right, full side Home6Left1+, front Home5Right2Down1+, and
+rear Home31Right1+. Reflections move in the corrected direction; the opening
+remains seated. The dark approximate interior still does not match the reference.
+No full optical/body acceptance follows from these checks.
+
+Evidence40d-concave-ocular-{close,oblique,side,front,rear}.png,
+40d-ocular-curvature-comparison.png,40d-concave-ocular-inspection.png and the
+housing report/log. Refreshed selector thumbnail from40d-rear-icon-preview(30).png.
+Final GLB4,247,820bytes,479,554triangles,26primitives,
+SHA256`ac12074b7f89c7896a99dc3ca9af79a979c1a7ac7681c164f2d9b7bc4de6f0b2`. Counts unchanged from the prior diopter revision.
+No runtime passes/loading change, no new site build needed for this asset edit,
+no push. Broader photorealism and prototype renderer integration remain unfinished.
+
+## 2026-10-22 — identify the rear-oblique crown wedge before reshaping
+
+Previous turn checked the owned EF f/4 classification and removed a temporary
+pointer probe (progress). IS versus non-IS remains unconfirmed by the user;
+no variant-specific geometry or ownership change was made.
+
+Current actual /classic viewer initially failed on a GitHub HTML response parsed
+as JSON; a reload recovered. Selected40D+28–135, Home34Right2Down5plus3ShiftUp.
+Evidence40d-crown-current.png shows the conspicuous dark rear crown wedge.
+A temporary pointer ray at screenshot(1230,836) produced normalized pointer
+(-.1810302323,.5265625), first hit Continuous_cast_housing_14 at
+(-.4215212457,.8506864139,-.3600092147), face7288. Second hit lies at the
+front of the cover, not in the lens. This differs from the older rear-barrel
+false-gap diagnosis.
+
+Saved-mesh nearest-surface verification check-40d-crown-hit.py reports
+Graphite polymer.001 at(-.4215212464,.8506864309,-.3600000143), distance
+9.21e-6units, geometric normal(0,0,-1), triangle363183. Source flash loft
+starts atZ=-.36 and caps that ring with a flat ngon. The dark wedge is the
+cover rear cap itself, not empty space or a missing support beneath it.
+Do not fill the cavity based on this screenshot. Compare the cover's rear
+termination and prism transition against rear/top photographic references
+before reshaping; production contour acceptance remains unproven.
+
+Removed temporary pointer listener/logging by restoring the exact pre-probe
+scene source. No public asset changed, no push, no photorealism claim.
+
+## 2026-10-22 — retain crown recess; shallow convex 40D AF-ON face
+
+Previous turn identified the dark crown surface (progress). New photographic
+reference downloaded to40d-top-oblique-recycled.jpg from
+https://recycledphoto.com/cdn/shop/products/57_793f32db-c164-4952-8ae9-56fbcd5e7f68.jpg?v=1678374719&width=1946
+shows actual dark recesses beside the hot shoe behind the flash lid. Therefore
+do not remove the dark feature simply because it resembles a gap. Current rear
+cap/hinge construction is approximate; this does not accept its whole contour.
+
+Reinspected40d-rear-lanteigne.jpg at high resolution. AF-ON has a shallow
+convex face distinct from the broad inset neighboring AE-lock/AF-point faces.
+The current shared profile gave all three a recessed flat center. Earlier
+large ellipsoid replacement was rejected; this change retains radius, rim,
+bezel, surface-fitted pose, ink and material while raising only AF-ON's center
+from-.012 to-.018 local units. Added rings at radius fractions.25/.50,
+with depths-.01775/-.017, continuing through.70/-.016,.82/-.0152 to the
+unchanged.91/-.0145 rim. Smooth shading includes its central fan; adjacent
+keys retain the old profile and shading. Dimensions remain photo estimates.
+
+Full isolated Blender build/AO/export and meshopt/WebP compression pass.
+Actual /classic40D+28–135 matched rear Home31Right2Down5plus3ShiftUp shows a
+rounded AF-ON reflection instead of a flat black disc. Adjacent+3Right confirms
+it remains seated; sideHome6Left1plus and frontHome5Right2Down1plus inspected.
+Screens40d-afon-face-{before,after,oblique,side,front}.png, comparison and
+inspection sheets record this. Retained the shallow crown correction; no
+material/runtime change, no broad fidelity acceptance. Refreshed selector
+preview from40d-rear-icon-preview(31).png. Generator AST and diff checks pass.
+
+GLB4,242,772bytes,479,810triangles (256more than baseline), SHA256
+2899fd8735e52e7892444a90f510b32e15628971174dc01086867863371a9f71.
+Raw40d-afon-face-uncompressed.glb and40d.blend match this revision. Baseline
+backup40d-before-afon-face.glb andbuild-before-40d-afon-face.py retained locally.
+No push. IS/non-IS user detail remains pending; broader bodies, materials,
+optics and complete multi-angle photographic acceptance remain unfinished.
+
+## 2026-10-22 — seat the C200 monitor glass behind its bezel
+
+Previous turn corrected40D AF-ON (progress). Inspected actual C200+f/2.8 side,
+rear and rear/grip-oblique against Canon assembled rear/hero and manual p17.
+Close oblique Home35Right3plus3ShiftUp showed broken bright lines around the
+active monitor glass. Matched original uncompressed export shows the same
+artifact, ruling out compression as its source. Evidence c200-review-current-
+{side,rear,grip}.png andc200-monitor-{edge-raw,compression-comparison}.png.
+
+Source had a solid bezel backing with glass raised.0075units ahead of it.
+Created a rounded opening through the bezel, .008units smaller than the glass
+in each dimension (.004overlap per edge), and moved glass center .008→-.001.
+The existing glass size/material/roughness and monitor body/mount are retained.
+The surround is now.0015units ahead of the glass. These seating dimensions
+are estimates informed by the flush/recessed appearance of Canon's reference,
+not manufacturer measurements.
+
+First candidate removed glass sparkle but inherited bent normals after the
+Boolean opening, making the flat border appear deeply beveled. Rejected its
+shading; savedc200-display-seat-bent-bezel.glb and comparison. Independent saved-
+mesh checks measured sampled bezel triangle corner normals52.5–55.5degrees
+away from its plane. Set broad planar bezel-face normals explicitly while
+preserving its curved edge normals. Rebuilt/AO/exported/compressed again.
+
+check-c200-display-seat.py on final savedc200.blend:25interior samples first hit
+glass; four surrounding samples hitDeep black .0014996–.0015000units ahead;
+all sampled planar bezel corner-normal errors0degrees. This is sampled seating
+and shading verification, not exhaustive intersection proof. Glass broad-face
+normal check after first seating build remained below.028degrees; second edit
+only changes bezel normals. Final actual viewer matched oblique removes the
+bright fragmented active-glass outline without false broad bevel shading.
+RearHome31Right3plus3ShiftUp, sideHome18Right3plus, frontHome5Right2Down1plus
+also inspected. Screensc200-monitor-edge-flat.png,c200-monitor-seat-{rear,side,
+front}.png,final-comparison andseat-inspection sheets. Model remains much darker
+than bright studio references; no claim of full material/optical fidelity.
+
+Final5504736bytes,678204triangles,24primitives,SHA256
+0da0194dd718d6483ef972837ae4ea618f89ddbf6ef3e220d07c572362a171a6.
+Baseline5522672bytes,678056triangles,24primitives:148extra triangles, no extra
+primitive or rendering pass. Rawc200-display-seat-flat-uncompressed.glb and
+c200.blend match the retained candidate. Baseline generator/build andGLB/blend
+backups remain ignored underoutput/gear-modeling. No runtime loading changes,
+no push. Full photographic goal remains incomplete.
+
+RefreshedC200 selector thumbnail fromc200-rear-icon-preview(21).png.
+
+## 2026-10-22 — isolate f/2.8 lettering resolution loss
+
+Previous turn fixed C200 monitor seating/normals (progress). Reopened current
+f/2.8 switch construction and referencesf28-controls-ebay.jpg and70-200-f28-
+controls.jpg. Prior trials already ruled out gross burial, material roughness,
+unlit ink, and a same-size filtered texture as sufficient fixes; current Bold
+weight and16-bit positions are retained. No new typography/material tweak.
+
+Actual C200+f/2.8 close operator-side pose Home18Right9plus15ShiftLeft8ShiftDown
+shows readable but fragmented fine labels/indexes. Capturedf28-current-print-
+facing.png. Temporarily changed renderer DPR cap1.5 to fixed3, preserving
+geometry/materials/camera/lighting and captured the identical pose in
+f28-current-print-dpr3.png. f28-resolution-comparison.png uses the same
+screen crop(1310,940)-(1450,1270). At DPR3 the limiter text, AF/MF and ON/OFF
+indexes and lower mode numbers resolve more clearly. This establishes a
+sampling contribution at this view, not that resolution is the sole remaining
+fidelity problem. Screenshot cursor is present in both crops.
+
+Restoredscene.ts exactly fromscene-before-f28-resolution.ts. No public renderer
+increase retained, no performance benchmark or speed claim. Doubling DPR means
+four times the pixel count by construction. Existing draw path renders only
+when dirty; controls change sets lastMotion, and coarse devices currently cap
+DPR1.25. Next candidate: bounded higher sampling for a settled visible desktop
+image, preserving motion/coarse-device cost and dev optical mode. Must verify
+pixel budget, settle/interact/resize/offscreen transitions and actual work before
+shipping. No asset or thumbnail changed and no push. Goal remains incomplete.
+
+## 2026-10-22 — bounded settled-image desktop refinement
+
+Previous turn isolated a sampling contribution to f/2.8 label loss (progress).
+Added a settled-image resolution policy inclassic scene.ts. Interaction keeps
+existing DPR cap1.5 desktop/1.25coarse. After400ms with no control changes or
+active gesture, visible desktop viewers with no loading/swap animation may
+refine to min(native DPR,2,sqrt(1500000/CSS area)), never below interaction
+resolution. Thus extra refinement cannot exceed1.5M pixels; an already larger
+baseline is preserved rather than claiming a universal framebuffer cap.
+Coarse pointer anddev optics review retain original resolution. The ratio
+changes only at transitions; the existing dirty-render condition performs one
+settled redraw, not continuous expensive frames. Resize resets motion quality
+and recalculates the allowance; gesture start/end prevent refining during a
+held interaction. Existing visibility handling still cancels offscreen loops.
+
+Production build15pages passes24.80s; this is a build duration, not a rendering
+benchmark. Matched actual C200+f/2.8 viewHome18Right9plus15ShiftLeft8ShiftDown
+recordedf28-settled-quality.png andcomparison with previous1.5cap. Indexes and
+small lettering are clearer, though3xdiagnostic is sharper. No lens/material
+change and no claim that this establishes photographic acceptance.
+
+Temporary console telemetry on actual viewer with dockedconsole observed
+R7+28–135 settled frames6,ratio2,buffer860x620; camera input frames8,ratio1.5,
+buffer645x465; settled frames9,ratio2,buffer860x620. Subsequent idle reports
+remain9. Scrolling canvas offscreen yields visiblefalse with frames9 unchanged
+across repeated reports. Resizing through device emulation changed the buffer
+without errors. Fresh viewer initialization under400px responsive mobile
+emulation reports coarse=true,ratio1.25,buffer473x415,frames4unchanged across
+idle reports. This is desktop browser emulation, not physical mobile-GPU
+performance evidence. No GPU-time/latency/speedup claim; framecounts prove
+render frequency, not per-frame cost. Coarse transition in an already-created
+viewer retains its initialization cap; fresh mobile initialization preserves1.25.
+
+Removed all audit timers/logging by restoring verified clean source. Existing
+lazy loading, static poster and development-only optical renderer remain.
+Diff check passes; no push. Broader model/optical fidelity remains unfinished.
+
+## 2026-10-22 — reference-shaped 40D lens3 meniscus candidate
+
+Previous turn implemented bounded settled-image refinement (progress). Reopened
+Canon whitepaper p14 enlarged section40d-finder-section-detail.png. Lens3 has a
+concave eye-facing surface and a curved prism-facing surface, rather than a
+single surface or the old prototype's convex plane-backed element. Current
+browser material still uses uniform.024thickness and screen-space transmission;
+it does not model this element plus the prism/other eyepiece lenses.
+
+Built an isolated candidate from the authoritative latest40d.blend, preserving
+all3201outer surface vertices. Added a spherical inner face with corner sag
+.018(.75of outer.024), estimated center thickness.075units/4.125mm, informed by
+the diagram's proportions. These are schematic-derived estimates, not measured
+radii, material glass identity, or Canon prescription. Closed meniscus12800tri,
+positive volume.0051731256units³, all edges manifold before separating polished
+face normals from the edge band. Saved40d-meniscus-candidate.blend andbuilder.
+
+Whole-assembly triangle intersection test found485pairs withOptical barrel
+flocking, consistent with the existing first baffle occupying the new glass.
+Moved only its288vertices forward.100units, selecting the entire disconnected
+surface and asserting no shared vertices with unselected faces. Saved candidate
+40d-meniscus-seated-candidate.blend has zero glass/opaque triangle intersections.
+The second baffle and all exterior geometry are retained.
+
+check-40d-meniscus-envelope.py compares opaque surfaces against current40d.blend
+from front3805/rear3725/left3667/right3667/top3448samples, excluding rear finder
+opening and glass. Zero silhouette mismatches or depth differences>1e-4units.
+This is sampled exterior preservation, not complete photographic validation.
+Reports40d-meniscus-clearance.json,40d-meniscus-seated-clearance.json and
+40d-meniscus-envelope.json plus logs are under ignoredoutput/gear-modeling.
+
+No production generator/GLB/runtime or preview change this turn. The candidate
+must be combined with a reconstructed prism and remaining eyepiece elements,
+and a renderer that follows that optical path, before actual-viewer acceptance.
+Old full-path prototypes retain their wrong convex outer element and must not
+be treated as the current meniscus candidate or silently promoted. No push;
+full photographic objective remains incomplete.
+
+### 2026-10-22 — three-element 40D eyepiece and casting orientation diagnosis
+
+The previous clarification-only goal turn made no modeling progress. Continued
+from the latest meniscus candidate, adding schematic-estimated lens1
+(plano-convex, radius .110, axial vertices -.399/-.371, convex sag .018) and
+lens2 (biconvex, radius .125, vertices -.484/-.413, sags .015/.019).
+These follow the whitepaper section's shape/order, not a recovered prescription.
+Internal aperture sizes, radii, spacing and glass identity remain estimates.
+Builder: output/gear-modeling/build-40d-eyepiece-group.py. Closed elements have
+positive volume before polished-face edge separation. Initial lens2 collided
+with the casting (294 triangle pairs); no glass/glass intersections.
+
+Two whole-assembly channel cuts failed: 316 lens2/casting intersection pairs
+and all nine axial probes blocked immediately after lens3. Extending the cutter
+merely moved the blocking cap. Tested their shared premise (that the baked
+assembly was a valid oriented solid) before another clearance change.
+The casting had duplicated seam vertices: one large component had 1561 boundary
+edges and its channel fragment had 38. Welding at 1e-6 units closes those seams.
+An axial probe then identified the existing channel cap at z=-.407 with +Z
+normal although it is the first casting face encountered from the eye.
+This inconsistent face orientation explains why subtraction generated a cap
+at the cutter's eye-side endpoint. Isolation initially selected unrelated faces
+because of Blender vertex-selection state; corrected to explicit face mode and
+asserted casting-only materials before proceeding.
+
+Final isolated experiment separates the casting, welds coincident vertices,
+recalculates consistent face normals, and subtracts a radius .135 cylinder,
+z[-.59,-.34], using exact Boolean with self-intersection handling. Other objects
+are not cut. Saved 40d-eyepiece-casting-channel-candidate.blend and reproducible
+open-40d-casting-channel.py. Zero triangle intersections for all three lenses;
+nine straight axial probes at pupil offsets {-1,0,1}mm in X/Y each encounter
+all six glass surfaces before the remaining forward casting cap at z=-.34.
+These are visibility probes, not refracted rays, field coverage, or a working
+prism path. Do not treat passing six surfaces as optical acceptance.
+
+Exterior depth sampling against current production40d.blend: no silhouette
+mismatches; front3805/rear3725/left3667/right3667 unchanged at 1e-4 threshold.
+Top3448 samples has one .000163794-unit depth change (about .009mm at55mm/unit),
+outside the finder, plausibly Boolean triangulation/numerical drift; not proven
+exact preservation. Rear finder opening/glass excluded by design. No normal,
+material, or photographic fidelity inference follows from this geometry test.
+Reports: 40d-channel-topology.json, 40d-channel-welded-topology.json,
+40d-eyepiece-casting-channel-check.json, 40d-eyepiece-group-envelope.json.
+No production asset/runtime changes or push in this turn. Next work must join
+this corrected group to a reference-supported prism path and verify rendering
+in the actual viewer before promotion. Full photographic objective incomplete.
+
+### 2026-10-22 — R7 protruding battery plate corrected in actual viewer
+
+Previous turn made prototype progress on the 40D ocular group. Returned to the
+actual /classic viewer to prioritize visible problems. R7 rear inspection found
+a bright horizontal plate protruding beneath the body. Saved rear/low-angle
+screens show it independently of the 40D work. The generic Battery plate box
+spanned z[-.365,.205]; the R7 rear casting ends near -.263, so the plate extended
+behind the housing. Blender probes at z=-.3 hit the plate with no casting below
+its footprint. This was geometry, not a silver-material or lighting issue.
+
+Retrieved Canon's official bottom photograph:
+https://i1.adis.ws/i/canon/5137C017_EOS-R7_HighRes_04?w=1600&fmt=png
+from https://www.canon.co.uk/store/canon-eos-r7-mirrorless-camera-body/5137C025/.
+Saved output/gear-reference/r7-bottom-canon.png. The previously saved
+r7-rear-canon-au.jpg is HTML, not an image; used valid r7-rear-ldlc.jpg and
+r7-back-canon.jpg for rear comparison instead.
+
+Kept the generic plate for40D; replaced only R7 with an estimated rounded
+battery-door outline beneath the grip. Added after casting deformation/union,
+subdivided and ray-fitted every vertex to the final lower housing. Each sample
+must hit the casting; exterior skin sits .001 units below it, with inner skin
+embedded .009. Surface heights range -.738309 to -.693995. This removes the
+floating rear rectangle without changing lighting or the main body contour.
+The footprint is photograph-guided, not measured CAD. Latch, hinge, molded
+markings and full underside detailing are still incomplete; do not claim the
+battery door is a finished replica.
+
+Built/baked/exported and meshopt compressed r7.glb: 4,707,844 bytes,
+SHA256 8e581ec64832780262f730fe222bc8819391fd5037f53a6e021a120d6ba0651a.
+Actual-viewer reloaded asset: matched Home31Right3Down1plus rear view no longer
+shows the strip. Additional underside (12Down), grip side (Home6Left), and front
+(Home5Right2Down) checked; no exposed panel or obvious new silhouette break.
+Evidence r7-lower-edge-{audit,after}.png, r7-bottom-{before,after}.png,
+r7-battery-door-{side,front,inspection}.png under output/gear-modeling.
+These checks support this local correction, not full photorealistic acceptance.
+Refreshed R7 thumbnail from r7-rear-icon-preview (34).png. Site build passed:
+15 pages,29.27s (r7-battery-door-site-build.log). No runtime/UI code change and
+no push this turn. Full model/material/optical objective remains incomplete.
+
+### 2026-10-22 — R7 battery-door latch, seat and remaining shading issues
+
+Previous turn fixed the protruding generic plate (progress). Continued against
+Canon's saved r7-bottom-canon.png: added a rounded recessed latch pocket and
+slider, perimeter joint, hinge divisions, dark BATT. OPEN legend and arrow.
+All dimensions remain photograph estimates. The legend is currently a dark
+surface mesh, not a fully reconstructed molded relief; readability is unproven.
+
+Rejected first oblique result: jagged pocket rim and disturbed door shading.
+Rebuilt the lid mesh after Boolean to discard inherited split normals, then
+separated pocket-wall normals at45degrees. Increased legend clearance to.004.
+A grid test also found75 negative casting/Graphite-polymer depth clearances
+(minimum-.002005 units) among2865 underside samples. Some samples include the
+beveled perimeter, so this is not75 proven visible artifacts, but it establishes
+that the overlapping skin construction cannot guarantee clearance.
+
+Added a real housing seat. Scaling its outline about a center failed at the
+concave return:14 remaining overlaps all atz.1. A true outward edge offset
+(.004units) corrected that outline, but conforming the expanded cutter to the
+housing made the existing card-door normal probe fail at
+(-1.485995,-.156600,.020740), far above the underside. Rejected both failed
+exports; Blender's zero exit status did not override assertion failure.
+Bounded the final cutter to worldY[-.760,-.665] instead of projecting its edge
+onto higher parts of the curved casting. Casting manifold/card-door checks
+pass again. This pocket floor is construction geometry, not measured Canon
+internal structure. Latch floor sits separately beneath the slider.
+
+Final diagnostic r7-door-skin-clearance.json:2865 samples,0 negative clearance,
+minimum.0389985 to remaining casting; this measures clearance to the recessed
+housing, not a visible air gap and not entire-mesh intersection coverage.
+Actual /classic R7+50mm view Home37Right20Down4plus6ShiftDown now shows a clean
+latch rim (r7-door-bounded-oblique.png), unlike r7-door-details-oblique.png.
+However the broad lid still has uneven shading and the dark legend is hard to
+read at this grazing angle. Do not call the underside photo-accepted. Next
+surface work should inspect the lid's normals/curvature against the reference;
+do not keep changing exposure to conceal it. Front/rear/grip-side checks saved
+as r7-door-bounded-{front,rear,side,inspection}.png show no obvious adjoining
+contour break and no return of the protruding plate. Full photographic
+acceptance remains outstanding.
+
+Current compressed R7:4,824,836bytes,471518tri,
+SHA256 19dec3ae9a65ee99361b866e9bda95bed5752cc0f9b2dd93345da506dbd26b9b.
+Compared with last turn:116992 additional bytes,20708 additional triangles.
+No runtime pass or load-policy change. Build passed15pages in24.09s; log
+r7-door-bounded-site-build.log. R7 thumbnail remains last turn's seated-door
+version; refresh after the underside shading correction. No push this turn.
+Raw accepted build r7-door-bounded-uncompressed.glb and editable r7.blend;
+before-detail asset r7-before-door-details.glb and builder backup
+build-before-r7-door-details.py remain available under ignoredoutput.
+
+### 2026-10-22 — rigid R7 battery lid and readable molded legend
+
+Previous turn added the seated latch but left uneven shading (progress).
+Tested its remaining premise: conforming every lid vertex to the estimated
+casting was introducing curvature into a rigid panel. Canon's saved underside
+reference supports a flatter lid. Changed the lid and its details to a common
+base planeY=-.72183 (near the existing main base), retaining the rounded outline,
+bounded housing pocket and latch recess. Removed dense conformity subdivisions;
+flat lid polygons now use flat shading with separately shaded pocket walls.
+Added .0015-unit thickness to the dark legend, extending toward the lid.
+Dimensions/relief depth remain reference estimates, not recovered CAD.
+
+Rebuilt and inspected the same actual-viewer oblique pose with50mm lens:
+Home37Right20Down4plus6ShiftDown. r7-planar-door-oblique.png shows the broad
+shading distortion reduced and BATT. OPEN readable, compared with
+r7-door-bounded-oblique.png. Some reflected/baked shading remains around the
+latch; no claim of exact material matching. Front/rear/grip-side checked in
+r7-planar-door-{front,rear,side,inspection}.png: no obvious contour regression
+or return of the floating plate. The reference-supported planar construction
+is retained. Full R7 photographic acceptance remains unproven.
+
+2864 underside grid samples have no negative lid/casting clearance; minimum
+.0548298 is to the pocket floor, not a visible gap. Same limited geometry probe
+as before (r7-planar-door-clearance.log and r7-door-skin-clearance.json).
+Compressed asset4,669,812bytes,440920tri, down155024bytes and30598tri from the
+last turn; this is asset complexity/size, not a measured frame-time speedup.
+SHA256 f542ba8bb2b80a672906f26413189bcd16ba5cb5c1789039d7f8fa131b117de4.
+Refreshed R7 thumbnail from r7-rear-icon-preview (35).png. Build passed15pages
+in26.12s (r7-planar-door-site-build.log). No runtime/UI change or push. Other
+camera/lens fidelity and optical rendering work remain open.
+
+### 2026-10-22 — C200 handle accessory plate normals
+
+Previous turn improved R7 lid shape/legend (progress). Reviewed current C200
+operator side and rear against c200-canon-hero.jpg and
+c200-canon-assembled-rear.jpg. Retained the large eyecup/handle revisions and did
+not repeat the previously rejected handle-roughness adjustment. Found a distinct
+artifact on the handle's rear accessory plate: its flat serrated face rendered
+like a triangular recess surrounding the socket. The existing casting-normal
+fix covered the handle itself, but not these separate plates after their cuts.
+
+check-c200-accessory-plate.py reconstructs the exact rounded plate and socket
+Boolean with the generator helpers. Its210 sampled broad planar corner loops
+had maximum73.20095degrees/mean45.11675degrees deviation from geometric face
+normals. Preserve curved-edge normals and explicitly set planar front/back
+loops to face normals after the socket Boolean. Same diagnostic then reports
+zero deviation. Applied to both end plates in the real generator; no geometry,
+material, light or socket dimension changes.
+
+Full C200 build/bake/export and existing body/handle/control assertions passed.
+Reloaded compressed asset in /classic: matched rearHome31Right4plus shows the
+false triangular bowl removed and flat serrations/socket retained. Front
+Home5Right2Down2plus and sideHome18Right3plus checked. Evidence
+c200-rear-close-audit.png versus c200-plate-normals-rear.png, plus
+c200-plate-normals-{front,side,inspection}.png. This verifies a local shading
+correction, not full photographic fidelity. Front plate is partly occluded by
+the monitor mounting arrangement in this assembled view.
+
+Current c200.glb5,494,380bytes,678204tri (unchanged),SHA256
+9dd4fd2e6a9c2cd64ce74ad3326c6e7f112d660860d2866f70de874e6a0a3219.
+Raw c200-plate-normals-uncompressed.glb and c200.blend match the corrected build.
+Thumbnail refreshed from c200-rear-icon-preview (22).png. Site build passed
+15pages in24.92s (c200-plate-normals-site-build.log). No runtime/loading/UI
+changes, no push. Broader model/material/optical acceptance remains incomplete.
+
+
+### 2026-10-22 — 28–135 complete approximation trace
+
+Previous turn confirmed owned f/4 versus available f/2.8 assignment but made no
+modeling progress. IS/non-IS clarification remains unanswered; no variant change.
+Revalidated the actual /classic R7+28–135 viewer at Home5Right2Down, captured
+r7-current-frontal-audit.png. Existing front reflections are present; this view
+alone does not establish accuracy or justify suppressing them.
+
+Canon's official EF342 page and US support specifications confirm16elements in
+12groups (https://global.canon/en/c-museum/product/ef342.html,
+https://www.usa.canon.com/support/p/ef-28-135mm-f-3-5-5-6-is-usm).
+Current generator has3elements. Existing work fitted only the first meniscus;
+no full28–135prescription candidate was found among the saved train diagnostics.
+
+Added ignored check-28-135-full-train.ts adapted from the existing f/2.8 analytical
+checker, matching current generator dimensions: spherical front meniscus,
+parabolic inner/rear elements. Used current loader indices1.52/1.52/1.60,
+not measured Canon glass data. Includes the iris behind the rear element.
+Report28-135-full-train-check.json: near-axis height.0001 gives final focus
+Z.7904014357,43.472079mm ahead of the mount, equivalent focal length17.155038mm.
+Independent paraxial matrices give Z.7904014124 and17.155037mm; near-axis
+agreement and mirrored-ray symmetry assertions pass. Expected EF image plane
+is behind the mount; this approximated train focuses on the wrong side.
+Outer rays at heights.3,.4,.5 are clipped by the first inner-element aperture.
+This traces analytical surfaces underlying the model, not mesh tessellation,
+complete opaque housing, or the production screen-space shader. It cannot
+predict exact screenshot pixels or establish a physical Canon prescription.
+
+Do not repeat baffle-grain, transmission-LOD, or front-only curvature trials as
+solutions to this structural mismatch. Next geometry work must address missing
+internal groups using the saved construction section; any fitted candidate must
+also be checked for image-plane placement and actual-viewer appearance before
+adoption. Full physical optics is not itself proof of photographic appearance.
+No public asset/runtime changes, no build needed for diagnostic/docs, no push.
+Full body/material/optics reference acceptance remains incomplete.
+
+
+### 2026-10-22 — complete 28–135 vector geometry prototype
+
+Previous turn established incorrect focus in the3element approximation (progress).
+Found the complete section as vector paths in saved Canon EF Lens Work workbook
+canon-ef-lens-workbook-zoom.pdf,page8 (printed86). Extracted using pdftocairo;
+28-135-workbook-page.svg retains original paths/transforms. New ignored
+extract-28-135-section.py selects the32upper/lower blue paths for this lens,
+extracts28axis-connected cubic optical interfaces from the16upper paths, and
+applies the actual anisotropic PDF transform before measuring shapes. No raster
+edge guesses or spherical replacement of the aspherical drawing.
+
+Mapped12groups to interfaces [1,2,3],[4,5],[6,7],[8,9],[10,11],[12,13],
+[14,15,16],[17,18,19],[20,21,22],[23,24],[25,26],[27,28]. This yields16elements,
+4cemented boundaries, and the green aspherical14th element agrees with Canon's
+EF342 description. The space between7and8 is air, despite their drawing rims
+nearly meeting; treating it as glass would incorrectly produce17elements.
+Saved28-135-vector-surfaces.json includes source hash, full sampled curves,
+Bezier controls, grouping and mapping assumptions. Clear radii use each group's
+minimum sampled extent; bevels/rounded drawing endpoints are not reconstructed.
+Scale anchors the first surface radius to existing.569687units and first vertex
+Z1.734. It is not a recovered zoom position or optical prescription.
+
+Built separate28-135-vector-optics-prototype.blend/glb with16closed revolved
+meshes,96azimuth samples and32radial rows per face. Build endedPROTOTYPE_COMPLETE16.
+check-28-135-vector-mesh.py reopens savedBlend: all16meshes manifold, positive
+signed volume.101radial samples per adjacent group show positive air separation;
+smallest.034196mm is drawing-derived, not manufacturing tolerance. Cemented
+boundaries share identical surfaces/radii. Materials use placeholderIOR1.52,
+not inferred glass data; no optical-performance claim.
+
+Inspected actual-mesh cross-section28-135-vector-mesh-section.png against the
+600dpi PDF crop28-135-vector-section.png: major group order, curvature signs,
+relative spacing and aspheric element position agree visually. This is geometry
+verification only, not assembled-viewer acceptance. Missing next gates: recover
+or constrain optical indices, check imaging/iris and barrel intersections, wire
+candidate into isolated viewer and inspect front/side/rear appearance and cost.
+Do not ship on manifold/count checks alone. Public model/runtime unchanged;
+no production build or push. Full photographic objective remains incomplete.
+
+
+### 2026-10-22 — 28–135 candidate housing fit
+
+Previous turn produced vector-derived16element geometry (progress). Reopened
+actual28-135.blend and appended the candidate. Exact triangle BVH surface
+intersection check found element3crossing Machined optical baffles(440pairs)
+and Optical barrel flocking(1452pairs); other15elements had no reported opaque
+surface overlaps. This does not detect complete containment or validate refracted
+ray clearance. Source/check report: check-28-135-prototype-housing.py and
+28-135-prototype-housing-check.json.
+
+New ignored fit-28-135-prototype-housing.py builds a separate assembled candidate
+from current saved exterior. Removes3oldglass objects, appends16newones. Changes
+only two internal material meshes: remaps shallow recess radii from old range to
+[.514814863,rmax], preserving its axial grooves; replaces192long lining faces
+with a two-segment lining from frontZ1.405 at radius.514814863, through knee
+Z1.344990721 at that radius, to existing aperture-edgeZ.866/radius.30659.
+These are mechanical accommodation estimates, not recovered Canon construction.
+First retest exposed the old inner retaining seat as a remaining collision.
+Moved1536vertices within its radius/axial bounds rearward.070units; no external
+mesh, controls, markings, or aperture blades changed.
+
+Saved28-135-vector-assembled-prototype.blend and .glb (export_yup=false, matching
+site authoring coordinates). Reopened saved assembly and retested all16glass
+meshes against all nonglass housing meshes: HOUSING_CHECK_COMPLETE16 0.
+Report28-135-prototype-housing-fitted-check.json and corresponding log.
+This proves only no reported triangle-surface intersections at current geometry.
+No claim about closed containment, refracted pupils, accurate mechanical seats,
+texture/normal quality on altered liner, calibrated glass, or visual fidelity.
+Prototype material remains placeholderIOR1.52 and shared across glass.
+
+Next: inspect assembled candidate in isolated interactive viewer using production
+lighting, repair changed interior shading/UVs if needed, then address transport.
+Do not integrate based only on BVH pass. Public assets/runtime unchanged, no
+production build or push; full goal remains incomplete.
+
+
+### 2026-10-22 — reject placeholder16element viewer rendering
+
+Previous turn fitted experimental housing with no reported glass/opaque surface
+intersections (progress). Added ignored28-135-viewer.html/.ts and a copy of the
+current production scene as28-135-viewer-scene.ts. Only scene differences are
+import paths and model URL override for ?candidate=1; same studio lighting,
+body/adapter assembly, controls and rendering lifecycle. No production UI edit.
+Candidate glass uses its explicitly uncalibrated material name and therefore
+bypasses the production loader's three-element optical-material approximations.
+
+Actual interactive R7+Control Ring+candidate inspected frontHome5Right2Down,
+sideHome18Right,rearHome31Right. Captures28-135-assembled-viewer-{front,side,rear}.png.
+Side/rear show assembled exterior and retained controls without obvious new
+protrusions; this is not a new complete reference audit for those surfaces.
+Front fails visual acceptance: broad white uncoated reflections and bright rim
+obscure the interior; reference28-135-front.jpg shows visible annular recess and
+colored internal reflections. Baseline in same scene/viewer URL withoutcandidate,
+28-135-baseline-viewer-front.png, retains the prior visible recess and colored
+reflections. No quantitative pixel/performance equivalence claimed.
+
+Do not promote this candidate or recolor16independent glass materials and call
+it accurate. Native layered transmission does not implement the full refracted
+multi-interface paths, and placeholder material lacks calibrated coating response.
+The reference's apparent bore is also refracted through its front group, so do
+not infer physical recess dimensions directly from that appearance. Experimental
+housing modifications remain provisional; intersection-free does not prove the
+right geometry. Need a complete optical rendering path (adapt existing sequential
+prototype) before judging whether the new physical recess is visibly correct.
+No public model/runtime changes or push. Full photographic goal remains incomplete.
+
+
+### 2026-10-22 — regularize vector optics and trace full interfaces
+
+Previous turn rejected placeholder16element rendering in interactive viewer
+(progress). Added ignored trace-28-135-vector.py: analytic meridional cubic
+intersections, Snell refraction at28interfaces, explicit before/after media for
+12groups including4cemented boundaries, existing irisZ.868/radius.11408, and
+reverse tracing. Uniform-index sweeps are diagnostic assumptions, not Canon data.
+
+Raw PDF curves produced unstable near-axis focus despite reciprocal paths.
+Inspection isolated surface14's first Bezier handle: nonzero axial slope-.01619
+at the axis, an artificial conical tip on revolution. normalize-28-135-vector.py
+keeps raw data and writes28-135-vector-regularized-surfaces.json. Sets that first
+handle's axial coordinate equal to its endpoint; also centers the two drawing
+axis offsets on surfaces17/27. Maximum sampled changes are.053268mm(surface14)
+and.073758mm(17/27), under the existing model scale, not physical measurements.
+All other28surface data retained. Separate regularized16element Blend/GLB built;
+reopened mesh checks pass16manifold, positive-volume elements. Existing assembled
+candidate/viewer still uses the earlier data; do not claim it has this correction.
+
+Reran analytic tracing and independently computed paraxial matrices from cubic
+axis derivatives. At input height1e-6, focus agreement passes1e-5model units for
+uniformIOR1.45/1.52/1.65/1.8. Reciprocal transmitted rays return within1e-6units
+and direction component tolerance. AtIOR1.52, paraxialfocusZ-.35801939(~19.69mm
+behindmount) andeffectivefocal32.17046mm; expectedEFimageplaneZ-.8 is not reached.
+The tested indices givefocusZ-.432626..-.185270; varying one shared index does
+not solve the missing glass/zoom/calibration problem. Larger sample rays clip
+at iris or smaller glass apertures; no opaque housing was traced. Source raw
+report28-135-vector-raw-trace.json, correctedreport28-135-vector-trace.json.
+
+Next optical work should use regularized curves and resolve/constrain glass and
+image-plane placement before adapting the interactive sequential path. Do not
+confuse reciprocity, element count, or matching the drawing with photographic
+acceptance. No public model/runtime change, no production build or push; broader
+camera/lens fidelity objective incomplete.
+
+
+### 2026-10-22 — documented28–135 prescription candidates
+
+Previous turn regularized vector curves and ruled out uniform-index calibration
+(progress). Located CanonUS6061180A, Zoom lens, filed1997, with multiple numerical
+examples in the28–132mm range. Saved primary patent HTML/PDF undergear-reference;
+plain extraction undergear-modeling. Sourcehttps://patents.google.com/patent/US6061180A/en
+and PDFhttps://patentimages.storage.googleapis.com/a0/79/b5/d89cb9d771841c/US6061180.pdf.
+Also savedUS5771123AHTML, not yet investigated in depth.
+
+Transcribed example10 into ignored28-135-patent-example10.json, including29entries
+(28opticalinterfaces+stop), glass indices, variable spacings and asphericsurface25
+on14thelement. PDF confirms HTML's malformedd11=0 50 means.50.
+check-28-135-patent.py computes paraxial focal lengths28.797424/49.989031/131.960747mm
+versus published28.80/50.00/131.93. Last differs.030747mm and failed the exploratory
+.015tolerance; retained discrepancy in output instead of calling it an exact match.
+Rounded spacings may contribute, but that cause is not proven. Calculated back
+focus39.417476/47.938997/56.814450mm is from finalglass, not mount. Do not confuse
+this with44mmEFflange distance. No numerical prescription has been adopted.
+
+Compared28axialvertices to product workbook drawing using one fitted scale and
+translation for each zoom state. Example10wideRMS1.07075mm/max3.27839mm equivalent
+patent-space residual, versusmiddle3.93780 andtele10.94475mmRMS. This supports
+wide-end resemblance, not product identity. Expanded comparison with
+rank-28-135-patent-examples.py for28-interface examples1,3,4,5,6,10. WideRMS:
+1=.54947,3=.90306,4=.45452,5=1.40948,6=1.73259,10=1.07075mm. Example3HTMLd12=l.10
+was normalized to1.10; verify against renderedPDF before adopting that table.
+Examples5/6 omit a separate numberedstop, so28total entries rather than29;
+parser handles both. Other examples have different interface count.
+
+Axial similarity alone cannot establishcurvature, glass, zoom or commercial
+product identity; example4's statedwideFno4.00 also differs fromproduct3.5.
+Next compare surfacecurvatures/fullsection and validate candidate data fromPDF
+before selecting any prescription. This evidence replaces blind16index fitting
+with documented candidates without claiming any is the actualCanon28–135.
+No public model/runtime change, no build or push; goal remains incomplete.
+
+
+### 2026-10-22 — curvature comparison and fitted-index rejection
+
+Previous turn found documented prescription candidates (progress). Extended
+rank-28-135-patent-examples.py with near-axis curvature from regularized Bezier
+derivatives, compared using the same axial similarity scale. All screened
+examples differ in at least one curvature sign:1/3/10atinterface28,4at19,
+5at3/19/21/26/28,6at3/19/28. Some are weak curvatures; this is a screening result,
+not proof the schematic exactly encodes production curvatures. The small-radius
+sag proxy is not a full-surface fit. No patent selected as commercial prescription.
+
+Tested an explicitly approximate alternative in fit-28-135-vector-indices.py:
+start from example4indices, adjust16indices bounded1.45..1.90 with minimal local
+Jacobian steps toward EFL28.8mm andEFsensorZ-.8, keeping diagram geometry fixed.
+InitialEFL45.704/focusZ-.92687; after5iterations EFL28.8/focusZ-.8, maximum index
+change.052152. Two constraints cannot uniquely determine16indices, dispersion,
+coatings or zoom behavior; output28-135-vector-fitted-indices.json says so.
+
+Independent exact cubic/Snell trace in trace-28-135-fitted.py confirms near-axis
+focusZ-.800001599 atheight1e-6 and reciprocal-ray checks pass, but wider samples
+fail optical acceptance:height.01focusZ-.812652, height.05focusZ-.657036, height.1
+clipsinterface14, height.2TIR. Thus meeting paraxial targets does not yield a usable
+full-aperture lens. Retain only as diagnostic; do not install fitted indices into
+viewer or describe model as corrected optics. Next must address finite-aperture
+performance and diagram approximation rather than only tune EFL/image-plane.
+No public geometry/runtime change, no production build or push. Complete
+photographic and actual-viewer acceptance remains outstanding.
+
+
+### 2026-10-22 — premise check and rejected fastener trial
+
+Previous turn rejected two-constraint glass-index fitting (progress). Applied
+Attack the Premise: repeated work assumed a recovered image-forming optical
+prescription was necessary before visible fidelity could improve. Actual-viewer
+baseline versus16elementcandidate contradicts treating element count/paraxial
+success as a sufficient appearance gate: baseline retains reference-visible
+recess/colored reflections, while candidate loses them. A perfect optical
+prescription is not an explicit task requirement; photographic front/side/rear
+correspondence is. Preserve optical diagnostics but stop escalating simulation
+requirements as a substitute for visible modeling progress.
+
+Returned to visible references R7terminalCanonhires and28-135-controls.jpg.
+Tested apparent bright28–135panel fastener by remapping only one GLB primitive
+fromScrewsteel to existingAnodizedblack in ignored28-135-black-screw-trial.glb.
+Binary mesh payload unchanged. Added?screwTrial to isolated copied-scene viewer;
+production source/assets unchanged. MatchedHome18Right2plus before/trial captures:
+28-135-screw-before.png,28-135-screw-trial.png,trial-settled.png. Closer inspection
+shows baseline screw already dark and surrounding bright edge belongs mainly to
+panel shading. Trial darkens screw but does not establish useful reference gain.
+Rejected; do not apply to generator/publicasset.
+
+Unrelated shadow intensity changed in trial screenshot. Repeated baseline reload
+at same key pose (28-135-screw-baseline-repeat.png) also shows darker lower body;
+therefore not evidence that screw remap caused it. Exact camera matrices/shadow
+state were not recorded, so this is unresolved comparison variability, not a
+proven runtime defect. Avoid quantitative before/after claims from these captures.
+Current browser is back on baseline isolated viewer. No production change/push.
+Next prioritize directly reference-supported exterior differences and reproducible
+render comparisons; overall goal remains active and incomplete.
+
+
+### 2026-10-22 — make exterior comparison pose reproducible
+
+Previous turn rejected screw material trial and found uncontrolled image variation
+(progress). Applied diagnosing-bugs before changing shadow code. Hypotheses:
+key-driven poses differ, cached shadow state stale, or settledDPRchanges lighting.
+Checked production OutputPass: renderToScreen=true, so passing the same linear
+buffer as arguments does not create a read/write feedback loop.
+
+Only ignored28-135-viewer-scene.ts changed. ?fixedPose sets camera[6,1.2,1.8]
+looking at[0,.15,.8] immediately before each render; ?fixedDPR pins1.5. Keyr
+requests one shadow-map rebuild and exposes camera/DPR; diagnostic title reports
+actual renderedDPR. Production renderer remains unchanged.
+
+Actual browser fixed-pose capture before/refreshed shadow: broad lower-body dark
+change does not reproduce. Interior screenshot box(20,400)-(1900,1640), full
+2678x1980captures. Refreshed-versusinitial mean absoluteRGB differences
+.03019/.02899/.03093of255, confined to bbox(859,560)-(1012,696)relative to crop;
+small local residual not proven all cursor. Repeated baseline reload fixedpose
+fixedDPR versus cleanrefreshed: .001830/.001810/.001875, confined40x48cursor-sized
+region. This rules out broad nondeterministic shading in this controlled case,
+not every browser/view/selection. Evidence shadow-fixed-{before,refreshed,clean,
+repeat}.png. Original variable-pose discrepancy remains unattributed.
+
+Settledresolution confirmedviaactualrenderedtitleDPR1.55043 at960x650CSS. Compared
+with1.5fixedDPR: meanabsoluteRGB .49818/.48792/.50590, with expected sampling changes
+acrossmodel; inspected shadow-resolution-confirmed.png, no broad dark-region
+regression apparent. No runtime fix justified. Use explicit fixedpose for future
+exterior/material comparisons rather than treating equal key counts as proof of
+identicalview. This is measurement infrastructure/evidence, not a fidelity fix.
+No public model/runtime changes, no build/push. Full objective remains incomplete.
+
+## 2026-10-22 — R7 terminal trial and grip material comparison
+
+Previous clarification turn made no model progress. Revalidated the terminal
+trial process: it had completed export successfully (28,143,928-byte raw GLB).
+Compressed and inspected v2 in the interactive copied-production viewer at a
+fixed terminal-side pose and DPR 1.5. Flattening the cover cap normals removed
+the broad letter-edge smear, but MIC/HDMI remained too faint against the Canon
+terminal reference. The engraved geometry is not accepted into production.
+Artifacts: r7-terminal-engraving-v2.png and r7-terminal-v2-crop.png in
+output/gear-modeling; isolated v2 asset r7-engraved-trial-v2.glb.
+
+The comparison exposed exaggerated leatherette relief. Reduced only the R7
+Molded grip rubber normal strength from .25 to .10, matching the generator and
+public R7 GLB. Fixed side comparison r7-terminal-material-trial.png shows less
+inflated cells. Then restored baseline raised lettering for the material-only
+candidate and inspected front/rear through actual orbit controls:
+r7-grain-front.png, r7-grain-rear.png. This is a relative material improvement,
+not proof of photographic fidelity; rubber flap grain and terminal markings
+remain unresolved. Also still need an overall silhouette/material/optics audit.
+
+Verified parsed GLB JSON differs only at this material's normalTexture.scale;
+the full binary payload is byte-identical to the previous production model.
+No added geometry/textures or runtime cost. Refreshed R7 preview from the public
+asset and visually inspected it. Preserved previous GLB in ignored
+r7-before-grain-adjustment.glb. Existing Blender working files retain the old
+normal strength; build_models.py is the regeneration source of truth.
+No shipping claim; full goal remains active.
+
+## 2026-10-22 — Verify classic integration and increase studio fill
+
+Previous goal turn made concrete progress: R7 material and preview updated.
+This turn exercised the actual Astro /classic/#camera-loadout page, including
+its Explore in 3D lazy entry, rather than relying only on the isolated harness.
+Selected owned f/4 lens, switched R7 to 40D: lens remained selected and mount
+changed from EF → RF · Control Ring to Native EF. Available tab selected C200
+and example f/2.8; returning restored 40D + f/4. No ownership/catalog edits.
+
+Raised existing environment intensity .65 → .9. Captured identical default R7
++ f/4 framing before/after; r7-fill-comparison.jpg shows more black-body detail
+without obvious white-enamel washout. This changes light radiance, not material
+base colors, geometry, texture count, lights, or render loop. Checked 40D rear
+and C200 default/front, side and rear through orbit controls on the real page.
+Monitor remains dark and viewfinder interior visible. Evidence under
+output/gear-modeling: classic-r7-{live-oct22,fill-trial}.png,
+classic-r7-f4-{live-oct22,fill-trial}.png, classic-40d-rear-fill-trial.png,
+classic-c200-{front,side,rear}-fill-trial.png, classic-fill-details.jpg.
+
+This is a presentation improvement, not a reference-calibrated lighting match.
+C200 side still shows uneven broad housing shading; f/2.8 switch legends are
+weak. Those are next visible fidelity issues, not resolved by increasing fill.
+No full photorealism claim or deployment. Goal remains active.
+
+## 2026-10-22 — Resolve the faint f/2.8 marking diagnosis before editing
+
+Previous turn made progress (studio fill and real-page selection verification).
+Inspected the saved 70-200-f28-controls.jpg reference and current source. Ink
+already uses Deep black. An initial joined-Blender radial probe found most
+sampled ink visible; this broad probe also samples non-label geometry and is
+not a replacement for the earlier unmerged visibility checks (see prior audit
+around limiter legend sizing). Existing audit already ruled out general reversed
+normals and buried lettering. Do not repeat that investigation without new data.
+
+Actual /classic C200 + f/2.8 close-up, using keyboard zoom and shift-arrow pan,
+resolves the main symptom: limiter ranges, AF/MF and stabilizer print are legible
+and dark at a useful inspection scale. At full C200 framing their glyphs occupy
+few pixels. Evidence f28-centered-controls.png and f28-centered-detail.jpg in
+output/gear-modeling. No justification to darken already-dark ink or enlarge
+lettering beyond the reference. No model/runtime changes in this turn.
+
+Close inspection instead shows comparatively flat key faces, weak groove relief
+and hard-edged recess shading, against 70-200-f28-controls.jpg. Investigate those
+surfaces next; do not treat a full-camera thumbnail's unreadable tiny text as
+proof of an ink-color failure. This narrows the diagnosis using actual viewer
+evidence; it does not establish complete switch fidelity or photorealism.
+
+## 2026-10-22 — Reject cylindrical-cap switch normal trial
+
+Previous turn yielded useful real-viewer evidence: ink is readable at close
+range, shifting diagnosis toward switch surface geometry. Built an isolated
+f/2.8 trial in output/gear-modeling/build-f28-switch-trial.py. It replaces
+weighted normals with radial cap normals and distinct wall normals only on
+f/2.8 formed switch panel/keys/floors. Geometry dimensions, groove depth and
+materials remain unchanged. Export succeeded: 14,789,248-byte raw GLB,
+225310 polygons; existing manifold/area assertions passed. Optimized with
+WebP and meshopt 16-bit positions to about 2.98 MB, versus current about 2.85 MB.
+
+Extended ignored viewer to select a lens query and override switchTrial; added
+fixed switches pose camera(3.4,0,3.1), target(.78,0,3.1), fixed DPR1.5. Earlier
+pose was off-center and cannot support the comparison. Matched centered
+captures f28-switch-centered-{before,after}.png and comparison.jpg show cleaner
+some edge shading but flatter key faces, with weak groove visibility still.
+Not a demonstrated photographic improvement. Trial rejected; no public model,
+generator or runtime edits retained from this experiment. Do not adopt the
+trial merely because topology/export checks passed. Next check should address
+groove cross-section and depth against the reference, not repeat this cap-normal
+approach. Goal remains incomplete and active.
+
+## 2026-10-22 — Make existing f/2.8 key grooves visible with cavity shading
+
+Previous turn rejected cap-normal replacement based on matched viewer evidence.
+Tried wider/deeper cutters in an isolated build; f28-groove-comparison.jpg shows
+only faint endpoint changes, not enough to retain. Original groove dimensions
+restored. Viewer normalBias=.025 exceeds groove depth; environment illumination
+has no local groove occlusion. This supports missing cavity shading as a cause,
+though it does not isolate every contributor to the final render.
+
+Retained a localized approximation: assign existing Telephoto switch seat finish
+to the constant-radius floor faces inside the four keys' grooves. Walls and key
+caps keep white enamel. Match the two authored floor radii after bending; assert
+nonempty matches per key (72 faces each in trial). No key height, footprint,
+groove dimension, font or normal-method change. No new texture or runtime path.
+This is material-based cavity shading, not ray-traced occlusion.
+
+Isolated build passed existing manifold/nondegenerate assertions, exported and
+saved. Fixed camera/DPR comparison f28-groove-shade-after.png and detail.jpg
+shows continuous subtle recessed lines where the baseline showed faint endpoints.
+Matches the groove arrangement in 70-200-f28-controls.jpg more closely. Adopted
+into generator/public GLB, preserved previous asset as f28-before-groove-shade.glb,
+updated working blend and preview. Actual /classic C200 + f/2.8 oblique orbit
+check captured f28-groove-shade-classic-oblique.png. No floating switches visible.
+Build succeeded (15 pages). Overall objective remains incomplete; no push.
+
+## 2026-10-22 — C200 upper-shell diagnosis, no speculative reshape
+
+Previous turn made model progress (f/2.8 groove cavity finish). Compared current
+C200 side/oblique capture against c200-canon-hero.jpg. Upper housing bands
+follow the rounded extruded chassis contour. Built current unmerged cinema
+geometry through check-c200-upper-shell.py; process exited successfully.
+Sampled81 upper faces (centerY>.72, area>.01). Largest corner-normal deviations
+~11.28 degrees occur on the four-segment end bevel (half-segment angle expected
+~11.25 degrees); side contour roundovers peak around5 degrees. This does not
+establish a malformed-normal cause for the broad bands. Data:
+output/gear-modeling/c200-upper-shell-normals.json. These samples do not cover
+all tiny faces or establish complete normal correctness.
+
+Source confirms smooth C200 Magnesium shell keeps the Crinkle painted metal
+roughness map around .48; the .65 roughness multiplier applies separately to
+textured Crinkle painted metal, not the smooth shell. Do not incorrectly blame
+that multiplier for shell gloss or globally change both finishes. Current
+public GLB shell material uses a metallicRoughnessTexture with no scalar override.
+No production edit/build needed from this diagnostic. Next justified experiment
+is a controlled shell-only finish/lighting comparison against the product photo,
+not speculative topology or bevel-normal replacement. Full goal remains active.
+
+## 2026-10-22 — Isolate C200 finish from upper-panel seating
+
+Previous turn ruled out an obvious upper-shell normal defect in sampled faces.
+Created ignored c200-shell-roughness-trial.glb by duplicating only the smooth
+shell's roughness texture and multiplying its green channel by1.25. Original
+binary geometry retained; other materials and texture channels unchanged.
+Matched fixed pose camera(5,2,3),target(0,.55,-.4),DPR1.5 shows only a modest
+highlight softening: c200-shell-finish-{before,after}.png/comparison.jpg. No
+production adoption; stronger roughness is not established as closer to the
+reference and does not resolve the main silhouette relationship.
+
+Comparison with c200-canon-hero.jpg points toward upper operator-panel seating.
+Source places the whole side fascia at X=.982 plus its planar depth, while the
+chassis outline narrows aboveY.82. Investigating the measured panel-to-chassis
+separation before any reshape; avoid confusing this geometric relationship
+with a global material failure. Diagnostic check-c200-panel-seat.py samples
+world-space surfaces and saves an unmerged inspection blend for further work.
+
+Panel-seat diagnostic completed and saved c200-unmerged-inspection.blend.
+Cached follow-up samples cover the full upper field at worldZ=-.65. Outer
+panel-to-shell distance is4.87mm throughY.6–.8, rising to6.92mm atY1.0,
+9.72mm atY1.1 and11.29mm atY1.15 (55mm/model unit). This includes panel thickness,
+so it is not all air gap; the increase relative to the lower field is the useful
+result. It confirms the flat panel remains outboard as the shell narrows. One
+section is not enough to infer the exact replacement contour; inspect front
+silhouette and upper control seating when testing the taper. No production
+material change adopted. Full objective remains incomplete.
+
+## 2026-10-22 — C200 panel taper prototype, not yet adopted
+
+Previous turn measured increasing upper fascia offset from the tapering shell.
+Built isolated build-c200-taper-trial.py: taper before final body/control fits.
+Export/bake succeeded but actual viewer c200-taper-comparison.jpg showed missing
+power legends: later separate power-control fits no longer followed the panel.
+Rejected that ordering; no public asset overwritten.
+
+build-c200-taper-v2.py now applies the shared deformation after final sizing,
+sampling world-space shell width fromY.80 to panel top atZ-.65. Moves all
+operator panel parts together, refines upper-crossing triangles toYspan.020,
+and reconstructs normals after deformation. Initial insertion matched two
+sites (bounds unavailable); fixed to last site only. A subsequent empty mesh
+max() failure was fixed by skipping empty objects. Both were confirmed terminal
+failures before rerunning. Final build/export/save succeeded; compressed trial
+about6.21MB. AO deliberately skipped for this contact/visibility prototype.
+
+Actual copied-production viewer at fixed shell pose/DPR1.5 now shows power,
+CAMERA/OFF/MEDIA and lock markings visible with the tapered panel:
+c200-taper-v2-oblique.png, detail.jpg. This fixes v1's transform-order regression,
+not proof of full fidelity. Public C200/generator remain unchanged. Candidate
+is output/gear-modeling/c200-taper-v2/compressed.glb, editable c200.blend in same
+folder; ignored viewer ?taperTrial=1 selects it. Need front/rear inspection,
+contact checks, geometry-cost assessment, then fresh AO bake before adoption.
+Goal remains active; no push.
+
+## 2026-10-22 — Adopt baked C200 operator-panel taper
+
+Previous turn produced a visible candidate with corrected transform ordering.
+Inspected v2 front/rear in the interactive viewer; no obvious new open seam.
+During finalization found refine_surface discards smooth flags. Stopped the
+known final-build process intentionally (exit143), corrected refinement to only
+side fascia/flat markings, and rebuilt; curved controls retain smooth surfaces.
+This restart addressed a known code defect, not an observation timeout.
+
+Added measured contact check on actual final world-space surfaces atZ-.65:
+Y .80/.90/1.0/1.1/1.15 gives4.867/4.866/4.860/4.867/4.758mm panel-to-shell offset.
+Includes panel thickness; compares with baseline4.867→11.288mm rising offset.
+Assert spread<.15mm; control roundness and core/EVF dimensions also pass. Taper
+runs after independent control fits. Shared warp preserves print seating.
+Final AO bake/export succeeded (raw46,430,428bytes,359312polygons); compressed
+about6.01MB versus5.49MB baseline. This added load remains behind existing lazy
+3D entry; not a measured performance benchmark. No runtime/load-path changes.
+
+Adopted into build_models.py and public C200 asset, updated working blend and
+selector thumbnail (visually inspected downloaded preview23). Preserved former
+asset as c200-before-upper-taper.glb. Final baked fixed-pose screenshot
+c200-taper-final-oblique.png checked before adoption. Actual /classic final
+front/side/rear orbit captures c200-taper-classic-{front,side,rear}.png checked:
+no obvious new seam/label regression at these views. Build passes15pages.
+Broader materials, optics and all-model photographic fidelity remain unproven;
+this is one geometry correction, not full completion. No commit/push this turn.
+
+
+## R7 EOS/R7 lettering correction — 2026-10-22
+
+User reported the EOS R7 badge was deformed. Reproduced in front and oblique browser views. The body-width fit compressed lettering X by .65 while Y used .87, and the glyphs were projected from world Z onto the shoulder. Keep the existing thin molded backing; exclude its two text lines from body deformation, scale their glyphs uniformly, then fit each line in its local badge tangent frame. Surface accommodation is limited by a .015-unit build assertion; measured maximum relief is .3734 mm for EOS and .3809 mm for R7 (55 mm/model unit). Ray misses fail the build.
+
+Rejected an intermediate fully planar backing because it protruded excessively from the curved shoulder. Accepted the lettering-only fix after matching front/oblique captures and an actual /classic viewer check. Evidence: output/gear-modeling/r7-logo-{inspection,oblique-before,oblique-final,front-final,classic-final}.png. Rebuilt and compressed public R7 asset; refreshed preview. Site build passed (15 pages). Local/unpushed; this is a badge correction, not full photographic acceptance.

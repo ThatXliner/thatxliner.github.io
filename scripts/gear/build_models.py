@@ -388,15 +388,17 @@ def eyecup(x,y,z,body='c200',housing=()):
     if body=='r7':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.300,.275,.016),.029,'Deep black')
     elif body=='40d':rounded_panel('Eyepiece optical recess',(optical_x,y,z-.066),(.365,.275,.016),.029,'Deep black')
     else:box('Eyepiece optical recess',(optical_x,y,z-.066),(.43,.38,.016),'Deep black',.029)
-    # A shallow convex optical face catches reflections across its curved surface.
+    # Canon's 40D section shows a concave eye-facing surface on eyepiece lens 3.
+    # Curvature magnitudes remain estimates within the modeled opening.
     sag=.022 if body=='c200' else .029 if body=='r7' else .024
-    vertices=[(optical_x,y,z-.078-sag)];polygons=[];count=100;rows=32
+    curvature=-1 if body=='40d' else 1
+    vertices=[(optical_x,y,z-.078-curvature*sag)];polygons=[];count=100;rows=32
     def optic_vertex(dx,dy,t):
         # A spherical optical surface for every body; rectangular iso-depth
         # rings caused a triangular reflection on the C200's larger ocular.
         half_w,half_h=(.19,.165) if body=='c200' else (.125,.110) if body=='r7' else (.155,.110)
         radius=(half_w**2+half_h**2+sag**2)/(2*sag)
-        depth=z-.078-sag+radius-math.sqrt(radius*radius-dx*dx-dy*dy)
+        depth=z-.078+curvature*(-sag+radius-math.sqrt(radius*radius-dx*dx-dy*dy))
         vertices.append((optical_x+dx,y+dy,depth))
     for row in range(1,rows+1):
         t=row/rows;w=(.38 if body=='c200' else .25 if body=='r7' else .31)*t;h=(.33 if body=='c200' else .22)*t;r=.033*t;start_index=len(vertices)
@@ -499,14 +501,25 @@ def eyecup(x,y,z,body='c200',housing=()):
     dx=x+.405 if body=='r7' else x-.405
     dy=y-.09 if body=='r7' else y+.145
     dz=z+.055 if body=='r7' else z+.025
-    wheel_x=dx+.005 if body=='r7' else dx-.017
-    wheel_width=.035 if body=='r7' else .088
-    cyl('Diopter axle',(dx,dy,dz),.104,.035 if body=='r7' else .079,'Deep black','x',64,.004)
-    cyl('Diopter adjustment wheel',(wheel_x,dy,dz),.093,wheel_width,'Graphite polymer','x',64,.004)
-    for i in range(36):
-        a=2*pi*i/36
-        tooth=box('Diopter wheel knurl',(wheel_x,dy+.093*cos(a),dz+.093*sin(a)),(wheel_width-.002,.010,.010),'Focus rubber',.002)
-        tooth.rotation_euler.x=a
+    if body=='40d':
+        # Rear references show the dial face beside the eyecup, with its axle
+        # parallel to the optical axis rather than across the camera body.
+        dx+=.055;dy-=.025
+        wheel_z=dz-.017;wheel_width=.068
+        cyl('Diopter axle',(dx,dy,dz),.104,.079,'Deep black','z',64,.004)
+        cyl('Diopter adjustment wheel',(dx,dy,wheel_z+.010),.087,wheel_width,'Graphite polymer','z',96,.004)
+        for i in range(24):
+            a=2*pi*i/24
+            tooth=box('Diopter wheel knurl',(dx+.083*cos(a),dy+.083*sin(a),wheel_z-.035),(.026,.013,.026),'Graphite polymer',.003)
+            tooth.rotation_euler.z=a
+    else:
+        wheel_x=dx+.005;wheel_width=.035
+        cyl('Diopter axle',(dx,dy,dz),.104,.035,'Deep black','x',64,.004)
+        cyl('Diopter adjustment wheel',(wheel_x,dy,dz),.093,wheel_width,'Graphite polymer','x',64,.004)
+        for i in range(36):
+            a=2*pi*i/36
+            tooth=box('Diopter wheel knurl',(wheel_x,dy+.093*cos(a),dz+.093*sin(a)),(wheel_width-.002,.010,.010),'Focus rubber',.002)
+            tooth.rotation_euler.x=a
 
 def text(name,words,p,size=.08,mat='White ink',rotation=(0,0,0),font='Arial',align='CENTER'):
     if words=='Canon' and font=='Canon':
@@ -1229,6 +1242,7 @@ def body(which):
     text('Canon wordmark','Canon',(0,.896 if dslr else .840,.561 if dslr else front+.006),.12,font='Canon')
     text('EOS badge','EOS',(.84 if dslr else .78,.35 if dslr else .490,front+(.043 if dslr else .035)),.075 if dslr else .110)
     text('Model badge','40D' if dslr else 'R7',(.84 if dslr else .78,.245 if dslr else .355,front+(.044 if dslr else .035)),.100 if dslr else .130,font='Bold' if dslr else 'Arial')
+    r7_badge_ink=[]
     if not dslr:
         rounded_panel('Raised R7 badge',(.78,.415,front+.026),(.270,.280,.015),.030,'Graphite polymer')
         from mathutils.bvhtree import BVHTree
@@ -1237,6 +1251,11 @@ def body(which):
             part_name=o.name.removeprefix(which+' / ')
             if part_name not in ['Raised R7 badge','EOS badge','Model badge']:continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            if part_name in ['EOS badge','Model badge']:
+                center=Vector((.78,.490 if part_name=='EOS badge' else .355,front+.035))
+                for v in o.data.vertices:v.co=(v.co-center)*.65
+                r7_badge_ink.append((o,center))
+                continue
             # Sample the curved shoulder on the badge and lettering together;
             # long face chords otherwise cross the closely fitted printed glyphs.
             refine_surface(o,lambda a,b:(a-b).length>.015,6)
@@ -1844,8 +1863,13 @@ def body(which):
             if t in ['AF-ON','*','▣']:
                 # The rear reference shows a broad inset face and rounded lip,
                 # rather than an ellipsoid projecting above the bezel.
-                segments=64;verts=[(0,0,-.012)];faces=[]
-                for fraction,depth in [(.70,-.012),(.82,-.014),(.91,-.0145),(.97,-.013),(1,-.010),(1,.001)]:
+                segments=64;verts=[(0,0,-.018 if t=='AF-ON' else -.012)];faces=[]
+                cap_profile=[(.70,-.012),(.82,-.014),(.91,-.0145),(.97,-.013),(1,-.010),(1,.001)]
+                if t=='AF-ON':
+                    # The high-resolution rear reference resolves a shallow
+                    # convex AF-ON face, unlike the flatter adjacent keys.
+                    cap_profile=[(.25,-.01775),(.50,-.017),(.70,-.016),(.82,-.0152),(.91,-.0145),(.97,-.013),(1,-.010),(1,.001)]
+                for fraction,depth in cap_profile:
                     cap_ring_start=len(verts)
                     verts.extend((radius*fraction*cos(i*2*pi/segments),radius*fraction*sin(i*2*pi/segments),depth) for i in range(segments))
                     for i in range(segments):
@@ -1854,7 +1878,7 @@ def body(which):
                 faces.append(tuple(range(len(verts)-segments,len(verts))))
                 mesh=bpy.data.meshes.new('Inset rear key');mesh.from_pydata(verts,[],faces);mesh.update()
                 cap=bpy.data.objects.new('Rear button '+t,mesh);scene.collection.objects.link(cap);register(cap,'Rear button '+t,'Satin control plastic')
-                for face in mesh.polygons:face.use_smooth=segments<=face.index<len(mesh.polygons)-1
+                for face in mesh.polygons:face.use_smooth=(t=='AF-ON' or segments<=face.index) and face.index<len(mesh.polygons)-1
             else:
                 cap=cyl('Rear button '+t,(0,0,-.010),radius,.016,'Satin control plastic',vertices=64,bevel=.004)
             if t=='▥':
@@ -2357,7 +2381,7 @@ def body(which):
             if hit is None:raise RuntimeError('Side fastener missed casting')
             x=hit.x+.002
         screw((x,-.68,z),'x',.017)
-    box('Battery plate',(-.70,-.821,-.08),(.82,.020,.57),'Graphite polymer',.016)
+    if dslr:box('Battery plate',(-.70,-.821,-.08),(.82,.020,.57),'Graphite polymer',.016)
     # The tripod thread is recessed into the base, not a protruding silver peg.
     bpy.ops.mesh.primitive_cylinder_add(vertices=64,radius=.063,depth=.09,location=(0,-.814,-.07),rotation=(pi/2,0,0))
     bore=bpy.context.object;cut=shell.modifiers.new('Recessed tripod thread','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(shell,cut);bpy.data.objects.remove(bore,do_unlink=True)
@@ -2372,7 +2396,7 @@ def body(which):
         # deformation to attached controls so none float beyond the new shell.
         rigid_top_parts={o for _,_,_,parts in top_controls for o in parts}|set(wheel_parts)
         for o in OBJECTS[start:]:
-            if o in mount_objects or o in release_parts or o in rigid_top_parts:continue
+            if o in mount_objects or o in release_parts or o in rigid_top_parts or any(o==ink for ink,_ in r7_badge_ink):continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             if o in [shell,rear_cover]:
                 # The crown deformation is nonlinear. Subdivide long planar
@@ -2451,6 +2475,24 @@ def body(which):
         # Leave the raised badge exposed using its final projected outline.
         from mathutils.geometry import convex_hull_2d
         badge=next(o for o in OBJECTS[start:] if o.name.endswith(' / Raised R7 badge'))
+        # Fit each printed line in the badge's local tangent frame. Body fitting
+        # scales X and Y differently; lettering must keep its own proportions.
+        badge_surface=BVHTree.FromObject(badge,bpy.context.evaluated_depsgraph_get())
+        for ink,center in r7_badge_ink:
+            hit,normal,_,_=badge_surface.ray_cast(Vector((r7_fitted_width(center.x),center.y*.87,3)),Vector((0,0,-1)),5)
+            if hit is None:raise RuntimeError('R7 lettering missed badge')
+            pose=Matrix.Translation(hit)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
+            refine_surface(ink,lambda a,b:(a-b).length>.008,6)
+            max_relief=0
+            for v in ink.data.vertices:
+                flat=pose@v.co
+                seat,_,_,_=badge_surface.ray_cast(flat+normal*.20,-normal,.40)
+                if seat is None:raise RuntimeError('R7 lettering extends outside badge')
+                max_relief=max(max_relief,(seat-flat).length)
+                v.co=seat+normal*.001
+            ink.data.update()
+            assert max_relief<.015,('R7 lettering curvature',max_relief)
+            print('R7 badge ink tangent relief',ink.name,round(max_relief*55,4),'mm',flush=True)
         points=[Vector((v.co.x,v.co.y)) for v in badge.data.vertices]
         outline=[points[i] for i in convex_hull_2d(points)];center=sum(outline,Vector((0,0)))/len(outline)
         outline=[center+(p-center)*1.02 for p in outline];n=len(outline)
@@ -2548,6 +2590,69 @@ def body(which):
         blend=shell.modifiers.new('Continuous shoulder relaxation','SMOOTH')
         blend.vertex_group=junction.name;blend.factor=.6;blend.iterations=24;apply(shell,blend)
         shell.vertex_groups.remove(shell.vertex_groups['Terminal casting junction'])
+    if not dslr:
+        # Canon's underside photo places the shaped battery door under the grip.
+        # The lid is a rigid planar part; the pocket below supplies its seat.
+        door_outline=[(-1.32,-.16),(-1.28,-.20),(-.73,-.20),(-.68,-.15),(-.68,.10),(-.88,.10),(-.94,.15),(-.94,.45),(-1.00,.55),(-1.14,.57),(-1.26,.48),(-1.32,.32)]
+        door=profile('R7 fitted battery door',door_outline,0,.010,'Graphite polymer',.003,rounding=.025)
+        active(door);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        door_base_y=-.72183
+        base_surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        offsets=[]
+        for v in door.data.vertices:
+            x,z,depth=v.co
+            hit,_,_,_=base_surface.ray_cast(Vector((x,-2,z)),Vector((0,1,0)),4)
+            assert hit is not None,'R7 battery door extends beyond casting'
+            v.co=(x,door_base_y+.009-depth,z);offsets.append(hit.y)
+        door.data.update();finish(door)
+        print('R7 battery door reference casting range',min(offsets),max(offsets),flush=True)
+        def fit_base_part(part):
+            active(part);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+            for vertex in part.data.vertices:
+                xx,zz,depth=vertex.co
+                hit,_,_,_=base_surface.ray_cast(Vector((xx,-2,zz)),Vector((0,1,0)),4)
+                assert hit is not None,'Battery detail missed R7 casting: '+part.name
+                vertex.co=(xx,door_base_y-depth,zz)
+            part.data.update();finish(part)
+            return part
+        # Seat the rigid lid in the housing; overlapping surface meshes would
+        # fight along the curved casting's lower edge.
+        seat_outline=[]
+        for i,p in enumerate(door_outline):
+            previous=Vector(door_outline[i-1]);point=Vector(p);following=Vector(door_outline[(i+1)%len(door_outline)])
+            a=(point-previous).normalized();b=(following-point).normalized()
+            na=Vector((a.y,-a.x));nb=Vector((b.y,-b.x))
+            offset=(na+nb)*(.004/(1+na.dot(nb)))
+            seat_outline.append(tuple(point+offset))
+        seat=profile('Battery door seat cutter',seat_outline,.665,.760,None,.002,rounding=.025)
+        seat.rotation_euler.x=pi/2
+        cut=shell.modifiers.new('Recess battery door into housing','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=seat;apply(shell,cut)
+        OBJECTS.remove(seat);bpy.data.objects.remove(seat,do_unlink=True)
+        # The sliding latch is recessed into the lid, rather than mounted on it.
+        slot=rounded_panel('Battery latch pocket cutter',(-1.18,.245,0),(.145,.275,.060),.035,None)
+        fit_base_part(slot)
+        for carrier in [door,shell]:
+            cut=carrier.modifiers.new('Battery latch pocket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=slot;apply(carrier,cut)
+        OBJECTS.remove(slot);bpy.data.objects.remove(slot,do_unlink=True)
+        # The Boolean rim must not inherit interpolated normals from the lid.
+        old=door.data;clean=bpy.data.meshes.new('Battery door with clean pocket normals')
+        clean.from_pydata([v.co[:] for v in old.vertices],[],[tuple(f.vertices) for f in old.polygons])
+        for mat in old.materials:clean.materials.append(mat)
+        clean.update()
+        for face,source in zip(clean.polygons,old.polygons):face.material_index=source.material_index;face.use_smooth=abs(face.normal.y)<.999
+        door.data=clean;bpy.data.meshes.remove(old)
+        split=door.modifiers.new('Separate battery pocket walls','EDGE_SPLIT');split.split_angle=pi/4;apply(door,split)
+        floor=rounded_panel('Battery latch pocket floor',(-1.18,.245,-.014),(.141,.271,.003),.033,'Deep black');fit_base_part(floor)
+        latch=rounded_panel('Battery latch slider',(-1.18,.232,-.003),(.085,.205,.009),.033,'Satin control plastic');fit_base_part(latch)
+        edge_points=smooth_outline(door_outline,radius=.025)
+        seam=line('Battery door perimeter joint',[(x,z,.002) for x,z in [*edge_points,edge_points[0]]],.0013,'Deep black');fit_base_part(seam)
+        for z in [.32,.43]:
+            joint=line('Battery door hinge division',[(-.955,z,.0002),(-.915,z,.0002)],.0014,'Deep black');fit_base_part(joint)
+        legend=text('Battery open molded legend','BATT. OPEN',(-1.045,.235,.004),.039,'Deep black',rotation=(0,0,pi/2),font='Bold')
+        relief=legend.modifiers.new('Molded legend relief','SOLIDIFY');relief.thickness=.0015;relief.offset=-1;apply(legend,relief)
+        fit_base_part(legend)
+        arrow=profile('Battery open molded arrow',[(-1.063,.065),(-1.027,.065),(-1.045,.033)],.003,.004,'Deep black',0,rounding=0);fit_base_part(arrow)
+
     # Boolean pocket walls must not pull the exterior's smooth normals inward.
     for casting in [shell]:
         if not dslr:
@@ -2572,7 +2677,7 @@ def body(which):
                 if vi not in sampled:
                     p=panel.data.vertices[vi].co
                     hit,_,ti,_=surface.ray_cast(Vector((-3,p.y,p.z)),Vector((1,0,0)),4)
-                    assert hit is not None,'R7 card-door normal missed casting'
+                    assert hit is not None,'R7 card-door normal missed casting: '+str(tuple(p))
                     vertices=[shell.data.vertices[i] for i in triangles[ti].vertices]
                     sampled[vi]=tuple(barycentric_transform(hit,*[v.co for v in vertices],*[v.normal for v in vertices]).normalized())
                 normals[li]=sampled[vi]
@@ -2946,7 +3051,7 @@ def lens(which):
         housing=ring('Main lens housing',(barrel_start+barrel_end)/2,r*.97,r*.79,barrel_end-barrel_start,paint)
     ring('Interior flocking',l*.5,r*.794,r*.78,l-.25,'Deep black')
     if white:
-        for z,width in ([(l*.38,l*.23),(l*.76,l*.22)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
+        for z,width in ([(l*.38,l*.23),(l*.78,l*.16)] if which=='70-200-f4' else [(l*.37,l*.16),(l*.76,l*.16)]):
             grip_mat='Telephoto grip rubber'
             ring('Rubber ring',z,r*.997,r*.89,width,grip_mat)
             # The original f/2.8 zoom ring has narrow alternating breaks.
@@ -2978,8 +3083,14 @@ def lens(which):
                     OBJECTS.remove(rib);bpy.data.objects.remove(rib,do_unlink=True)
         # The owned f/4 lens is used without a tripod collar or foot.
         if which=='70-200-f28':
-            collar_z=l*.22
+            collar_z=l*.20
             ring('Tripod collar',collar_z,r*1.027,r*.96,.30,paint)
+            for name,z,length,radius in [('Zoom position index',.91,.05,r*.97),('Tripod collar alignment index',collar_z,.16,r*1.027)]:
+                mark=box(name,(0,0,0),(.014,length,.001),'Deep black',0)
+                for vertex in mark.data.vertices:
+                    u,v,depth=vertex.co;angle=pi/2+u/radius;rr=radius+.0015+depth
+                    vertex.co=(rr*cos(angle),rr*sin(angle),z+v)
+                mark.data.update()
             # Canon tripod ring B(W): tapered cast pedestal and forward toe.
             stem=profile('Collar curved pedestal',[(collar_z-.15,-r+.035),(collar_z+.15,-r+.035),(collar_z+.17,-r-.17),(collar_z+.39,-r-.30),(collar_z+.46,-r-.36),(collar_z-.18,-r-.36),(collar_z-.18,-r-.05)],-.17,.17,paint,.016,rounding=.035)
             stem.rotation_euler.y=-pi/2
@@ -3057,10 +3168,10 @@ def lens(which):
         if which=='35':ring('Tamron accent ring',.24,r*.86,r*.82,.016,'Machined metal')
     # The f/2.8 front white band is continuous behind the red ring. A generic
     # joint at .90 length cuts directly through its Canon/ULTRASONIC markings.
-    joint_positions=[l*.68,l-.04] if which=='70-200-f28' else [l*.68,l*.9,l-.04]
+    joint_positions=[l*.68,l-.04] if which=='70-200-f28' else [l*(.70 if which=='70-200-f4' else .68),l*.9,l-.04]
     for z in joint_positions:ring('Machined barrel joint',z,r*.977,r*.954,.012,'Anodized black')
     # Recessed distance-scale window and fine barrel lettering.
-    wz=l*(.33 if which=='28-135' else .20) if not white else l*.57
+    wz=l*(.33 if which=='28-135' else .20) if not white else l*(.595 if which=='70-200-f4' else .57)
     telephoto_window=white
     if telephoto_window or which=='28-135':
         # Seat the scale window inside the painted casting, rather than
@@ -3323,7 +3434,7 @@ def lens(which):
                 bm.to_mesh(o.data);bm.free()
         for v in o.data.vertices:
             u,vv,depth=v.co;angle=vv/(r*.97);radius=r*.97+depth-.008
-            v.co=(radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)-u) if which in ['28-135','70-200-f4','70-200-f28'] else (-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
+            v.co=(radius*cos(angle),radius*sin(angle),l*(.60 if f4 else .575 if white else .25)-u) if which in ['28-135','70-200-f4','70-200-f28'] else (-radius*cos(angle),radius*sin(angle),l*(.575 if white else .25)+u)
         o.data.update()
         if which=='28-135' and ('panel' in o.name or 'Switch recess floor' in o.name):
             # Constant-radius faces share cylindrical normals after bending.
@@ -3344,6 +3455,15 @@ def lens(which):
             formed.from_pydata([v.co[:] for v in old_mesh.vertices],[],[tuple(f.vertices) for f in old_mesh.polygons])
             for mat in old_mesh.materials:formed.materials.append(mat)
             formed.update();o.data=formed;bpy.data.meshes.remove(old_mesh)
+            if which=='70-200-f28' and 'Switch slider' in o.name:
+                formed.materials.append(M['Telephoto switch seat'])
+                groove_radii=[r*.97+.024-.008,r*.97+.015-.008]
+                shaded=0
+                for face in formed.polygons:
+                    radii=[math.hypot(formed.vertices[i].co.x,formed.vertices[i].co.y) for i in face.vertices]
+                    if any(all(abs(rr-target)<1e-5 for rr in radii) for target in groove_radii):
+                        face.material_index=len(formed.materials)-1;shaded+=1
+                assert shaded>0, 'Switch groove floors were not found'
             finish(o)
             bm=bmesh.new();bm.from_mesh(o.data)
             assert all(e.is_manifold for e in bm.edges), 'Telephoto switch surface must stay closed'
@@ -4267,6 +4387,12 @@ def cinema():
         plate=rounded_panel('Handle end accessory plate',(0,1.65,0),(.295,.345,.023),.020,'Anodized black')
         bore=cyl('Handle end socket cutter',(0,1.65,0),.050,.10,None,vertices=64,bevel=0)
         cut=plate.modifiers.new('Accessory plate socket','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(plate,cut)
+        plate_normals=[tuple(n.vector) for n in plate.data.corner_normals]
+        for face in plate.data.polygons:
+            if abs(face.normal.z)>.999:
+                face.use_smooth=False
+                for li in face.loop_indices:plate_normals[li]=tuple(face.normal)
+        plate.data.normals_split_custom_set(plate_normals)
         bore.matrix_world=Matrix.Translation(Vector((0,0,zz)))@Matrix.Rotation(0 if sign>0 else pi,4,'Y')@bore.matrix_world
         cut=handle.modifiers.new('Accessory socket in casting','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=bore;apply(handle,cut)
         OBJECTS.remove(bore);bpy.data.objects.remove(bore,do_unlink=True)
@@ -4415,7 +4541,18 @@ def cinema():
                 _,slope=monitor_back_section(xx,mw)
                 shell_normals[loop]=tuple(Vector((slope,0,-1)).normalized()) if face.normal.z<0 else (0,0,1)
     mesh.normals_split_custom_set(shell_normals)
-    rounded_panel('Monitor display bezel',(.135,0,-.003),(1.79,1.215,.016),.040,'Deep black')
+    monitor_bezel=rounded_panel('Monitor display bezel',(.135,0,-.003),(1.79,1.215,.016),.040,'Deep black')
+    # Seat the screen behind the surround; the previous raised glass slab
+    # exposed a bright bevel around the active display.
+    screen_opening=rounded_panel('Monitor display aperture',(.135,0,0),(88.5/55-.008,49.8/55-.008,.06),.016,None)
+    cut=monitor_bezel.modifiers.new('Open display surround','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=screen_opening;apply(monitor_bezel,cut)
+    OBJECTS.remove(screen_opening);bpy.data.objects.remove(screen_opening,do_unlink=True)
+    bezel_normals=[tuple(n.vector) for n in monitor_bezel.data.corner_normals]
+    for face in monitor_bezel.data.polygons:
+        if abs(face.normal.z)>.999:
+            face.use_smooth=False
+            for loop in face.loop_indices:bezel_normals[loop]=tuple(face.normal)
+    monitor_bezel.data.normals_split_custom_set(bezel_normals)
     # Opposed alignment triangles straddle the bezel seam (Canon LM-V1 p.17).
     for name,points,z in [
         ('bezel',[(1.000,-.020),(1.026,0),(1.000,.020)],.0055),
@@ -4427,7 +4564,7 @@ def cinema():
         mark=bpy.data.objects.new('Monitor alignment '+name,mesh);scene.collection.objects.link(mark)
         register(mark,'Monitor alignment '+name,'White ink');mark['skip_baked_ao']=True
     # 4-inch 16:9 active panel: approx 88.5 x 49.8 mm.
-    rounded_panel('Monitor glass',(.135,0,.008),(88.5/55,49.8/55,.009),.020,'Inactive display glass')
+    rounded_panel('Monitor glass',(.135,0,-.001),(88.5/55,49.8/55,.009),.020,'Inactive display glass')
     for yy,name in [(.505,'FUNC'),(.265,'MENU'),(-.265,'CANCEL'),(-.505,'DISP')]:
         cyl('Monitor '+name+' bezel',(-.937,yy,.002),.077,.018,'Deep black',vertices=48,bevel=.003)
         sphere('Monitor '+name+' button',(-.937,yy,.017),(.062,.062,.013),'Graphite polymer')
@@ -4672,7 +4809,42 @@ def cinema():
         camera_exit+Vector((0,0,.16)),camera_exit]
     line('Monitor cable',[tuple(v) for v in cable_points],.05,'Focus rubber',smooth=True)
 
+    # Seat the upper operator face after separate body/control sizing so
+    # its markings and hardware follow the same tapered shell surface.
+    from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
+    shell_tree=BVHTree.FromPolygons([chassis.matrix_world@v.co for v in chassis.data.vertices],[tuple(p.vertices) for p in chassis.data.polygons])
+    _,panel_hi=bounds([side_fascia])
+    heights=np.linspace(.80,panel_hi.y,100);widths=[]
+    for yy in heights:
+        hit=shell_tree.ray_cast(Vector((3,float(yy),-.65)),Vector((-1,0,0)),5)[0]
+        assert hit is not None, 'Upper fascia missed chassis'
+        widths.append(hit.x)
+    for o in operator_objects:
+        if not len(o.data.vertices):continue
+        active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        if max(v.co.y for v in o.data.vertices)>.80:
+            if o==side_fascia or not any(face.use_smooth for face in o.data.polygons):
+                refine_surface(o,lambda a,b:max(a.y,b.y)>.80 and abs(a.y-b.y)>.020,7)
+            for vertex in o.data.vertices:
+                if vertex.co.y>.80:vertex.co.x+=float(np.interp(vertex.co.y,heights,widths))-widths[0]
+            old=o.data;formed=bpy.data.meshes.new(old.name+' tapered')
+            formed.from_pydata([v.co[:] for v in old.vertices],[],[tuple(f.vertices) for f in old.polygons])
+            for mat in old.materials:formed.materials.append(mat)
+            formed.update()
+            for a,b in zip(old.polygons,formed.polygons):b.material_index=a.material_index;b.use_smooth=a.use_smooth
+            o.data=formed;bpy.data.meshes.remove(old)
+
+    bpy.context.view_layer.update()
+    panel_tree=BVHTree.FromPolygons([side_fascia.matrix_world@v.co for v in side_fascia.data.vertices],[tuple(p.vertices) for p in side_fascia.data.polygons])
+    gaps=[]
+    for yy in [.80,.9,1.,1.1,1.15]:
+        origin=Vector((3,yy,-.65));direction=Vector((-1,0,0))
+        a=shell_tree.ray_cast(origin,direction,5)[0];b=panel_tree.ray_cast(origin,direction,5)[0]
+        assert a is not None and b is not None
+        gaps.append((yy,(b.x-a.x)*55))
+    print('TAPER PANEL GAPS MM',gaps,flush=True)
+    assert max(v for _,v in gaps)-min(v for _,v in gaps)<.15, 'Upper panel did not follow shell'
     hc=[o.matrix_world@Vector(c) for o in handle_objects for c in o.bound_box]
     hd=tuple((max(v[i] for v in hc)-min(v[i] for v in hc))*55 for i in range(3))
     grip_lo,grip_hi=bounds(grip_objects)
@@ -4809,7 +4981,7 @@ def export_asset(name,objects):
         for o in objects:
             if o.type!='MESH' or not o.data.materials:continue
             source=o.data.materials[0]
-            strengths={'Molded grip rubber':.25 if name in ['r7','40d'] else .36,'Crinkle painted metal':1.02 if name=='c200' else .45 if name=='r7' else .18}
+            strengths={'Molded grip rubber':.10 if name=='r7' else .25 if name=='40d' else .36,'Crinkle painted metal':1.02 if name=='c200' else .45 if name=='r7' else .18}
             if name=='c200':strengths['Magnesium shell']=.18
             if source.name not in strengths:continue
             if source.name not in calibrated:
