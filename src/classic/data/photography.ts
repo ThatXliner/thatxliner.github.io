@@ -68,6 +68,7 @@ export interface Photograph {
     date: string;
     camera: "Canon EOS 40D" | "Canon EOS R7";
     image: ImageMetadata;
+    featured: boolean;
     /** Reserved for future links to project-specific portfolios. */
     project?: string;
 }
@@ -78,6 +79,7 @@ export const photographs: Photograph[] = [
         alt: "Football players become pale overlapping streaks under stadium lights.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: ghostPlay,
     },
     {
@@ -85,6 +87,7 @@ export const photographs: Photograph[] = [
         alt: "A quarterback in blue looks for a pass between two defenders in black and white.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: underPressure,
     },
     {
@@ -92,6 +95,7 @@ export const photographs: Photograph[] = [
         alt: "Motion-blurred hands play a piano, reflected in its polished black surface.",
         date: "July 2026",
         camera: "Canon EOS 40D",
+        featured: true,
         image: allegro,
     },
     {
@@ -99,6 +103,7 @@ export const photographs: Photograph[] = [
         alt: "Sunlight falls across empty blue chairs and carpeted steps.",
         date: "July 2026",
         camera: "Canon EOS 40D",
+        featured: true,
         image: betweenGatherings,
     },
     {
@@ -106,6 +111,7 @@ export const photographs: Photograph[] = [
         alt: "Two silhouetted figures stand beneath the wide roof of an open woodland gym.",
         date: "July 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: underTheRoof,
     },
     {
@@ -113,6 +119,7 @@ export const photographs: Photograph[] = [
         alt: "White string forms a web between two open hands.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: catsCradle,
     },
     {
@@ -120,6 +127,7 @@ export const photographs: Photograph[] = [
         alt: "A luminous green fern frond hangs above a shaded path among tall trees.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: oneFrondInLight,
     },
     {
@@ -127,6 +135,7 @@ export const photographs: Photograph[] = [
         alt: "Red bridge rails and cables frame a hazy bay through a dark bus window.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: true,
         image: acrossTheBay,
     },
     {
@@ -134,6 +143,7 @@ export const photographs: Photograph[] = [
         alt: "A tiny lizard reaches from a person’s wrist toward a waiting finger.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: aSmallStep,
     },
     {
@@ -141,6 +151,7 @@ export const photographs: Photograph[] = [
         alt: "A helmeted rider hangs above the trees with both arms extended against blue sky.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: openArms,
     },
     {
@@ -148,6 +159,7 @@ export const photographs: Photograph[] = [
         alt: "A suspended rider follows a diagonal cable toward bright sun and lens flare.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: intoTheSun,
     },
     {
@@ -155,6 +167,7 @@ export const photographs: Photograph[] = [
         alt: "A climber in an orange helmet reaches up a wall patterned by leaf shadows.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: findingAHold,
     },
     {
@@ -162,6 +175,7 @@ export const photographs: Photograph[] = [
         alt: "Seen from below, a climber stretches an arm upward beside sunlit leaves.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: reach,
     },
     {
@@ -169,6 +183,7 @@ export const photographs: Photograph[] = [
         alt: "A group walks away along a sunlit forest path, with a red jacket tied around one waist.",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: togetherThroughTheTrees,
     },
     {
@@ -176,6 +191,7 @@ export const photographs: Photograph[] = [
         alt: "Warm string lights illuminate the timber roof of an empty pavilion.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: afterTheGathering,
     },
     {
@@ -183,6 +199,7 @@ export const photographs: Photograph[] = [
         alt: "A starburst lamp cuts through dark trees beside a forest path at night.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: lightThroughTheRedwoods,
     },
     {
@@ -190,6 +207,7 @@ export const photographs: Photograph[] = [
         alt: "Hands turn a screwdriver on the wheel assembly of a small robot.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: fineAdjustment,
     },
     {
@@ -197,6 +215,7 @@ export const photographs: Photograph[] = [
         alt: "Sunlight catches three piano pedals and casts long shadows across a wooden floor.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: sustain,
     },
     {
@@ -204,6 +223,7 @@ export const photographs: Photograph[] = [
         alt: "A person seen from behind walks beside angular campus architecture in black and white.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: betweenBuildings,
     },
     {
@@ -211,6 +231,7 @@ export const photographs: Photograph[] = [
         alt: "A tall cross rises above a black iron fence beneath a gray sky.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: aboveTheFence,
     },
     {
@@ -218,6 +239,7 @@ export const photographs: Photograph[] = [
         alt: "A tree and its shadow interrupt a sunlit pale brick wall.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: afternoonWall,
     },
     {
@@ -225,6 +247,7 @@ export const photographs: Photograph[] = [
         alt: "A back-facing figure stands in foamy surf as wind lifts their hair.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: atTheWaterline,
     },
     {
@@ -232,6 +255,7 @@ export const photographs: Photograph[] = [
         alt: "A flock of pelicans flies low above a gray ocean.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: lowOverTheWater,
     },
     {
@@ -239,6 +263,7 @@ export const photographs: Photograph[] = [
         alt: "A pale blue lifeguard tower stands on a nearly empty beach at dusk.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: offDuty,
     },
     {
@@ -246,6 +271,7 @@ export const photographs: Photograph[] = [
         alt: "A narrow golden sunset glows between a dark cloud bank and the ocean.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: lastBandOfLight,
     },
     {
@@ -253,6 +279,7 @@ export const photographs: Photograph[] = [
         alt: "Wooden chairs and a table are stacked beneath a vivid blue tarp in a sunlit walkway.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: underTheBlueTarp,
     },
     {
@@ -260,6 +287,7 @@ export const photographs: Photograph[] = [
         alt: "Sunlight illuminates a fallen redwood trunk in a shadowed forest.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: fallenLight,
     },
     {
@@ -267,6 +295,7 @@ export const photographs: Photograph[] = [
         alt: "A masked archer draws a padded arrow in a shaded woodland clearing.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: draw,
     },
     {
@@ -274,6 +303,7 @@ export const photographs: Photograph[] = [
         alt: "A person in a full protective mask aims a padded arrow beside an inflatable barrier.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: takingAim,
     },
     {
@@ -281,6 +311,7 @@ export const photographs: Photograph[] = [
         alt: "A masked archer leans out from an inflatable barrier with a bow drawn.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: fromCover,
     },
     {
@@ -288,6 +319,7 @@ export const photographs: Photograph[] = [
         alt: "A white car blurs beneath a bright moon and a starburst streetlight.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: passingUnderTheMoon,
     },
     {
@@ -295,6 +327,7 @@ export const photographs: Photograph[] = [
         alt: "Cut branches protrude from a deeply textured tree trunk at night.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: oldLimbs,
     },
     {
@@ -302,6 +335,7 @@ export const photographs: Photograph[] = [
         alt: "The moon and two glowing streetlights rise above rooftops at blue hour.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: twoKindsOfLight,
     },
     {
@@ -309,6 +343,7 @@ export const photographs: Photograph[] = [
         alt: "A round moon hangs above two slender cypress trees against a pink evening sky.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: cypressMoon,
     },
     {
@@ -316,6 +351,7 @@ export const photographs: Photograph[] = [
         alt: "A bright yellow ball rests inside a compact metal robot.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: yellowPayload,
     },
     {
@@ -323,6 +359,7 @@ export const photographs: Photograph[] = [
         alt: "A bank of stadium lamps glows against a pale evening sky.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: beforeTheGame,
     },
     {
@@ -330,6 +367,7 @@ export const photographs: Photograph[] = [
         alt: "Two color-guard performers bend beneath sweeping yellow flags.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: yellowArc,
     },
     {
@@ -337,6 +375,7 @@ export const photographs: Photograph[] = [
         alt: "A long camera lens hangs beside a photographer’s legs at a football field.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: sidelineKit,
     },
     {
@@ -344,6 +383,7 @@ export const photographs: Photograph[] = [
         alt: "A football player tumbles onto the field as other players converge, in black and white.",
         date: "October 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: offBalance,
     },
     {
@@ -351,6 +391,7 @@ export const photographs: Photograph[] = [
         alt: "A vendor reaches through a brightly framed service window to hand an item to a customer.",
         date: "September 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: atTheServiceWindow,
     },
     {
@@ -358,6 +399,7 @@ export const photographs: Photograph[] = [
         alt: "Long tree shadows stretch across cracked pavement in low sunlight.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: longShadows,
     },
     {
@@ -365,6 +407,7 @@ export const photographs: Photograph[] = [
         alt: "A sunlit church steeple rises into a blue sky between dark rooflines and leaves.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: steeple,
     },
     {
@@ -372,6 +415,7 @@ export const photographs: Photograph[] = [
         alt: "A battered orange traffic cone lies folded beside a concrete curb.",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: fallenCone,
     },
     {
@@ -379,6 +423,7 @@ export const photographs: Photograph[] = [
         alt: "A dense field of stars and the Milky Way crossing a dark night sky",
         date: "August 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: firmament,
     },
     {
@@ -386,6 +431,7 @@ export const photographs: Photograph[] = [
         alt: "Shafts of sunlight cutting through a dense redwood canopy",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: canopy,
     },
     {
@@ -393,6 +439,7 @@ export const photographs: Photograph[] = [
         alt: "A glowing bulb enclosed by a black wire shade",
         date: "November 2025",
         camera: "Canon EOS 40D",
+        featured: false,
         image: cagedLight,
     },
     {
@@ -400,6 +447,7 @@ export const photographs: Photograph[] = [
         alt: "An abstract motion-blurred view of light between tree trunks",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: true,
         image: forestPassing,
     },
     {
@@ -407,6 +455,7 @@ export const photographs: Photograph[] = [
         alt: "The Golden Gate Bridge disappearing into fog, seen from a bus",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: gateInFog,
     },
     {
@@ -414,6 +463,7 @@ export const photographs: Photograph[] = [
         alt: "A San Francisco street framed by a dark bus window",
         date: "August 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: throughTheWindow,
     },
     {
@@ -421,6 +471,7 @@ export const photographs: Photograph[] = [
         alt: "A full moon rising above dark rolling hills and a row of houses",
         date: "December 2025",
         camera: "Canon EOS 40D",
+        featured: false,
         image: moonOverTheHills,
     },
     {
@@ -428,6 +479,7 @@ export const photographs: Photograph[] = [
         alt: "A paddlewheel boat and its reflection resting on the still gray water of Zephyr Cove",
         date: "December 2025",
         camera: "Canon EOS 40D",
+        featured: true,
         image: lullAtZephyrCove,
     },
     {
@@ -435,6 +487,7 @@ export const photographs: Photograph[] = [
         alt: "A vivid pink and orange sunset reflected across a lake, framed by silhouetted trees",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: rosewater,
     },
     {
@@ -442,6 +495,7 @@ export const photographs: Photograph[] = [
         alt: "A lone figure walking along a dark hillside beneath a glowing pink and violet sunset",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: homeward,
     },
     {
@@ -449,6 +503,7 @@ export const photographs: Photograph[] = [
         alt: "A young spectator in a black hood sits on striped stadium bleachers while looking sideways",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: betweenInnings,
     },
     {
@@ -456,6 +511,7 @@ export const photographs: Photograph[] = [
         alt: "An orange historic streetcar waiting on Market Street",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: marketStreet,
     },
     {
@@ -463,6 +519,7 @@ export const photographs: Photograph[] = [
         alt: "Diners gathered beneath red pendant lights at a food counter",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: counterService,
     },
     {
@@ -470,6 +527,7 @@ export const photographs: Photograph[] = [
         alt: "A man in a wide-brimmed hat and glasses passing beneath glowing market lights",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: true,
         image: underTheLamps,
     },
     {
@@ -477,6 +535,7 @@ export const photographs: Photograph[] = [
         alt: "Steam rising around workers and a streetcar at an intersection",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: steamAtTheCurb,
     },
     {
@@ -484,6 +543,7 @@ export const photographs: Photograph[] = [
         alt: "Railway tracks converging toward the horizon between two platforms",
         date: "July 2026",
         camera: "Canon EOS R7",
+        featured: false,
         image: northbound,
     },
     {
@@ -491,6 +551,7 @@ export const photographs: Photograph[] = [
         alt: "A pale moon suspended above a snow-covered mountain ridge at dusk",
         date: "January 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: winterMoon,
     },
     {
@@ -498,6 +559,7 @@ export const photographs: Photograph[] = [
         alt: "A snowy mountain road curving toward an orange sunset between bare trees",
         date: "January 2026",
         camera: "Canon EOS 40D",
+        featured: false,
         image: roadToSunset,
     },
 ];

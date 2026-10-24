@@ -72,9 +72,10 @@ const galleryPhotos = await Promise.all(
 
         <div class="gallery-surface relative z-10 -mt-px bg-void">
         <div
+            id="gallery-controls" hidden
             class="mx-auto flex max-w-[1400px] flex-col gap-4 px-gutter pt-9 pb-10 sm:flex-row sm:items-center sm:justify-between md:pt-11 md:pb-12"
         >
-            <div class="flex items-center gap-2" aria-label="Filter by camera">
+            <div class="flex items-center gap-2" role="group" aria-label="Filter by camera">
                 <span class="t-caption mr-1 hidden sm:inline">Camera</span>
                 <button
                     type="button"
@@ -90,7 +91,7 @@ const galleryPhotos = await Promise.all(
                 >
             </div>
 
-            <div class="flex items-center gap-2" aria-label="Sort by date">
+            <div class="flex items-center gap-2" role="group" aria-label="Sort by date">
                 <span class="t-caption mr-1 hidden sm:inline">Date</span>
                 <button
                     type="button"
@@ -107,6 +108,12 @@ const galleryPhotos = await Promise.all(
             </div>
         </div>
 
+        <div id="gallery-status" hidden class="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-gutter pb-8">
+            <p id="gallery-count" role="status" tabindex="-1" class="t-caption"></p>
+            <button id="show-selected" type="button" class="portfolio-toggle" aria-controls="photo-gallery" hidden>Show selected work</button>
+        </div>
+        <p id="gallery-empty" hidden class="t-caption mx-auto max-w-[1400px] px-gutter pb-8">No selected photographs match these cameras. Explore the entire portfolio with this filter.</p>
+
         <section
             id="photo-gallery"
             aria-label="Selected photographs"
@@ -115,6 +122,7 @@ const galleryPhotos = await Promise.all(
             {
                 galleryPhotos.map((photo) => (
                     <figure
+                        data-featured={String(photo.featured)}
                         data-camera={photo.camera}
                         data-date={new Date(`${photo.date} 1`).valueOf()}
                     >
@@ -157,6 +165,12 @@ const galleryPhotos = await Promise.all(
                 ))
             }
         </section>
+        <noscript><style is:inline>#photo-gallery figure[data-featured="false"] { display: block !important; }</style></noscript>
+        <div id="gallery-more" hidden class="mx-auto -mt-12 max-w-[1400px] px-gutter pb-24 text-center md:pb-36">
+            <button id="show-entire" type="button" class="portfolio-toggle portfolio-reveal" aria-controls="photo-gallery" aria-expanded="false">
+                See entire portfolio <span id="portfolio-total" class="t-caption"></span>
+            </button>
+        </div>
         </div>
     </main>
     <Footer />
@@ -183,6 +197,21 @@ const galleryPhotos = await Promise.all(
 </Layout>
 
 <style>
+    [hidden] { display: none !important; }
+    #photo-gallery:not([data-ready]) figure[data-featured="false"] { display: none; }
+
+    .portfolio-toggle {
+        min-height: 44px;
+        padding: 0.65rem 1rem;
+        border: 1px solid var(--color-hairline-strong);
+        color: var(--color-fg);
+        cursor: pointer;
+    }
+    .portfolio-toggle:hover { border-color: var(--color-fg); }
+    .portfolio-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+    .portfolio-reveal { display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.75rem; }
+    @media (max-width: 40rem) { .portfolio-reveal { width: 100%; } }
+
     .photo-hire {
         align-self: flex-start;
         display: inline-flex;
@@ -233,7 +262,8 @@ const galleryPhotos = await Promise.all(
     }
 
     .filter-pill,
-    .sort-pill {
+    .sort-pill,
+    .portfolio-toggle {
         border: 1px solid var(--color-hairline-strong);
         border-radius: 4px 8px 3px 6px;
         padding: 0.45rem 0.8rem;
@@ -270,68 +300,10 @@ const galleryPhotos = await Promise.all(
 
 <script>
     import { setupPhotoViewer } from "@/lib/photo-viewer";
+    import { setupPhotoGallery } from "@/lib/photo-gallery";
 
     setupPhotoViewer("#photo-viewer", ".photo-open");
-
-    const gallery = document.querySelector<HTMLElement>("#photo-gallery");
-    const photos = Array.from(
-        document.querySelectorAll<HTMLElement>("#photo-gallery figure"),
-    );
-    const cameraButtons = Array.from(
-        document.querySelectorAll<HTMLButtonElement>(
-            ".filter-pill[data-camera]",
-        ),
-    );
-    const sortButtons = Array.from(
-        document.querySelectorAll<HTMLButtonElement>("[data-sort]"),
-    );
-
-    const selectedCameras = new Set<string>();
-    let sort = "newest";
-
-    const updateGallery = () => {
-        photos
-            .sort((a, b) => {
-                const difference = Number(b.dataset.date) - Number(a.dataset.date);
-                return sort === "newest" ? difference : -difference;
-            })
-            .forEach((photo) => {
-                photo.hidden =
-                    selectedCameras.size > 0 &&
-                    !selectedCameras.has(photo.dataset.camera ?? "");
-                gallery?.append(photo);
-            });
-    };
-
-    cameraButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const camera = button.dataset.camera;
-            if (!camera) return;
-
-            if (selectedCameras.has(camera)) {
-                selectedCameras.delete(camera);
-            } else {
-                selectedCameras.add(camera);
-            }
-            button.setAttribute(
-                "aria-pressed",
-                String(selectedCameras.has(camera)),
-            );
-            updateGallery();
-        });
-    });
-
-    sortButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            sort = button.dataset.sort ?? "newest";
-            sortButtons.forEach((item) =>
-                item.setAttribute("aria-pressed", String(item === button)),
-            );
-            updateGallery();
-        });
-    });
-
-    updateGallery();
+    setupPhotoGallery();
 
     const photographyPage = document.querySelector<HTMLElement>(
         ".photography-page",
