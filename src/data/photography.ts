@@ -4,17 +4,21 @@ import betweenInnings from "@/assets/photography/between-innings.jpg";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
 import counterService from "@/assets/photography/counter-service.webp";
+import fallenCone from "@/assets/photography/fallen-cone.webp";
 import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
 import homeward from "@/assets/photography/homeward.webp";
+import longShadows from "@/assets/photography/long-shadows.webp";
 import lullAtZephyrCove from "@/assets/photography/lull-at-zephyr-cove.webp";
 import marketStreet from "@/assets/photography/market-street.webp";
 import moonOverTheHills from "@/assets/photography/moon-over-the-hills.webp";
 import northbound from "@/assets/photography/northbound.webp";
+import offBalance from "@/assets/photography/off-balance.webp";
 import roadToSunset from "@/assets/photography/road-to-sunset.webp";
 import rosewater from "@/assets/photography/rosewater.webp";
 import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
+import steeple from "@/assets/photography/steeple.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
 import underTheLamps from "@/assets/photography/under-the-lamps.jpg";
 import winterMoon from "@/assets/photography/winter-moon.webp";
@@ -30,6 +34,34 @@ export interface Photograph {
 }
 
 export const photographs: Photograph[] = [
+    {
+        title: "Off Balance",
+        alt: "A football player tumbles onto the field as other players converge, in black and white.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: offBalance,
+    },
+    {
+        title: "Long Shadows",
+        alt: "Long tree shadows stretch across cracked pavement in low sunlight.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: longShadows,
+    },
+    {
+        title: "Steeple",
+        alt: "A sunlit church steeple rises into a blue sky between dark rooflines and leaves.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: steeple,
+    },
+    {
+        title: "Fallen Cone",
+        alt: "A battered orange traffic cone lies folded beside a concrete curb.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: fallenCone,
+    },
     {
         title: "Firmament",
         alt: "A dense field of stars and the Milky Way crossing a dark night sky",
