@@ -754,7 +754,7 @@ export async function initResumeFilm() {
     cameraNearby.then(() => {
       if (disposed) throw new Error("Scene disposed");
       return Promise.all([
-      model("/models/gear/r7.glb"),
+      model("/models/gear/r7.glb?v=94aff49376cb"),
       model("/models/gear/35.glb"),
       model("/models/gear/adapter.glb"),
     ]); }).then(([body, lens, adapter]) => {
