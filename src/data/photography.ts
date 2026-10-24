@@ -1,28 +1,64 @@
 import type { ImageMetadata } from "astro";
 
+import aSmallStep from "@/assets/photography/a-small-step.webp";
+import aboveTheFence from "@/assets/photography/above-the-fence.webp";
+import acrossTheBay from "@/assets/photography/across-the-bay.webp";
+import afterTheGathering from "@/assets/photography/after-the-gathering.webp";
+import afternoonWall from "@/assets/photography/afternoon-wall.webp";
+import allegro from "@/assets/photography/allegro.webp";
 import atTheServiceWindow from "@/assets/photography/at-the-service-window.webp";
+import atTheWaterline from "@/assets/photography/at-the-waterline.webp";
+import beforeTheGame from "@/assets/photography/before-the-game.webp";
+import betweenBuildings from "@/assets/photography/between-buildings.webp";
+import betweenGatherings from "@/assets/photography/between-gatherings.webp";
 import betweenInnings from "@/assets/photography/between-innings.jpg";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
+import catsCradle from "@/assets/photography/cats-cradle.webp";
 import counterService from "@/assets/photography/counter-service.webp";
+import cypressMoon from "@/assets/photography/cypress-moon.webp";
+import draw from "@/assets/photography/draw.webp";
 import fallenCone from "@/assets/photography/fallen-cone.webp";
+import fallenLight from "@/assets/photography/fallen-light.webp";
+import findingAHold from "@/assets/photography/finding-a-hold.webp";
+import fineAdjustment from "@/assets/photography/fine-adjustment.webp";
 import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
+import fromCover from "@/assets/photography/from-cover.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
 import homeward from "@/assets/photography/homeward.webp";
+import intoTheSun from "@/assets/photography/into-the-sun.webp";
+import lastBandOfLight from "@/assets/photography/last-band-of-light.webp";
+import lightThroughTheRedwoods from "@/assets/photography/light-through-the-redwoods.webp";
 import longShadows from "@/assets/photography/long-shadows.webp";
+import lowOverTheWater from "@/assets/photography/low-over-the-water.webp";
 import lullAtZephyrCove from "@/assets/photography/lull-at-zephyr-cove.webp";
 import marketStreet from "@/assets/photography/market-street.webp";
 import moonOverTheHills from "@/assets/photography/moon-over-the-hills.webp";
 import northbound from "@/assets/photography/northbound.webp";
 import offBalance from "@/assets/photography/off-balance.webp";
+import offDuty from "@/assets/photography/off-duty.webp";
+import oldLimbs from "@/assets/photography/old-limbs.webp";
+import oneFrondInLight from "@/assets/photography/one-frond-in-light.webp";
+import openArms from "@/assets/photography/open-arms.webp";
+import passingUnderTheMoon from "@/assets/photography/passing-under-the-moon.webp";
+import reach from "@/assets/photography/reach.webp";
 import roadToSunset from "@/assets/photography/road-to-sunset.webp";
 import rosewater from "@/assets/photography/rosewater.webp";
+import sidelineKit from "@/assets/photography/sideline-kit.webp";
 import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
 import steeple from "@/assets/photography/steeple.webp";
+import sustain from "@/assets/photography/sustain.webp";
+import takingAim from "@/assets/photography/taking-aim.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
+import togetherThroughTheTrees from "@/assets/photography/together-through-the-trees.webp";
+import twoKindsOfLight from "@/assets/photography/two-kinds-of-light.webp";
+import underTheBlueTarp from "@/assets/photography/under-the-blue-tarp.webp";
 import underTheLamps from "@/assets/photography/under-the-lamps.jpg";
+import underTheRoof from "@/assets/photography/under-the-roof.webp";
 import winterMoon from "@/assets/photography/winter-moon.webp";
+import yellowArc from "@/assets/photography/yellow-arc.webp";
+import yellowPayload from "@/assets/photography/yellow-payload.webp";
 
 export interface Photograph {
     title: string;
@@ -35,6 +71,258 @@ export interface Photograph {
 }
 
 export const photographs: Photograph[] = [
+    {
+        title: "Allegro",
+        alt: "Motion-blurred hands play a piano, reflected in its polished black surface.",
+        date: "July 2026",
+        camera: "Canon EOS 40D",
+        image: allegro,
+    },
+    {
+        title: "Between Gatherings",
+        alt: "Sunlight falls across empty blue chairs and carpeted steps.",
+        date: "July 2026",
+        camera: "Canon EOS 40D",
+        image: betweenGatherings,
+    },
+    {
+        title: "Under the Roof",
+        alt: "Two silhouetted figures stand beneath the wide roof of an open woodland gym.",
+        date: "July 2026",
+        camera: "Canon EOS 40D",
+        image: underTheRoof,
+    },
+    {
+        title: "Cat’s Cradle",
+        alt: "White string forms a web between two open hands.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: catsCradle,
+    },
+    {
+        title: "One Frond in Light",
+        alt: "A luminous green fern frond hangs above a shaded path among tall trees.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: oneFrondInLight,
+    },
+    {
+        title: "Across the Bay",
+        alt: "Red bridge rails and cables frame a hazy bay through a dark bus window.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: acrossTheBay,
+    },
+    {
+        title: "A Small Step",
+        alt: "A tiny lizard reaches from a person’s wrist toward a waiting finger.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: aSmallStep,
+    },
+    {
+        title: "Open Arms",
+        alt: "A helmeted rider hangs above the trees with both arms extended against blue sky.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: openArms,
+    },
+    {
+        title: "Into the Sun",
+        alt: "A suspended rider follows a diagonal cable toward bright sun and lens flare.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: intoTheSun,
+    },
+    {
+        title: "Finding a Hold",
+        alt: "A climber in an orange helmet reaches up a wall patterned by leaf shadows.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: findingAHold,
+    },
+    {
+        title: "Reach",
+        alt: "Seen from below, a climber stretches an arm upward beside sunlit leaves.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: reach,
+    },
+    {
+        title: "Together Through the Trees",
+        alt: "A group walks away along a sunlit forest path, with a red jacket tied around one waist.",
+        date: "August 2026",
+        camera: "Canon EOS 40D",
+        image: togetherThroughTheTrees,
+    },
+    {
+        title: "After the Gathering",
+        alt: "Warm string lights illuminate the timber roof of an empty pavilion.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: afterTheGathering,
+    },
+    {
+        title: "Light Through the Redwoods",
+        alt: "A starburst lamp cuts through dark trees beside a forest path at night.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: lightThroughTheRedwoods,
+    },
+    {
+        title: "Fine Adjustment",
+        alt: "Hands turn a screwdriver on the wheel assembly of a small robot.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: fineAdjustment,
+    },
+    {
+        title: "Sustain",
+        alt: "Sunlight catches three piano pedals and casts long shadows across a wooden floor.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: sustain,
+    },
+    {
+        title: "Between Buildings",
+        alt: "A person seen from behind walks beside angular campus architecture in black and white.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: betweenBuildings,
+    },
+    {
+        title: "Above the Fence",
+        alt: "A tall cross rises above a black iron fence beneath a gray sky.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: aboveTheFence,
+    },
+    {
+        title: "Afternoon Wall",
+        alt: "A tree and its shadow interrupt a sunlit pale brick wall.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: afternoonWall,
+    },
+    {
+        title: "At the Waterline",
+        alt: "A back-facing figure stands in foamy surf as wind lifts their hair.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: atTheWaterline,
+    },
+    {
+        title: "Low Over the Water",
+        alt: "A flock of pelicans flies low above a gray ocean.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: lowOverTheWater,
+    },
+    {
+        title: "Off Duty",
+        alt: "A pale blue lifeguard tower stands on a nearly empty beach at dusk.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: offDuty,
+    },
+    {
+        title: "Last Band of Light",
+        alt: "A narrow golden sunset glows between a dark cloud bank and the ocean.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: lastBandOfLight,
+    },
+    {
+        title: "Under the Blue Tarp",
+        alt: "Wooden chairs and a table are stacked beneath a vivid blue tarp in a sunlit walkway.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: underTheBlueTarp,
+    },
+    {
+        title: "Fallen Light",
+        alt: "Sunlight illuminates a fallen redwood trunk in a shadowed forest.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: fallenLight,
+    },
+    {
+        title: "Draw",
+        alt: "A masked archer draws a padded arrow in a shaded woodland clearing.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: draw,
+    },
+    {
+        title: "Taking Aim",
+        alt: "A person in a full protective mask aims a padded arrow beside an inflatable barrier.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: takingAim,
+    },
+    {
+        title: "From Cover",
+        alt: "A masked archer leans out from an inflatable barrier with a bow drawn.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: fromCover,
+    },
+    {
+        title: "Passing Under the Moon",
+        alt: "A white car blurs beneath a bright moon and a starburst streetlight.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: passingUnderTheMoon,
+    },
+    {
+        title: "Old Limbs",
+        alt: "Cut branches protrude from a deeply textured tree trunk at night.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: oldLimbs,
+    },
+    {
+        title: "Two Kinds of Light",
+        alt: "The moon and two glowing streetlights rise above rooftops at blue hour.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: twoKindsOfLight,
+    },
+    {
+        title: "Cypress Moon",
+        alt: "A round moon hangs above two slender cypress trees against a pink evening sky.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: cypressMoon,
+    },
+    {
+        title: "Yellow Payload",
+        alt: "A bright yellow ball rests inside a compact metal robot.",
+        date: "August 2026",
+        camera: "Canon EOS R7",
+        image: yellowPayload,
+    },
+    {
+        title: "Before the Game",
+        alt: "A bank of stadium lamps glows against a pale evening sky.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: beforeTheGame,
+    },
+    {
+        title: "Yellow Arc",
+        alt: "Two color-guard performers bend beneath sweeping yellow flags.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: yellowArc,
+    },
+    {
+        title: "Sideline Kit",
+        alt: "A long camera lens hangs beside a photographer’s legs at a football field.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: sidelineKit,
+    },
     {
         title: "Off Balance",
         alt: "A football player tumbles onto the field as other players converge, in black and white.",
