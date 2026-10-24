@@ -1,8 +1,6 @@
 import type { ImageMetadata } from "astro";
 
-import aSmallStep from "@/assets/photography/a-small-step.webp";
 import aboveTheFence from "@/assets/photography/above-the-fence.webp";
-import acrossTheBay from "@/assets/photography/across-the-bay.webp";
 import afterTheGathering from "@/assets/photography/after-the-gathering.webp";
 import afternoonWall from "@/assets/photography/afternoon-wall.webp";
 import allegro from "@/assets/photography/allegro.webp";
@@ -10,7 +8,6 @@ import atTheServiceWindow from "@/assets/photography/at-the-service-window.webp"
 import atTheWaterline from "@/assets/photography/at-the-waterline.webp";
 import beforeTheGame from "@/assets/photography/before-the-game.webp";
 import betweenBuildings from "@/assets/photography/between-buildings.webp";
-import betweenGatherings from "@/assets/photography/between-gatherings.webp";
 import betweenInnings from "@/assets/photography/between-innings.jpg";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
@@ -29,7 +26,6 @@ import gateInFog from "@/assets/photography/gate-in-fog.webp";
 import ghostPlay from "@/assets/photography/ghost-play.webp";
 import homeward from "@/assets/photography/homeward.webp";
 import intoTheSun from "@/assets/photography/into-the-sun.webp";
-import lastBandOfLight from "@/assets/photography/last-band-of-light.webp";
 import lightThroughTheRedwoods from "@/assets/photography/light-through-the-redwoods.webp";
 import longShadows from "@/assets/photography/long-shadows.webp";
 import lowOverTheWater from "@/assets/photography/low-over-the-water.webp";
@@ -49,15 +45,12 @@ import rosewater from "@/assets/photography/rosewater.webp";
 import sidelineKit from "@/assets/photography/sideline-kit.webp";
 import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
 import steeple from "@/assets/photography/steeple.webp";
-import sustain from "@/assets/photography/sustain.webp";
 import takingAim from "@/assets/photography/taking-aim.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
 import togetherThroughTheTrees from "@/assets/photography/together-through-the-trees.webp";
 import twoKindsOfLight from "@/assets/photography/two-kinds-of-light.webp";
 import underPressure from "@/assets/photography/under-pressure.webp";
-import underTheBlueTarp from "@/assets/photography/under-the-blue-tarp.webp";
 import underTheLamps from "@/assets/photography/under-the-lamps.jpg";
-import underTheRoof from "@/assets/photography/under-the-roof.webp";
 import winterMoon from "@/assets/photography/winter-moon.webp";
 import yellowArc from "@/assets/photography/yellow-arc.webp";
 import yellowPayload from "@/assets/photography/yellow-payload.webp";
@@ -99,22 +92,6 @@ export const photographs: Photograph[] = [
         image: allegro,
     },
     {
-        title: "Between Gatherings",
-        alt: "Sunlight falls across empty blue chairs and carpeted steps.",
-        date: "July 2026",
-        camera: "Canon EOS 40D",
-        featured: false,
-        image: betweenGatherings,
-    },
-    {
-        title: "Under the Roof",
-        alt: "Two silhouetted figures stand beneath the wide roof of an open woodland gym.",
-        date: "July 2026",
-        camera: "Canon EOS 40D",
-        featured: false,
-        image: underTheRoof,
-    },
-    {
         title: "Cat’s Cradle",
         alt: "White string forms a web between two open hands.",
         date: "August 2026",
@@ -129,22 +106,6 @@ export const photographs: Photograph[] = [
         camera: "Canon EOS 40D",
         featured: false,
         image: oneFrondInLight,
-    },
-    {
-        title: "Across the Bay",
-        alt: "Red bridge rails and cables frame a hazy bay through a dark bus window.",
-        date: "August 2026",
-        camera: "Canon EOS 40D",
-        featured: false,
-        image: acrossTheBay,
-    },
-    {
-        title: "A Small Step",
-        alt: "A tiny lizard reaches from a person’s wrist toward a waiting finger.",
-        date: "August 2026",
-        camera: "Canon EOS 40D",
-        featured: false,
-        image: aSmallStep,
     },
     {
         title: "Open Arms",
@@ -211,14 +172,6 @@ export const photographs: Photograph[] = [
         image: fineAdjustment,
     },
     {
-        title: "Sustain",
-        alt: "Sunlight catches three piano pedals and casts long shadows across a wooden floor.",
-        date: "August 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: sustain,
-    },
-    {
         title: "Between Buildings",
         alt: "A person seen from behind walks beside angular campus architecture in black and white.",
         date: "August 2026",
@@ -265,22 +218,6 @@ export const photographs: Photograph[] = [
         camera: "Canon EOS R7",
         featured: false,
         image: offDuty,
-    },
-    {
-        title: "Last Band of Light",
-        alt: "A narrow golden sunset glows between a dark cloud bank and the ocean.",
-        date: "August 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: lastBandOfLight,
-    },
-    {
-        title: "Under the Blue Tarp",
-        alt: "Wooden chairs and a table are stacked beneath a vivid blue tarp in a sunlit walkway.",
-        date: "August 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: underTheBlueTarp,
     },
     {
         title: "Fallen Light",
