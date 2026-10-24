@@ -1,5 +1,6 @@
 import type { ImageMetadata } from "astro";
 
+import atTheServiceWindow from "@/assets/photography/at-the-service-window.webp";
 import betweenInnings from "@/assets/photography/between-innings.jpg";
 import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
@@ -40,6 +41,13 @@ export const photographs: Photograph[] = [
         date: "October 2026",
         camera: "Canon EOS R7",
         image: offBalance,
+    },
+    {
+        title: "At the Service Window",
+        alt: "A vendor reaches through a brightly framed service window to hand an item to a customer.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        image: atTheServiceWindow,
     },
     {
         title: "Long Shadows",
