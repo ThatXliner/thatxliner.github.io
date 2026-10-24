@@ -26,6 +26,7 @@ import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
 import fromCover from "@/assets/photography/from-cover.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
+import ghostPlay from "@/assets/photography/ghost-play.webp";
 import homeward from "@/assets/photography/homeward.webp";
 import intoTheSun from "@/assets/photography/into-the-sun.webp";
 import lastBandOfLight from "@/assets/photography/last-band-of-light.webp";
@@ -53,6 +54,7 @@ import takingAim from "@/assets/photography/taking-aim.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
 import togetherThroughTheTrees from "@/assets/photography/together-through-the-trees.webp";
 import twoKindsOfLight from "@/assets/photography/two-kinds-of-light.webp";
+import underPressure from "@/assets/photography/under-pressure.webp";
 import underTheBlueTarp from "@/assets/photography/under-the-blue-tarp.webp";
 import underTheLamps from "@/assets/photography/under-the-lamps.jpg";
 import underTheRoof from "@/assets/photography/under-the-roof.webp";
@@ -71,6 +73,20 @@ export interface Photograph {
 }
 
 export const photographs: Photograph[] = [
+    {
+        title: "Ghost Play",
+        alt: "Football players become pale overlapping streaks under stadium lights.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: ghostPlay,
+    },
+    {
+        title: "Under Pressure",
+        alt: "A quarterback in blue looks for a pass between two defenders in black and white.",
+        date: "October 2026",
+        camera: "Canon EOS R7",
+        image: underPressure,
+    },
     {
         title: "Allegro",
         alt: "Motion-blurred hands play a piano, reflected in its polished black surface.",
