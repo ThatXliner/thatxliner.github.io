@@ -13,6 +13,7 @@ import cagedLight from "@/assets/photography/caged-light.webp";
 import canopy from "@/assets/photography/canopy.webp";
 import catsCradle from "@/assets/photography/cats-cradle.webp";
 import counterService from "@/assets/photography/counter-service.webp";
+import crossingLight from "@/assets/photography/crossing-light.webp";
 import cypressMoon from "@/assets/photography/cypress-moon.webp";
 import draw from "@/assets/photography/draw.webp";
 import fallenCone from "@/assets/photography/fallen-cone.webp";
@@ -36,6 +37,7 @@ import northbound from "@/assets/photography/northbound.webp";
 import offBalance from "@/assets/photography/off-balance.webp";
 import offDuty from "@/assets/photography/off-duty.webp";
 import oldLimbs from "@/assets/photography/old-limbs.webp";
+import onTheTrail from "@/assets/photography/on-the-trail.webp";
 import oneFrondInLight from "@/assets/photography/one-frond-in-light.webp";
 import openArms from "@/assets/photography/open-arms.webp";
 import passingUnderTheMoon from "@/assets/photography/passing-under-the-moon.webp";
@@ -67,6 +69,22 @@ export interface Photograph {
 }
 
 export const photographs: Photograph[] = [
+    {
+        title: "Crossing Light",
+        alt: "Bright light crosses diagonal wooden beams and deep shadows in a grainy black-and-white architectural study.",
+        date: "July 2026",
+        camera: "Canon EOS R7",
+        featured: false,
+        image: crossingLight,
+    },
+    {
+        title: "On the Trail",
+        alt: "Two people seen from behind walk along a wooded path beneath soft green light.",
+        date: "September 2026",
+        camera: "Canon EOS R7",
+        featured: false,
+        image: onTheTrail,
+    },
     {
         title: "Ghost Play",
         alt: "Football players become pale overlapping streaks under stadium lights.",
