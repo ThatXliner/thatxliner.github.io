@@ -15,14 +15,12 @@ import catsCradle from "@/assets/photography/cats-cradle.webp";
 import counterService from "@/assets/photography/counter-service.webp";
 import crossingLight from "@/assets/photography/crossing-light.webp";
 import cypressMoon from "@/assets/photography/cypress-moon.webp";
-import draw from "@/assets/photography/draw.webp";
 import fallenCone from "@/assets/photography/fallen-cone.webp";
 import fallenLight from "@/assets/photography/fallen-light.webp";
 import findingAHold from "@/assets/photography/finding-a-hold.webp";
 import fineAdjustment from "@/assets/photography/fine-adjustment.webp";
 import firmament from "@/assets/photography/firmament.webp";
 import forestPassing from "@/assets/photography/forest-passing.webp";
-import fromCover from "@/assets/photography/from-cover.webp";
 import gateInFog from "@/assets/photography/gate-in-fog.webp";
 import ghostPlay from "@/assets/photography/ghost-play.webp";
 import homeward from "@/assets/photography/homeward.webp";
@@ -47,7 +45,6 @@ import rosewater from "@/assets/photography/rosewater.webp";
 import sidelineKit from "@/assets/photography/sideline-kit.webp";
 import steamAtTheCurb from "@/assets/photography/steam-at-the-curb.webp";
 import steeple from "@/assets/photography/steeple.webp";
-import takingAim from "@/assets/photography/taking-aim.webp";
 import throughTheWindow from "@/assets/photography/through-the-window.webp";
 import togetherThroughTheTrees from "@/assets/photography/together-through-the-trees.webp";
 import twoKindsOfLight from "@/assets/photography/two-kinds-of-light.webp";
@@ -244,30 +241,6 @@ export const photographs: Photograph[] = [
         camera: "Canon EOS R7",
         featured: true,
         image: fallenLight,
-    },
-    {
-        title: "Draw",
-        alt: "A masked archer draws a padded arrow in a shaded woodland clearing.",
-        date: "September 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: draw,
-    },
-    {
-        title: "Taking Aim",
-        alt: "A person in a full protective mask aims a padded arrow beside an inflatable barrier.",
-        date: "September 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: takingAim,
-    },
-    {
-        title: "From Cover",
-        alt: "A masked archer leans out from an inflatable barrier with a bow drawn.",
-        date: "September 2026",
-        camera: "Canon EOS R7",
-        featured: false,
-        image: fromCover,
     },
     {
         title: "Passing Under the Moon",
