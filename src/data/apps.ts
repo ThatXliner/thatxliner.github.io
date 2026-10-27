@@ -54,7 +54,7 @@ export const apps: App[] = [
             "A keyboard-first culling workspace for photographers: RAW+JPEG control and deep EXIF, with none of the cloud.",
         platform: "macOS",
         language: "Svelte",
-        url: "https://bryanhu.com/Hologram/",
+        url: "https://bryanhu.com/hologram/",
         repo: "https://github.com/ThatXliner/Hologram",
         image: hologram,
     },
