@@ -1,47 +1,472 @@
 ---
-const whites=[0,2,4,5,7,9,11,12,14,16,17,19,21,23];
-const names=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const shortcuts=['a','w','s','e','d','f','t','g','y','h','u','j','k','o','l','p',';'];
+const whites = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23];
+const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const shortcuts = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k", "o", "l", "p", ";"];
+const label = (note: number) =>
+    `${names[note % 12]}${4 + Math.floor(note / 12)}${shortcuts[note] ? `, keyboard ${shortcuts[note]}` : ""}`;
+const blacks = whites.flatMap((note, i) => ([0, 2, 5, 7, 9].includes(note % 12) ? [{ note: note + 1, i }] : []));
 ---
+
+<!-- Keys start disabled, and the script enables them, so without JS this is a
+     drawing of a keyboard and not two dozen buttons that do nothing. -->
 <div class="playable-piano">
- <div class="piano-notes" aria-hidden="true">♫ <span>♪</span></div>
- <div class="piano-keys" role="group" aria-label="Playable piano, C4 to B5">
- {whites.map((note,i)=><button class="piano-key white" type="button" data-note={note} aria-label={`${names[note%12]}${4+Math.floor(note/12)}${shortcuts[note] ? `, keyboard ${shortcuts[note]}` : ''}`} style={`left:${i/14*100}%;width:${100/14}%`}></button>)}
- {whites.flatMap((note,i)=>[0,2,5,7,9].includes(note%12)?[<button class="piano-key black" type="button" data-note={note+1} aria-label={`${names[(note+1)%12]}${4+Math.floor(note/12)}${shortcuts[note+1] ? `, keyboard ${shortcuts[note+1]}` : ''}`} style={`left:${(i+.72)/14*100}%;width:${.56/14*100}%`}></button>]:[])}
- </div>
- <p class="piano-help">Play a little. <span>Tap the keys, or try A S D F G H J.</span></p>
+    <div class="piano-help" aria-hidden="true">
+        <span class="hand">Play a little.</span>
+        <svg class="ink" viewBox="0 0 46 44" width="46" height="44"><path pathLength="1" stroke-width="2" d="M6 4c16 2 28 12 30 32M27 28l9 9 6-11" /></svg>
+    </div>
+    <p class="piano-hint t-caption">Tap the keys<span>, or try A S D F G H J</span>.</p>
+    <div class="piano-glyphs" aria-hidden="true"></div>
+    <div class="piano-keys" role="group" aria-label="Playable piano, C4 to B5. Use the left and right arrow keys to move between notes, and space to play.">
+        {
+            whites.map((note, i) => (
+                <button
+                    class:list={["piano-key white", { "piano-high": i > 7 }]}
+                    type="button"
+                    disabled
+                    tabindex={i === 0 ? 0 : -1}
+                    data-note={note}
+                    aria-label={label(note)}
+                    style={`--i:${i}`}
+                />
+            ))
+        }
+        {
+            blacks.map(({ note, i }) => (
+                <button
+                    class:list={["piano-key black", { "piano-high": i >= 7 }]}
+                    type="button"
+                    disabled
+                    tabindex="-1"
+                    data-note={note}
+                    aria-label={label(note)}
+                    style={`--i:${i}`}
+                />
+            ))
+        }
+    </div>
 </div>
+
 <script>
-const piano=document.querySelector<HTMLElement>('.playable-piano');
-if(piano){
- let context:AudioContext|undefined;
- const keys=[...piano.querySelectorAll<HTMLButtonElement>('[data-note]')];
- const shortcuts=['a','w','s','e','d','f','t','g','y','h','u','j','k','o','l','p',';'];
- const timers=new Map<HTMLElement,ReturnType<typeof setTimeout>>();
- function play(key:HTMLButtonElement){
-  context??=new AudioContext();
-  void context.resume();
-  const now=context.currentTime,frequency=261.625565*Math.pow(2,Number(key.dataset.note)/12);
-  const envelope=context.createGain();envelope.connect(context.destination);
-  envelope.gain.setValueAtTime(0,now);envelope.gain.linearRampToValueAtTime(.17,now+.008);envelope.gain.exponentialRampToValueAtTime(.0001,now+1.8);
-  [1,2,3,4].forEach((partial,i)=>{const oscillator=context!.createOscillator();const gain=context!.createGain();oscillator.type='sine';oscillator.frequency.value=frequency*partial;gain.gain.value=[1,.3,.12,.04][i];oscillator.connect(gain);gain.connect(envelope);oscillator.start(now);oscillator.stop(now+1.85);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();if(i===3)envelope.disconnect();};});
-  key.classList.add('is-playing');clearTimeout(timers.get(key));timers.set(key,setTimeout(()=>{key.classList.remove('is-playing');timers.delete(key);},180));
- }
- keys.forEach(key=>{
-  key.addEventListener('pointerdown',event=>{if(event.button===0){event.preventDefault();key.focus({preventScroll:true});play(key);}});
-  key.addEventListener('click',event=>{if(event.detail===0)play(key);});
- });
- const onKey=(event:KeyboardEvent)=>{
-  if(event.repeat||event.ctrlKey||event.metaKey||event.altKey)return;
-  const target=event.target as HTMLElement;if(target.matches('input,textarea,select')||target.isContentEditable)return;
-  const bounds=piano.getBoundingClientRect();if(bounds.bottom<0||bounds.top>innerHeight)return;
-  const note=shortcuts.indexOf(event.key.toLowerCase());if(note<0)return;
-  const key=keys.find(key=>Number(key.dataset.note)===note);if(key){event.preventDefault();play(key);}
- };
- document.addEventListener('keydown',onKey);
- document.addEventListener('astro:before-swap',()=>{document.removeEventListener('keydown',onKey);timers.forEach(clearTimeout);void context?.close();},{once:true});
-}
+    import { lifetime, motionEnabled } from "../lib/motion";
+
+    const piano = document.querySelector<HTMLElement>(".playable-piano");
+    if (piano) {
+        const signal = lifetime();
+        const keyboard = piano.querySelector<HTMLElement>(".piano-keys")!;
+        const glyphs = piano.querySelector<HTMLElement>(".piano-glyphs")!;
+        const keys = [...piano.querySelectorAll<HTMLButtonElement>("[data-note]")];
+        // Tab and arrow order follows pitch, not DOM order.
+        const scale = [...keys].sort((a, b) => Number(a.dataset.note) - Number(b.dataset.note));
+        const shortcuts = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "k", "o", "l", "p", ";"];
+
+        let context: AudioContext | undefined;
+        let output: AudioNode | undefined;
+        const voices = new Map<HTMLButtonElement, GainNode>();
+
+        function press(key: HTMLButtonElement) {
+            if (voices.has(key)) return;
+            if (!context) {
+                context = new AudioContext();
+                const compressor = context.createDynamicsCompressor();
+                compressor.connect(context.destination);
+                output = compressor;
+            }
+            void context.resume();
+            const now = context.currentTime;
+            const frequency = 261.625565 * Math.pow(2, Number(key.dataset.note) / 12);
+            // The envelope is the string decaying. The damper is separate, so
+            // releasing a key can never make the level jump and click.
+            const envelope = context.createGain();
+            const damper = context.createGain();
+            envelope.connect(damper);
+            damper.connect(output!);
+            envelope.gain.setValueAtTime(0, now);
+            envelope.gain.linearRampToValueAtTime(0.17, now + 0.008);
+            envelope.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
+            [1, 2, 3, 4].forEach((partial, i) => {
+                const oscillator = context!.createOscillator();
+                const gain = context!.createGain();
+                oscillator.type = "sine";
+                oscillator.frequency.value = frequency * partial;
+                gain.gain.value = [1, 0.3, 0.12, 0.04][i];
+                oscillator.connect(gain);
+                gain.connect(envelope);
+                oscillator.start(now);
+                oscillator.stop(now + 2.7);
+                oscillator.onended = () => {
+                    oscillator.disconnect();
+                    gain.disconnect();
+                    if (i === 3) {
+                        envelope.disconnect();
+                        damper.disconnect();
+                    }
+                };
+            });
+            voices.set(key, damper);
+            key.classList.add("is-down");
+            emit(key);
+        }
+
+        function release(key: HTMLButtonElement) {
+            const damper = voices.get(key);
+            if (!damper || !context) return;
+            voices.delete(key);
+            damper.gain.setTargetAtTime(0, context.currentTime, 0.09);
+            key.classList.remove("is-down");
+        }
+
+        const releaseAll = () => [...voices.keys()].forEach(release);
+        let keyboardHeld: HTMLButtonElement | undefined;
+
+        // A note rises off the key that made it and is gone in a second. No key
+        // pressed, no notes.
+        function emit(key: HTMLButtonElement) {
+            if (!motionEnabled() || glyphs.childElementCount > 10) return;
+            const box = key.getBoundingClientRect();
+            // A typing shortcut can play a key the phone layout has hidden.
+            if (!box.width) return;
+            const glyph = document.createElement("span");
+            glyph.className = "piano-glyph";
+            glyph.textContent = Math.random() < 0.5 ? "♪" : "♫";
+            const host = glyphs.getBoundingClientRect();
+            glyph.style.left = `${box.left + box.width / 2 - host.left}px`;
+            glyphs.append(glyph);
+            const drift = (Math.random() - 0.5) * 34;
+            const height = 70 + Math.random() * 46;
+            glyph.animate(
+                [
+                    { transform: "translate(-50%, 0) rotate(0deg)", opacity: 0 },
+                    { transform: `translate(calc(-50% + ${drift * 0.3}px), ${-height * 0.45}px) rotate(${drift * 0.2}deg)`, opacity: 1, offset: 0.25 },
+                    { transform: `translate(calc(-50% + ${drift}px), ${-height}px) rotate(${drift * 0.5}deg)`, opacity: 0 },
+                ],
+                { duration: 1150, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
+            ).onfinish = () => glyph.remove();
+        }
+
+        // Pointer input: a press plays immediately, and sliding across keys is a
+        // glissando. A vertical swipe is left to the browser, so the page still
+        // scrolls when a thumb lands on the keyboard (touch-action: pan-y).
+        const held = new Map<number, HTMLButtonElement>();
+        const keyAt = (x: number, y: number) =>
+            document.elementFromPoint(x, y)?.closest<HTMLButtonElement>(".piano-key") ?? undefined;
+
+        keyboard.addEventListener(
+            "pointerdown",
+            (event) => {
+                if (event.button !== 0) return;
+                const key = (event.target as Element).closest<HTMLButtonElement>(".piano-key");
+                if (!key) return;
+                event.preventDefault();
+                // Touch pointers capture implicitly, which would stop the slide.
+                if (key.hasPointerCapture(event.pointerId)) key.releasePointerCapture(event.pointerId);
+                key.focus({ preventScroll: true });
+                moveFocusStop(key);
+                held.set(event.pointerId, key);
+                press(key);
+            },
+            { signal },
+        );
+        keyboard.addEventListener(
+            "pointermove",
+            (event) => {
+                const current = held.get(event.pointerId);
+                if (!current) return;
+                const next = keyAt(event.clientX, event.clientY);
+                if (next === current) return;
+                release(current);
+                if (next && keyboard.contains(next)) {
+                    held.set(event.pointerId, next);
+                    press(next);
+                } else {
+                    held.delete(event.pointerId);
+                }
+            },
+            { signal, passive: true },
+        );
+        const lift = (event: PointerEvent) => {
+            const key = held.get(event.pointerId);
+            if (!key) return;
+            // Touch activation may arrive on release rather than pointerdown.
+            if (event.type === "pointerup") void context?.resume();
+            held.delete(event.pointerId);
+            release(key);
+        };
+        window.addEventListener("pointerup", lift, { signal });
+        window.addEventListener("pointercancel", lift, { signal });
+
+        // Keyboard input on the focused key: one tab stop, arrows between notes.
+        function moveFocusStop(target: HTMLButtonElement) {
+            keys.forEach((key) => {
+                key.tabIndex = key === target ? 0 : -1;
+            });
+        }
+        const visibleScale = () => scale.filter((key) => key.offsetParent !== null);
+        keyboard.addEventListener(
+            "keydown",
+            (event) => {
+                const key = (event.target as Element).closest<HTMLButtonElement>(".piano-key");
+                if (!key) return;
+                if (event.key === " " || event.key === "Enter") {
+                    event.preventDefault();
+                    if (!event.repeat) {
+                        if (keyboardHeld) release(keyboardHeld);
+                        keyboardHeld = key;
+                        press(key);
+                    }
+                    return;
+                }
+                const notes = visibleScale();
+                const at = notes.indexOf(key);
+                const next =
+                    event.key === "ArrowRight" ? notes[at + 1]
+                    : event.key === "ArrowLeft" ? notes[at - 1]
+                    : event.key === "Home" ? notes[0]
+                    : event.key === "End" ? notes[notes.length - 1]
+                    : undefined;
+                if (!next) return;
+                event.preventDefault();
+                moveFocusStop(next);
+                next.focus();
+            },
+            { signal },
+        );
+        keyboard.addEventListener(
+            "keyup",
+            (event) => {
+                if (event.key !== " " && event.key !== "Enter") return;
+                const key = keyboardHeld;
+                if (!key) return;
+                event.preventDefault();
+                release(key);
+                keyboardHeld = undefined;
+            },
+            { signal },
+        );
+        keyboard.addEventListener("focusout", () => {
+            if (keyboardHeld) release(keyboardHeld);
+            keyboardHeld = undefined;
+        }, { signal });
+        // Assistive tech activates with a synthetic click and no key or pointer.
+        keyboard.addEventListener(
+            "click",
+            (event) => {
+                if (event.detail !== 0) return;
+                const key = (event.target as Element).closest<HTMLButtonElement>(".piano-key");
+                if (!key || voices.has(key)) return;
+                press(key);
+                setTimeout(() => release(key), 320);
+            },
+            { signal },
+        );
+
+        // Typing-keyboard shortcuts, while the piano is on screen.
+        const typed = new Map<string, HTMLButtonElement>();
+        document.addEventListener(
+            "keydown",
+            (event) => {
+                if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+                const target = event.target as HTMLElement;
+                if (target.matches("input, textarea, select") || target.isContentEditable) return;
+                if (!piano.contains(document.activeElement) && !piano.matches(":hover")) return;
+                const note = shortcuts.indexOf(event.key.toLowerCase());
+                if (note < 0) return;
+                const key = keys.find((item) => Number(item.dataset.note) === note);
+                if (!key) return;
+                event.preventDefault();
+                typed.set(event.key.toLowerCase(), key);
+                press(key);
+            },
+            { signal },
+        );
+        document.addEventListener(
+            "keyup",
+            (event) => {
+                const key = typed.get(event.key.toLowerCase());
+                if (!key) return;
+                typed.delete(event.key.toLowerCase());
+                release(key);
+            },
+            { signal },
+        );
+        window.addEventListener("blur", releaseAll, { signal });
+        signal.addEventListener("abort", () => {
+            releaseAll();
+            void context?.close();
+        });
+
+        keys.forEach((key) => {
+            key.disabled = false;
+        });
+        piano.dataset.ready = "";
+    }
 </script>
+
 <style>
-.playable-piano{margin:25px 0 35px;max-width:470px;}.piano-notes{font:48px var(--font-sketch);padding-left:20%;height:66px;}.piano-notes span{margin-left:32%;}.piano-keys{position:relative;height:120px;transform:rotate(-.7deg);border:2px solid #172036;border-radius:3px 5px 2px 4px;}.piano-key{position:absolute;top:0;padding:0;cursor:pointer;touch-action:manipulation;border-radius:1px 2px 3px 2px;}.white{height:100%;background:#fffefb;border:0;border-right:1.5px solid #172036;}.black{height:65%;background:#172036;border:1px solid #172036;z-index:1;}.white.is-playing{background:#b8cfff;}.black.is-playing{background:#3473ff;}.piano-key:focus-visible{outline:3px solid #e7a3ad;outline-offset:-3px;}.piano-help{font:18px var(--font-sketch);color:#3473ff;margin-top:14px;}.piano-help span{color:#515b6e;font-size:15px;}@media(max-width:760px){.piano-keys{height:105px;}.piano-help span{display:block;}}
+    .playable-piano {
+        --n: 14;
+        --keys-h: clamp(5.75rem, 17svh, 10.5rem);
+        position: relative;
+        z-index: 3;
+        width: 100%;
+    }
+    .piano-keys {
+        position: relative;
+        height: var(--keys-h);
+        overflow: clip;
+        background: #000;
+        touch-action: pan-y;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+    .piano-key {
+        position: absolute;
+        top: 0;
+        padding: 0;
+        border: 0;
+        transform-origin: 50% 0;
+        transition:
+            transform 0.5s var(--spring-lively),
+            background-color 0.28s ease;
+    }
+    .piano-key:not(:disabled) {
+        cursor: pointer;
+    }
+    .white {
+        left: calc(var(--i) / var(--n) * 100%);
+        width: calc(100% / var(--n) - 1px);
+        height: 100%;
+        border-radius: 0 0 5px 5px;
+        background: linear-gradient(#cfccc4 0, #f3f1ea 12%, #f8f6f1 86%, #e6e3da 100%);
+    }
+    .black {
+        left: calc((var(--i) + 0.72) / var(--n) * 100%);
+        width: calc(0.56 / var(--n) * 100%);
+        height: 62%;
+        z-index: 1;
+        border-radius: 0 0 4px 4px;
+        background: linear-gradient(#050506 0, #1c1c20 70%, #2c2c31 94%, #0c0c0e 100%);
+        box-shadow: 0 3px 6px rgb(0 0 0 / 0.55);
+    }
+    /* Keys hinge at the back: the front edge drops away from you. Going down is
+       near-instant; the spring only takes over on the way back up. */
+    .white.is-down {
+        transform: perspective(620px) rotateX(-5deg);
+        background: linear-gradient(#b9b6ae 0, #dcdfe8 40%, #a9c1f7 100%);
+        transition-duration: 0.045s, 0.08s;
+        transition-timing-function: ease-out;
+    }
+    .black.is-down {
+        transform: perspective(620px) rotateX(-8deg);
+        background: linear-gradient(#050506 0, #1a2547 70%, #3a5cb0 100%);
+        transition-duration: 0.045s, 0.08s;
+        transition-timing-function: ease-out;
+    }
+    .piano-key:focus-visible {
+        outline: 2px solid #3473ff;
+        outline-offset: -4px;
+        border-radius: 2px 2px 6px 6px;
+    }
+    .black:focus-visible {
+        outline-color: #7fa8ff;
+    }
+
+    .piano-help {
+        position: absolute;
+        right: calc(var(--page-edge) + min(40vw, 540px) + 1rem);
+        bottom: calc(100% + 0.5rem);
+        display: flex;
+        align-items: flex-end;
+        gap: 0.35rem;
+        pointer-events: none;
+    }
+    .piano-help svg {
+        flex-shrink: 0;
+        translate: 0 6px;
+    }
+    .piano-hint {
+        position: absolute;
+        left: var(--page-edge);
+        bottom: calc(100% + 0.875rem);
+        margin: 0;
+    }
+    .piano-hint span {
+        display: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+        .piano-hint span {
+            display: inline;
+        }
+    }
+    :global(html:not(.js)) .piano-help,
+    :global(html:not(.js)) .piano-hint {
+        display: none;
+    }
+
+    .piano-glyphs {
+        position: absolute;
+        inset: auto 0 100% 0;
+        height: 0;
+        pointer-events: none;
+    }
+    :global(.piano-glyph) {
+        position: absolute;
+        bottom: 0;
+        font-family: var(--font-hand);
+        font-size: 1.75rem;
+        line-height: 1;
+        color: #7fa8ff;
+        opacity: 0;
+        will-change: transform, opacity;
+    }
+
+    /* One wave along the keys as the page opens, and then they stay still. */
+    @keyframes key-rise {
+        from {
+            translate: 0 102%;
+        }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        :global(html:not([data-motion="off"])) .piano-key {
+            animation: key-rise 0.95s var(--spring) both;
+            animation-delay: calc(320ms + var(--i) * 26ms);
+        }
+    }
+
+    @media (max-width: 760px) {
+        .playable-piano {
+            --n: 8;
+            --keys-h: clamp(5.5rem, 14svh, 7.25rem);
+        }
+        .piano-high {
+            display: none;
+        }
+        .piano-help {
+            left: var(--page-edge);
+            right: auto;
+            bottom: calc(100% + 0.5rem);
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+        }
+        .piano-help .hand {
+            font-size: 1.125rem;
+        }
+        .piano-help svg {
+            width: 30px;
+            height: 30px;
+            align-self: center;
+        }
+        .piano-hint {
+            display: none;
+        }
+    }
+    @media (min-width: 761px) and (max-width: 1100px) {
+        .piano-hint span {
+            display: none;
+        }
+        .piano-help {
+            right: calc(var(--page-edge) + 44vw + 1rem);
+        }
+    }
 </style>

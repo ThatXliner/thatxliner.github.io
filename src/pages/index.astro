@@ -1,61 +1,209 @@
 ---
-import PlayablePiano from '../components/PlayablePiano.astro';
-import Nav from '../components/Nav.astro';
-import SkillGrid from '../components/SkillGrid.astro';
-import Layout from '../layouts/Layout.astro';
-import CommunityStory from '../components/CommunityStory.astro';
-import StoryPath from '../components/StoryPath.astro';
-import MusicStory from '../components/MusicStory.astro';
-import sunset from '../assets/photography/road-to-sunset.webp';
-import moon from '../assets/photography/moon-over-the-hills.webp';
-import street from '../assets/photography/market-street.webp';
-import { resume } from '../data/resume';
-import '../styles/resume-film.css';
+import { Image } from "astro:assets";
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import PlayablePiano from "../components/PlayablePiano.astro";
+import SkillGrid from "../components/SkillGrid.astro";
+import CommunityStory from "../components/CommunityStory.astro";
+import MusicStory from "../components/MusicStory.astro";
+import StoryPath from "../components/StoryPath.astro";
+import PrintLine from "../components/PrintLine.astro";
+import PhoneFrame from "../components/ui/PhoneFrame.astro";
+import WindowFrame from "../components/ui/WindowFrame.astro";
+import portrait from "../assets/portrait.png";
+import cinemaCamera from "../assets/c200-no-bg.png";
+import billionBrowse from "../assets/products/billion-browse.png";
+import billionFeed from "../assets/products/billion-feed.png";
+import quillium from "../assets/products/quillium-revision.png";
+import { resume } from "../data/resume";
+import "../styles/home.css";
 ---
-<Layout title="Bryan Hu — Developer, Photographer & Musician">
-  <div class="film" id="top">
-    <a class="skip-film" href="#index">Skip to résumé</a>
-    <Nav />
-    <div class="film-stage" aria-hidden="true"><canvas id="film-canvas"></canvas></div>
-    <div class="film-status" role="status">Loading 3D models…</div>
-    <main>
-      <section class="film-chapter opening" id="intro" data-scene="0">
-        <div class="chapter-frame">
-          <div class="opening-heading"><h1>Hi, I’m<br/><em>Bryan.</em></h1><p class="opening-intro">I build apps and open-source tools.<br/>I also make photographs and music.</p><PlayablePiano />
-          <div class="opening-foot"><a href="#build">Explore my work <span>↓</span></a><a class="resume-jump" href="/resume.pdf">See my resume <span aria-hidden="true">↗</span></a></div></div>
 
+<Layout title="Bryan Hu — Developer, Photographer & Musician">
+    <a class="skip-link" href="#index">Skip to résumé</a>
+    <Nav />
+    <main id="top">
+        <section class="hero" id="intro">
+            <div class="hero-portrait lag">
+                <Image
+                    class="rise"
+                    src={portrait}
+                    alt="Bryan Hu"
+                    widths={[360, 560, 800, 1100]}
+                    sizes="(max-width: 760px) 70vw, 44vw"
+                    loading="eager"
+                    fetchpriority="high"
+                    draggable="false"
+                    style="animation-delay:120ms"
+                />
+            </div>
+            <div class="hero-copy recede">
+                <h1>
+                    <span class="line line-load"><span class="text-fg-muted">Hi, I’m</span></span>
+                    <span class="hero-name">
+                        <span class="line line-load"><span style="animation-delay:90ms">Bryan.</span></span>
+                        <svg class="hero-underline ink" viewBox="0 0 300 14" preserveAspectRatio="none" aria-hidden="true">
+                            <path pathLength="1" stroke-width="2" d="M3 8Q87 1 157 7T298 5M9 11Q168 7 287 10" />
+                        </svg>
+                    </span>
+                </h1>
+                <p class="hero-lede rise" style="animation-delay:260ms">
+                    I build apps and open-source tools. <span>I also make photographs and music.</span>
+                </p>
+                <div class="hero-actions rise" style="animation-delay:340ms">
+                    <a class="btn btn-primary" href="#build">Explore my work <span aria-hidden="true">↓</span></a>
+                    <a class="btn btn-ghost" href="/resume.pdf">See my résumé <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+            <PlayablePiano />
+        </section>
+
+        <div class="pin-scope">
+            <section class="chapter pin" data-pin id="build" aria-labelledby="build-title">
+                <div class="chapter-inner">
+                    <h2 class="t-title" id="build-title" data-reveal="lines">
+                        <span class="line"><span>From idea</span></span>
+                        <span class="line" style="--l:1"><span class="text-fg-muted">to app.</span></span>
+                    </h2>
+                    <p class="t-lede chapter-lede" data-reveal>I build full-stack apps, from the interface to the systems behind it.</p>
+
+                    <article class="product">
+                        <div>
+                            <p class="product-name" data-reveal>Billion</p>
+                            <h3 data-reveal>Follow what changes.</h3>
+                            <p class="t-body product-body" data-reveal>I’m building Billion to make bills, executive orders, and court rulings easier to follow.</p>
+                            <p class="hand product-note" data-reveal>started as my Congressional App Challenge entry. outgrew it.</p>
+                            <div class="product-links" data-reveal>
+                                <a class="btn btn-primary" href="/products/billion">Explore Billion <span aria-hidden="true">→</span></a>
+                                <a class="a-underline" href="https://www.billion-news.app/">billion-news.app <span aria-hidden="true">↗</span></a>
+                            </div>
+                        </div>
+                        <div class="product-art" data-reveal>
+                            <div class="device-stage" data-tilt>
+                                <PhoneFrame src={billionBrowse} alt="Billion Browse: recent bills with plain-language titles" class="drift-slow" />
+                                <PhoneFrame src={billionFeed} alt="Billion bill summary with political perspectives and a source link" class="drift-fast" />
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="product product-wide">
+                        <div class="product-art" data-reveal>
+                            <div class="product-window-art" data-tilt>
+                                <WindowFrame src={quillium} alt="Quillium editor with alternative drafts and comments" title="A Tale of Two Cities — draft" class="drift-slow" />
+                            </div>
+                        </div>
+                        <div>
+                            <p class="product-name" data-reveal>Quillium</p>
+                            <h3 data-reveal>Version control for prose.</h3>
+                            <p class="t-body product-body" data-reveal>Write a sentence three ways and decide later. Quillium keeps every version inside the document.</p>
+                            <div class="product-links" data-reveal>
+                                <a class="btn btn-primary" href="/products/quillium">Explore Quillium <span aria-hidden="true">→</span></a>
+                                <a class="a-underline" href="https://quillium.bryanhu.com/">quillium.bryanhu.com <span aria-hidden="true">↗</span></a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <div class="paper sheet sheet-over">
+                <CommunityStory />
+            </div>
         </div>
-      </section>
-      <section class="film-chapter" id="build" data-scene="1">
-        <div class="chapter-frame"><div class="chapter-copy"><h2>From idea<br/>to <em>app.</em></h2><p class="body-copy">I build full-stack apps, from the interface to the systems behind it.</p><div class="project-links"><a href="/products/billion"><span>Billion</span><small>Follow bills, court rulings, and executive orders</small><b>↗</b></a><a href="/products/quillium"><span>Quillium</span><small>Version control for prose</small><b>↗</b></a></div></div></div>
-      </section>
-      <CommunityStory />
-      <section class="film-chapter camera-chapter" id="observe" data-scene="3">
-        <div class="chapter-frame"><div class="chapter-copy"><h2>Look<br/><em>closer.</em></h2><p class="body-copy">I photograph, operate cameras, and switch live productions. Then comes the editing, color grading, and sound.</p></div></div>
-      </section>
-      <section class="film-chapter gallery-chapter" id="frames" data-scene="4">
-        <div class="chapter-frame"><div class="gallery-heading"><h2>Photographs</h2></div><div class="film-gallery"><a href="/photography"><img src={street.src} alt="Market Street, photographed by Bryan Hu" loading="lazy"/><span>Market Street</span></a><a href="/photography"><img src={sunset.src} alt="Road to sunset, photographed by Bryan Hu" loading="lazy"/><span>Road to sunset</span></a><a href="/photography"><img src={moon.src} alt="Moon over the hills, photographed by Bryan Hu" loading="lazy"/><span>Moon over the hills</span></a></div><p class="gallery-foot"><a class="text-link" href="/photography">View all photographs <span>↗</span></a></p></div>
-      </section>
-      <MusicStory />
-      <section class="resume-index" id="index">
-        <div class="index-heading"><h2>Résumé</h2><a class="resume-download" href="/resume.pdf" download="BryanHu_Resume.pdf">Download résumé PDF <span aria-hidden="true">↓</span></a><address class="resume-contact" id="contact"><a href={`mailto:${resume.email}`}>{resume.email}</a><div><a href={`https://github.com/${resume.github}`}>GitHub ↗</a><a href={`https://www.linkedin.com/in/${resume.linkedin}/`}>LinkedIn ↗</a></div></address><SkillGrid /></div>
-        <div class="index-details"><h3>Selected recognition</h3><div class="award-row"><span>Congressional App Challenge 2025</span><b>3rd place / CA-19</b></div>{resume.awards.map(item => <a class="award-row" href={item.url}><span>{item.label}</span><b>↗</b></a>)}<h3>Robotics · FRC Team 3256</h3>{resume.frcAwards.map(award => <a class="award-row" href={award.url}><span>{award.label} ↗</span><b>{award.year}</b></a>)}</div>
-      </section>
-      <StoryPath />
+
+        <section class="observe" id="observe" data-camera-stage aria-labelledby="observe-title">
+            <div class="observe-stage" data-stage>
+                <div class="observe-light" aria-hidden="true"></div>
+                <canvas class="observe-canvas" aria-hidden="true"></canvas>
+                <div class="observe-copy" data-stage-copy>
+                    <p class="hand" data-reveal>I also point cameras at things.</p>
+                    <h2 class="t-title" id="observe-title" data-reveal="lines">
+                        <span class="line"><span>Look</span></span>
+                        <span class="line" style="--l:1"><span class="text-fg-muted">closer.</span></span>
+                    </h2>
+                    <p class="t-lede chapter-lede" data-reveal>I photograph, operate cameras, and switch live productions. Then comes the editing, color grading, and sound.</p>
+                </div>
+                <Image
+                    class="observe-fallback"
+                    src={cinemaCamera}
+                    alt="Canon EOS C200 cinema camera"
+                    widths={[640, 960, 1400]}
+                    sizes="(max-width: 760px) 90vw, 55vw"
+                    loading="lazy"
+                    draggable="false"
+                />
+                <p class="observe-status t-caption" data-stage-status role="status" hidden>Loading 3D model…</p>
+            </div>
+        </section>
+
+        <section class="frames" id="frames" aria-labelledby="frames-title">
+            <header class="frames-head">
+                <h2 class="t-title" id="frames-title" data-reveal="lines">
+                    <span class="line"><span>Photographs</span></span>
+                </h2>
+                <p class="hand" data-reveal>drag them along the line.</p>
+            </header>
+            <PrintLine />
+            <p class="frames-foot" data-reveal>
+                <a class="a-underline" href="/photography">View all photographs <span aria-hidden="true">↗</span></a>
+            </p>
+        </section>
+
+        <div class="pin-scope">
+            <MusicStory />
+
+            <div class="paper sheet sheet-over">
+                <StoryPath />
+                <section class="resume-index" id="index" aria-labelledby="index-title">
+                    <div class="index-heading">
+                        <p class="hand" data-reveal>the receipts.</p>
+                        <h2 class="t-title" id="index-title" data-reveal="lines">
+                            <span class="line"><span>Résumé</span></span>
+                        </h2>
+                        <div class="resume-actions" data-reveal>
+                            <a class="btn btn-primary" href="/resume.pdf" download="BryanHu_Resume.pdf">Download résumé PDF <span aria-hidden="true">↓</span></a>
+                        </div>
+                        <address class="resume-contact" id="contact" data-reveal>
+                            <a class="a-underline" href={`mailto:${resume.email}`}>{resume.email}</a>
+                            <div>
+                                <a class="a-underline" href={`https://github.com/${resume.github}`}>GitHub <span aria-hidden="true">↗</span></a>
+                                <a class="a-underline" href={`https://www.linkedin.com/in/${resume.linkedin}/`}>LinkedIn <span aria-hidden="true">↗</span></a>
+                            </div>
+                        </address>
+                        <SkillGrid />
+                    </div>
+                    <div class="index-details">
+                        <h3>Selected recognition</h3>
+                        <div class="award-row"><span>Congressional App Challenge 2025</span><i></i><b>3rd place / CA-19</b></div>
+                        {resume.awards.map((item) => <a class="award-row" href={item.url}><span>{item.label}</span><i></i><b aria-hidden="true">↗</b></a>)}
+                        <h3>Robotics · FRC Team 3256</h3>
+                        {resume.frcAwards.map((award) => <a class="award-row" href={award.url}><span>{award.label}</span><i></i><b class="tnum">{award.year} <span aria-hidden="true">↗</span></b></a>)}
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <section class="closing" aria-labelledby="closing-title">
+            <h2 class="t-title" id="closing-title" data-reveal="lines">
+                <span class="line"><span>I build things,</span></span>
+                <span class="line" style="--l:1"><span class="text-fg-muted">then I rebuild them.</span></span>
+            </h2>
+            <p data-reveal>
+                <a class="closing-email a-underline" href={`mailto:${resume.email}`}>{resume.email}</a>
+            </p>
+        </section>
     </main>
-    <button class="motion-toggle" type="button" aria-pressed="false">Motion on</button>
-  </div>
-  <noscript><style>.film-status, .motion-toggle { display: none !important; }</style></noscript>
-  <script>
-    // Let content and lightweight controls paint before importing the 3D engine.
-    const start = () => {
-      const load = () => import('../lib/resume-film').then(({ initResumeFilm }) => initResumeFilm()).catch(() => {
-        const status = document.querySelector<HTMLElement>('.film-status');
-        if (status) status.hidden = true;
-      });
-      if ('requestIdleCallback' in window) window.requestIdleCallback(load, { timeout: 2000 });
-      else setTimeout(load, 200);
-    };
-    requestAnimationFrame(() => requestAnimationFrame(start));
-  </script>
+    <Footer />
 </Layout>
+
+<script>
+    import { lifetime } from "../lib/motion";
+    import { initPins, initRail, initTilt } from "../lib/interaction";
+    import { initCameraStage } from "../lib/camera-stage";
+
+    const signal = lifetime();
+    initPins(signal);
+    document.querySelectorAll<HTMLElement>("[data-rail]").forEach((rail) => initRail(rail, signal));
+    document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((element) => initTilt(element, signal));
+    initCameraStage(signal);
+</script>

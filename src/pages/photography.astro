@@ -46,152 +46,105 @@ const galleryPhotos = await Promise.all(
 >
     <Nav />
     <main class="photography-page">
-        <section class="photo-hero relative isolate overflow-hidden">
-            <header
-                class="photo-hero-copy relative z-10 mx-auto flex min-h-[58svh] max-w-[1180px] flex-col justify-center px-gutter pt-24 pb-20 md:min-h-[64svh] md:pt-28 md:pb-24"
-            >
-                <p class="t-eyebrow rise">Selected work</p>
-                <h1 class="t-display mt-3 max-w-[13ch] text-balance">
+        <section class="photo-hero">
+            <header class="photo-hero-copy recede">
+                <p class="hand rise">Selected work</p>
+                <h1 class="t-display">
                     <span class="mask mask-load"><span>My</span></span>
                     <span class="mask mask-load text-fg-muted">
-                        <span class="photography-word" style="animation-delay:110ms">
-                            Photography
-                        </span>
+                        <span style="animation-delay:110ms">Photography</span>
                     </span>
                 </h1>
-                <p
-                    class="t-lede rise mt-7 max-w-[48ch] text-balance"
-                    style="animation-delay:220ms"
-                >
+                <p class="t-lede rise" style="animation-delay:220ms">
                     Capturing the beauty of God's world, one click at a time.
                 </p>
-                <a class="photo-hire" href="/contact">Hire me <span aria-hidden="true">→</span></a>
+                <a class="btn btn-primary rise" style="animation-delay:300ms" href="/contact">Hire me <span aria-hidden="true">→</span></a>
             </header>
-
         </section>
 
-        <div class="gallery-surface relative z-10 -mt-px bg-void">
-        <div
-            id="gallery-controls" hidden
-            class="mx-auto flex max-w-[1400px] flex-col gap-4 px-gutter pt-9 pb-10 sm:flex-row sm:items-center sm:justify-between md:pt-11 md:pb-12"
-        >
-            <div class="flex items-center gap-2" role="group" aria-label="Filter by camera">
-                <span class="t-caption mr-1 hidden sm:inline">Camera</span>
-                <button
-                    type="button"
-                    class="filter-pill"
-                    data-camera="Canon EOS R7"
-                    aria-pressed="false">EOS R7</button
-                >
-                <button
-                    type="button"
-                    class="filter-pill"
-                    data-camera="Canon EOS 40D"
-                    aria-pressed="false">EOS 40D</button
-                >
+        <div class="gallery-surface">
+            <div id="gallery-controls" hidden class="gallery-bar">
+                <div class="gallery-group" role="group" aria-label="Filter by camera">
+                    <span class="t-caption gallery-group-name">Camera</span>
+                    <button type="button" class="filter-pill" data-camera="Canon EOS R7" aria-pressed="false">EOS R7</button>
+                    <button type="button" class="filter-pill" data-camera="Canon EOS 40D" aria-pressed="false">EOS 40D</button>
+                </div>
+
+                <div class="gallery-group" role="group" aria-label="Sort by date">
+                    <span class="t-caption gallery-group-name">Date</span>
+                    <button type="button" class="sort-pill" data-sort="newest" aria-pressed="true">Newest</button>
+                    <button type="button" class="sort-pill" data-sort="oldest" aria-pressed="false">Oldest</button>
+                </div>
             </div>
 
-            <div class="flex items-center gap-2" role="group" aria-label="Sort by date">
-                <span class="t-caption mr-1 hidden sm:inline">Date</span>
-                <button
-                    type="button"
-                    class="sort-pill"
-                    data-sort="newest"
-                    aria-pressed="true">Newest</button
-                >
-                <button
-                    type="button"
-                    class="sort-pill"
-                    data-sort="oldest"
-                    aria-pressed="false">Oldest</button
-                >
+            <div id="gallery-status" hidden class="gallery-bar gallery-status">
+                <p id="gallery-count" role="status" tabindex="-1" class="t-caption"></p>
+                <button id="show-selected" type="button" class="filter-pill" aria-controls="photo-gallery" hidden>Show selected work</button>
             </div>
-        </div>
+            <p id="gallery-empty" hidden class="t-caption gallery-bar">No selected photographs match these cameras. Explore the entire portfolio with this filter.</p>
 
-        <div id="gallery-status" hidden class="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-gutter pb-8">
-            <p id="gallery-count" role="status" tabindex="-1" class="t-caption"></p>
-            <button id="show-selected" type="button" class="portfolio-toggle" aria-controls="photo-gallery" hidden>Show selected work</button>
-        </div>
-        <p id="gallery-empty" hidden class="t-caption mx-auto max-w-[1400px] px-gutter pb-8">No selected photographs match these cameras. Explore the entire portfolio with this filter.</p>
-
-        <section
-            id="photo-gallery"
-            aria-label="Selected photographs"
-            class="mx-auto grid max-w-[1400px] grid-cols-1 items-start gap-x-5 gap-y-10 px-gutter pb-24 sm:grid-cols-2 md:gap-y-14 lg:grid-cols-3 md:pb-36"
-        >
-            {
-                galleryPhotos.map((photo) => (
-                    <figure
-                        data-featured={String(photo.featured)}
-                        data-camera={photo.camera}
-                        data-date={new Date(`${photo.date} 1`).valueOf()}
-                    >
-                        <button
-                            type="button"
-                            class="photo-open group block w-full cursor-zoom-in overflow-hidden bg-surface text-left"
-                            data-viewer-avif-srcset={photo.viewerAvifSrcset}
-                            data-viewer-webp-srcset={photo.viewerWebpSrcset}
-                            data-viewer-fallback={photo.viewerFallback}
-                            data-alt={photo.alt}
-                            data-title={photo.title}
-                            data-width={photo.image.width}
-                            data-height={photo.image.height}
-                            aria-haspopup="dialog"
-                            aria-controls="photo-viewer"
-                            aria-label={`Open ${photo.title}`}
+            <!-- Every photograph keeps its own proportions, uncropped. Each row
+                 shares a height and fills the width, purely from aspect ratios. -->
+            <section id="photo-gallery" aria-label="Selected photographs">
+                {
+                    galleryPhotos.map((photo) => (
+                        <figure
+                            data-featured={String(photo.featured)}
+                            data-camera={photo.camera}
+                            data-date={new Date(`${photo.date} 1`).valueOf()}
+                            style={`--ratio:${(photo.image.width / photo.image.height).toFixed(4)}`}
                         >
-                            <Picture
-                                src={photo.image}
-                                alt={photo.alt}
-                                formats={["avif"]}
-                                fallbackFormat="webp"
-                                widths={[480, 800, 1200]}
-                                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
-                                quality="high"
-                                loading="lazy"
-                                draggable="false"
-                                class="h-auto w-full select-none transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.015] motion-reduce:transition-none"
-                            />
-                        </button>
-                        <figcaption class="mt-3 flex items-baseline justify-between gap-4">
-                            <h2 class="text-[0.9375rem] font-semibold">
-                                {photo.title}
-                            </h2>
-                            <p class="t-caption text-right">
-                                {photo.date} · {photo.camera}
-                            </p>
-                        </figcaption>
-                    </figure>
-                ))
-            }
-        </section>
-        <noscript><style is:inline>#photo-gallery figure[data-featured="false"] { display: block !important; }</style></noscript>
-        <div id="gallery-more" hidden class="mx-auto -mt-12 max-w-[1400px] px-gutter pb-24 text-center md:pb-36">
-            <button id="show-entire" type="button" class="portfolio-toggle portfolio-reveal" aria-controls="photo-gallery" aria-expanded="false">
-                See entire portfolio <span id="portfolio-total" class="t-caption"></span>
-            </button>
-        </div>
+                            <button
+                                type="button"
+                                class="photo-open"
+                                data-viewer-avif-srcset={photo.viewerAvifSrcset}
+                                data-viewer-webp-srcset={photo.viewerWebpSrcset}
+                                data-viewer-fallback={photo.viewerFallback}
+                                data-alt={photo.alt}
+                                data-title={photo.title}
+                                data-width={photo.image.width}
+                                data-height={photo.image.height}
+                                aria-haspopup="dialog"
+                                aria-controls="photo-viewer"
+                                aria-label={`Open ${photo.title}`}
+                            >
+                                <Picture
+                                    src={photo.image}
+                                    alt={photo.alt}
+                                    formats={["avif"]}
+                                    fallbackFormat="webp"
+                                    widths={[480, 800, 1200]}
+                                    sizes="(min-width: 1024px) 34vw, (min-width: 640px) 48vw, 92vw"
+                                    quality="high"
+                                    loading="lazy"
+                                    draggable="false"
+                                />
+                            </button>
+                            <figcaption>
+                                <h2>{photo.title}</h2>
+                                <p class="t-caption">{photo.date} · {photo.camera}</p>
+                            </figcaption>
+                        </figure>
+                    ))
+                }
+            </section>
+            <noscript><style is:inline>#photo-gallery figure[data-featured="false"] { display: block !important; }</style></noscript>
+            <div id="gallery-more" hidden class="gallery-more">
+                <button id="show-entire" type="button" class="btn btn-ghost" aria-controls="photo-gallery" aria-expanded="false">
+                    See entire portfolio <span id="portfolio-total" class="t-caption"></span>
+                </button>
+            </div>
         </div>
     </main>
     <Footer />
 
-    <dialog
-        id="photo-viewer"
-        aria-labelledby="photo-viewer-title"
-        class="m-auto h-dvh max-h-none w-screen max-w-none border-0 bg-black/94 p-0 text-fg backdrop:bg-black/94"
-    >
+    <dialog id="photo-viewer" aria-labelledby="photo-viewer-title">
         <form method="dialog">
-            <button
-                class="fixed top-5 right-5 z-10 flex size-11 items-center justify-center rounded-full bg-black/60 text-2xl text-white transition-colors hover:bg-white hover:text-black"
-                autofocus
-                aria-label="Close photograph"
-            >
-                &times;
-            </button>
+            <button class="viewer-close" autofocus aria-label="Close photograph">&times;</button>
         </form>
-        <div data-viewer-backdrop class="flex h-full w-full flex-col items-center justify-center gap-4 p-5 md:p-10">
-            <div data-viewer-frame class="relative shrink-0"></div>
-            <p id="photo-viewer-title" class="t-caption text-fg-muted"></p>
+        <div data-viewer-backdrop class="viewer-backdrop">
+            <div data-viewer-frame class="viewer-frame"></div>
+            <p id="photo-viewer-title" class="t-caption"></p>
         </div>
     </dialog>
 </Layout>
@@ -200,89 +153,63 @@ const galleryPhotos = await Promise.all(
     [hidden] { display: none !important; }
     #photo-gallery:not([data-ready]) figure[data-featured="false"] { display: none; }
 
-    .portfolio-toggle {
-        min-height: 44px;
-        padding: 0.65rem 1rem;
-        border: 1px solid var(--color-hairline-strong);
-        color: var(--color-fg);
-        cursor: pointer;
-    }
-    .portfolio-toggle:hover { border-color: var(--color-fg); }
-    .portfolio-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
-    .portfolio-reveal { display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.75rem; }
-    @media (max-width: 40rem) { .portfolio-reveal { width: 100%; } }
-
-    .photo-hire {
-        align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 24px;
-        margin-top: 28px;
-        padding: 12px 25px;
-        border: 2px solid #172036;
-        border-radius: 14px 5px 12px 4px;
-        background: #3473ff;
-        color: #fff;
-        font: 26px var(--font-sketch);
-    }
-    .photo-hire:hover { background: #255edb; }
-    .photo-hire:focus-visible { outline: 3px solid #3473ff; outline-offset: 5px; }
-
-    /* A neutral white mat, outside the image so its aspect ratio stays intact. */
-    #photo-viewer [data-viewer-frame] {
-        outline: clamp(6px, 1vw, 14px) solid #fff;
+    .photo-hero-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+        max-width: 1320px;
+        margin-inline: auto;
+        padding: clamp(8rem, 18svh, 11rem) var(--spacing-gutter) clamp(3rem, 7svh, 5rem);
     }
 
-    #photo-viewer-title {
-        color: #ddd;
-    }
-
-    .photography-page {
-        --photo-scroll: 0;
-    }
-
-    .photography-word {
-        display: inline-block;
-        font-family: var(--font-sketch);
-        font-size: 1.34em;
-        font-style: normal;
-        font-weight: 500;
-        line-height: 0.88;
-        letter-spacing: -0.055em;
-    }
-
-    .photo-hero {
+    .gallery-surface {
+        position: relative;
         background: var(--color-void);
     }
-
-    .photo-hero-copy {
-        transform: translate3d(0, calc(var(--photo-scroll) * 0.12px), 0);
-        opacity: calc(1 - var(--photo-scroll) * 0.00105);
-        will-change: transform, opacity;
+    .gallery-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem 2rem;
+        max-width: 1320px;
+        margin-inline: auto;
+        padding: 0 var(--spacing-gutter) 1.25rem;
     }
-
+    .gallery-group {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+    .gallery-group-name {
+        margin-right: 0.375rem;
+    }
     .filter-pill,
-    .sort-pill,
-    .portfolio-toggle {
-        border: 1px solid var(--color-hairline-strong);
-        border-radius: 4px 8px 3px 6px;
-        padding: 0.45rem 0.8rem;
+    .sort-pill {
+        min-height: 2.75rem;
+        padding: 0.4rem 0.9rem;
+        border: 1px solid var(--color-hairline);
+        border-radius: 980px;
+        font-size: 0.875rem;
         color: var(--color-fg-muted);
-        font: 19px var(--font-sketch);
-        line-height: 1;
         cursor: pointer;
         transition:
-            color 160ms ease,
-            background-color 160ms ease,
-            border-color 160ms ease;
+            color 0.2s ease,
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.55s var(--spring-lively);
     }
-
     .filter-pill:hover,
     .sort-pill:hover {
         color: var(--color-fg);
-        border-color: var(--color-fg-dim);
+        border-color: var(--color-hairline-strong);
     }
-
+    .filter-pill:active,
+    .sort-pill:active {
+        transform: scale(0.95);
+        transition-duration: 0.2s, 0.2s, 0.2s, 0.05s;
+    }
     .filter-pill[aria-pressed="true"],
     .sort-pill[aria-pressed="true"] {
         color: var(--color-void);
@@ -290,40 +217,181 @@ const galleryPhotos = await Promise.all(
         border-color: var(--color-fg);
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .photo-hero-copy {
-            transform: none;
-            opacity: 1;
+    #photo-gallery {
+        --row: clamp(13rem, 26vw, 24rem);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem 0.875rem;
+        max-width: 1600px;
+        margin-inline: auto;
+        padding: 0.5rem var(--spacing-gutter) clamp(4rem, 8vw, 7rem);
+    }
+    /* Stops the last, short row from stretching its photographs to full width. */
+    #photo-gallery::after {
+        content: "";
+        flex-grow: 1000;
+    }
+    figure {
+        flex-grow: var(--ratio);
+        flex-basis: calc(var(--row) * var(--ratio));
+        min-width: 0;
+        margin: 0;
+    }
+    .photo-open {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        background: var(--color-surface);
+        cursor: zoom-in;
+    }
+    .photo-open :global(img) {
+        display: block;
+        width: 100%;
+        height: auto;
+        -webkit-user-select: none;
+        user-select: none;
+        transition: transform 0.9s var(--spring);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+        :global(html:not([data-motion="off"])) .photo-open:hover :global(img) {
+            transform: scale(1.018);
         }
+    }
+    figcaption {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.125rem 1rem;
+        margin-top: 0.625rem;
+    }
+    figcaption h2 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+    @media (max-width: 40rem) {
+        figure {
+            flex-basis: 100%;
+        }
+    }
+    .gallery-more {
+        padding: 0 var(--spacing-gutter) clamp(4rem, 8vw, 7rem);
+        text-align: center;
+    }
+    #show-entire {
+        height: auto;
+        white-space: normal;
+        flex-wrap: wrap;
+    }
+
+    #photo-viewer {
+        width: 100vw;
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        background: rgb(0 0 0 / 0.95);
+        color: #f5f5f7;
+    }
+    #photo-viewer::backdrop {
+        background: transparent;
+    }
+    .viewer-close {
+        position: fixed;
+        top: 1.25rem;
+        right: 1.25rem;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 50%;
+        background: rgb(0 0 0 / 0.6);
+        font-size: 1.5rem;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .viewer-close:hover {
+        background: #fff;
+        color: #000;
+    }
+    .viewer-backdrop {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        width: 100%;
+        height: 100%;
+        padding: clamp(1.25rem, 3vw, 2.5rem);
+    }
+    /* A neutral white mat, outside the image so its aspect ratio stays intact. */
+    .viewer-frame {
+        position: relative;
+        flex-shrink: 0;
+        outline: clamp(6px, 1vw, 14px) solid #fff;
+        cursor: grab;
+        touch-action: none;
+        will-change: transform;
+    }
+    .viewer-frame:active {
+        cursor: grabbing;
+    }
+    #photo-viewer-title {
+        color: #ddd;
     }
 </style>
 
 <script>
+    import { lifetime, motionEnabled } from "@/lib/motion";
     import { setupPhotoViewer } from "@/lib/photo-viewer";
     import { setupPhotoGallery } from "@/lib/photo-gallery";
 
     setupPhotoViewer("#photo-viewer", ".photo-open");
+
+    // The grid reshuffles, so everything still on the wall slides to its new spot
+    // on the shared spring. Newly shown photographs fade up in place. The gallery
+    // logic stays untouched: this only measures before and after its handlers run.
+    const signal = lifetime();
+    const gallery = document.querySelector<HTMLElement>("#photo-gallery");
+    const spring = () => getComputedStyle(document.documentElement).getPropertyValue("--spring").trim();
+    const reorder = (event: Event) => {
+        if (!gallery || !motionEnabled()) return;
+        const target = event.target as Element;
+        if (!target.closest(".filter-pill, .sort-pill, #show-entire, #show-selected")) return;
+        const figures = [...gallery.querySelectorAll<HTMLElement>("figure")];
+        const before = new Map(figures.map((figure) => [figure, figure.getBoundingClientRect()]));
+        // Next frame, not a microtask: microtasks run between listeners, which
+        // would measure before the gallery's own handler had changed anything.
+        requestAnimationFrame(() => {
+            const inView = (top: number, bottom: number) => bottom > -80 && top < window.innerHeight + 80;
+            for (const figure of figures) {
+                if (figure.hidden) continue;
+                const first = before.get(figure)!;
+                const last = figure.getBoundingClientRect();
+                if (!inView(first.top, first.bottom) && !inView(last.top, last.bottom)) continue;
+                if (first.width === 0) {
+                    figure.animate([{ opacity: 0, translate: "0 18px" }, { opacity: 1, translate: "0 0" }], { duration: 800, easing: spring() });
+                } else if (first.left !== last.left || first.top !== last.top) {
+                    figure.animate(
+                        [
+                            { translate: `${first.left - last.left}px ${first.top - last.top}px` },
+                            { translate: "0 0" },
+                        ],
+                        { duration: 850, easing: spring() },
+                    );
+                }
+            }
+        });
+    };
+    // Capture phase on the document: runs before the gallery's own click handlers.
+    document.addEventListener("click", reorder, { capture: true, signal });
+
     setupPhotoGallery();
-
-    const photographyPage = document.querySelector<HTMLElement>(
-        ".photography-page",
-    );
-    const reduceMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (photographyPage && !reduceMotion) {
-        let frame = 0;
-        const updateDepth = () => {
-            frame = 0;
-            const scroll = Math.min(window.scrollY, window.innerHeight * 1.15);
-            photographyPage.style.setProperty("--photo-scroll", String(scroll));
-        };
-        const requestDepth = () => {
-            if (!frame) frame = requestAnimationFrame(updateDepth);
-        };
-
-        updateDepth();
-        window.addEventListener("scroll", requestDepth, { passive: true });
-    }
 </script>

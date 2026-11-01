@@ -1,31 +1,87 @@
 @import "tailwindcss";
 
-/* Black surfaces, crisp typography, and a blue accent. Motion is concentrated
-   in section headings, product depth, the repository rows, and the story trail.
-   Supporting information enters with restrained fades. */
+/* Two materials, one system.
 
-@theme {
-    /* Planes. The page is true black; surfaces lift off it in small steps. */
-    --color-void: #fffefb;
-    --color-surface: #f3f5fd;
-    --color-surface-2: #edf2ff;
-    --color-surface-3: #dce6ff;
+   The stage is the dark, restraint-first page from the July rebuild: near-black
+   planes, one typeface, hierarchy from size, weight and negative tracking.
+   Paper is the September notebook: warm white, navy ink, blue handwriting. A
+   `.paper` subtree re-points the same tokens, so a component never needs to know
+   which material it is lying on.
 
-    /* Type. Three densities, matched to how far down the hierarchy you are. */
-    --color-fg: #172036;
-    --color-fg-muted: #515b6e;
-    --color-fg-dim: #626b7c;
+   Patrick Hand is an annotation, never a headline and never body copy. */
 
-    /* Hairlines do the work that borders used to. */
-    --color-hairline: #17203626;
-    --color-hairline-strong: #17203650;
+@font-face {
+    font-family: "Patrick Hand";
+    src: url("/fonts/patrick-hand/PatrickHand-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
 
-    /* Exactly one accent, and it is reserved for interactive text. */
-    --color-accent: #3473ff;
+/* `static`, because component <style> blocks and .paper use these directly and
+   Tailwind must not tree-shake a token that no utility happens to mention. */
+@theme static {
+    --color-void: #08080a;
+    --color-surface: #121215;
+    --color-surface-2: #1a1a1e;
+    --color-surface-3: #26262b;
+
+    --color-fg: #f5f5f7;
+    --color-fg-muted: #a6a6ad;
+    --color-fg-dim: #85858d;
+
+    --color-hairline: #ffffff1f;
+    --color-hairline-strong: #ffffff40;
+
+    /* The blue from the profile picture, lifted until it reads on black. */
+    --color-accent: #7fa8ff;
+
+    --color-flag: #ffd60a;
+    --color-flag-ink: #ffd60a;
 
     --font-sans: var(--font-sans);
 
     --spacing-gutter: clamp(1.25rem, 5vw, 5rem);
+}
+
+:root {
+    --page-edge: max(var(--spacing-gutter), calc((100vw - 1320px) / 2 + var(--spacing-gutter)));
+    color-scheme: dark;
+    --font-hand: "Patrick Hand", "Segoe Print", cursive;
+    --sheet-radius: clamp(20px, 3vw, 36px);
+
+    /* Solved damped springs, sampled for CSS. The JS spring in lib/motion.ts is
+       the same model, so a hover, a reveal and a dragged object agree.
+       --spring: damping ratio 0.8, 1.5% overshoot, for anything arriving.
+       --spring-lively: damping ratio 0.65, 7% overshoot, for small things you
+       touch. Never for large surfaces. */
+    --spring: linear(0, 0.0795 5%, 0.2488 10%, 0.4379 15%, 0.6097 20%, 0.7488 25%, 0.8521 30%, 0.9234 35%, 0.969 40%, 0.9955 45%, 1.0091 50%, 1.015 60%, 1.0103 70%, 1.0051 80%, 1.0018 90%, 1);
+    --spring-lively: linear(0, 0.0669 5%, 0.2217 10%, 0.4094 15%, 0.5938 20%, 0.7535 25%, 0.8787 30%, 0.9682 35%, 1.0251 40%, 1.056 45%, 1.0675 50%, 1.0569 60%, 1.0318 70%, 1.0108 80%, 0.9993 90%, 1);
+}
+
+@supports not (transition-timing-function: linear(0, 1)) {
+    :root {
+        --spring: cubic-bezier(0.2, 0.9, 0.25, 1);
+        --spring-lively: cubic-bezier(0.3, 1.25, 0.5, 1);
+    }
+}
+
+.paper {
+    color-scheme: light;
+    --color-void: #f8f6f1;
+    --color-surface: #fffefb;
+    --color-surface-2: #efece4;
+    --color-surface-3: #e4e2dc;
+    --color-fg: #172036;
+    --color-fg-muted: #4b5468;
+    --color-fg-dim: #5c6578;
+    --color-hairline: #17203622;
+    --color-hairline-strong: #17203650;
+    /* #3473ff is only 4:1 on paper; this keeps small links above 4.5:1. */
+    --color-accent: #2459dc;
+    --color-flag-ink: #7a5c00;
+    background-color: var(--color-void);
+    color: var(--color-fg);
 }
 
 /* shadcn tokens, re-pointed so any leftover primitive inherits this palette
@@ -74,8 +130,6 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
-
-
 }
 
 @layer base {
@@ -84,9 +138,9 @@
     }
 
     html {
-        scroll-behavior: smooth;
         -webkit-text-size-adjust: 100%;
         background-color: var(--color-void);
+        scroll-padding-top: 5.5rem;
     }
 
     body {
@@ -94,13 +148,14 @@
         color: var(--color-fg);
         font-family: var(--font-sans);
         font-synthesis-weight: none;
+        overflow-x: clip;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
 
     ::selection {
-        background-color: var(--color-fg);
-        color: var(--color-void);
+        background-color: var(--color-accent);
+        color: #08080a;
     }
 
     :focus-visible {
@@ -110,23 +165,28 @@
     }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    html:not([data-motion="off"]) {
+        scroll-behavior: smooth;
+    }
+}
+
 /* ── Type roles ───────────────────────────────────────────────────────────
-   Display type needs negative tracking that scales with size, which is the
-   single most common thing people get wrong when imitating this look: set
-   big type at default tracking and it instantly reads amateur. */
+   Display type needs negative tracking that scales with size: set big type at
+   default tracking and it instantly reads amateur. */
 
 .t-display {
     font-weight: 600;
-    font-size: clamp(2.6rem, 7.4vw, 6.25rem);
-    line-height: 1.04;
-    letter-spacing: -0.045em;
+    font-size: clamp(3rem, 8.4vw, 7.5rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
 }
 
 .t-title {
     font-weight: 600;
-    font-size: clamp(2rem, 4.6vw, 3.5rem);
-    line-height: 1.08;
-    letter-spacing: -0.035em;
+    font-size: clamp(2.5rem, 6.2vw, 5.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
 }
 
 .t-headline {
@@ -136,12 +196,10 @@
     letter-spacing: -0.022em;
 }
 
-/* The standfirst under a display line. Muted on purpose — the headline is
-   the statement, this is the footnote to it. */
 .t-lede {
-    font-size: clamp(1.0625rem, 1.4vw, 1.3125rem);
-    line-height: 1.5;
-    letter-spacing: -0.01em;
+    font-size: clamp(1.125rem, 1.5vw, 1.375rem);
+    line-height: 1.45;
+    letter-spacing: -0.012em;
     color: var(--color-fg-muted);
 }
 
@@ -155,16 +213,14 @@
 .t-caption {
     font-size: 0.8125rem;
     line-height: 1.45;
-    letter-spacing: 0;
     color: var(--color-fg-dim);
 }
 
-/* Small semibold label, normal case. Not wide-tracked uppercase — that is a
-   different design language and it fights this one. */
+/* Small semibold label, normal case. Not wide-tracked uppercase. */
 .t-eyebrow {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    letter-spacing: 0.005em;
+    letter-spacing: -0.003em;
     color: var(--color-fg-muted);
 }
 
@@ -172,9 +228,37 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* A note written on the page by a person. Short, blue, slightly off-axis. */
+.hand {
+    display: block;
+    font-family: var(--font-hand);
+    font-size: clamp(1.3125rem, 1.9vw, 1.75rem);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: 0;
+    color: var(--color-accent);
+    rotate: -1.6deg;
+    transform-origin: 0 50%;
+}
+
+/* Hand-drawn strokes. Every path sets pathLength="1", then writes itself in
+   when its parent is revealed. */
+.ink {
+    overflow: visible;
+    color: var(--color-accent);
+}
+.ink :is(path, line) {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1 1.1;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1.1s cubic-bezier(0.45, 0.05, 0.2, 1) 0.25s;
+}
+
 /* ── Links ──────────────────────────────────────────────────────────────── */
 
-/* Inline text link: accent, with a chevron that steps forward on hover. */
 .a-link {
     color: var(--color-accent);
     text-decoration: none;
@@ -187,24 +271,28 @@
     opacity: 0.75;
 }
 .a-link .chev {
-    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.5s var(--spring-lively);
 }
 .a-link:hover .chev {
-    transform: translateX(2.5px);
+    transform: translateX(3px);
 }
 
-/* Underline that draws in from the left, for links inside running text. */
+/* A line that underlines itself from the left, like a pen stroke. */
 .a-underline {
-    color: var(--color-fg);
+    color: inherit;
     text-decoration: none;
     background-image: linear-gradient(currentColor, currentColor);
-    background-size: 0% 1px;
+    background-size: 100% 1px;
     background-position: 0 100%;
     background-repeat: no-repeat;
-    transition: background-size 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    padding-bottom: 0.12em;
+    transition:
+        background-size 0.55s var(--spring),
+        color 0.2s ease;
 }
 .a-underline:hover {
-    background-size: 100% 1px;
+    background-size: 35% 1px;
+    color: var(--color-accent);
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -212,20 +300,26 @@
 .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 2.875rem;
     border-radius: 980px;
-    padding: 0.8rem 1.5rem;
+    padding: 0.7rem 1.4rem;
     font-size: 0.9375rem;
     font-weight: 500;
     letter-spacing: -0.01em;
+    white-space: nowrap;
+    cursor: pointer;
     transition:
         background-color 0.22s ease,
         border-color 0.22s ease,
         color 0.22s ease,
-        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        transform 0.55s var(--spring-lively);
 }
+/* Pressing is immediate. Letting go is what takes time. */
 .btn:active {
-    transform: scale(0.975);
+    transform: scale(0.965);
+    transition-duration: 0.22s, 0.22s, 0.22s, 0.06s;
 }
 
 .btn-primary {
@@ -233,7 +327,7 @@
     color: var(--color-void);
 }
 .btn-primary:hover {
-    background-color: #ffffff;
+    background-color: color-mix(in oklab, var(--color-fg) 84%, var(--color-void));
 }
 
 .btn-ghost {
@@ -242,84 +336,13 @@
 }
 .btn-ghost:hover {
     border-color: var(--color-fg-muted);
-    background-color: #ffffff0a;
-}
-
-/* A rotating color ring and soft glow frame the hero CTA. */
-@property --spin {
-    syntax: "<angle>";
-    inherits: true;
-    initial-value: 0deg;
-}
-
-@keyframes btn-spin {
-    to {
-        --spin: 360deg;
-    }
-}
-
-/* Three things stacked in one place, and no more than that: a blurred disc of
-   the gradient (the light), an opaque pill with a 2px gradient ring (the
-   button), and the label. The light is never masked — masking runs after
-   filtering, so any mask box would chop the blur off and leave the halo
-   ending on a hard edge. It is simply hidden by the pill it sits under. */
-.btn-rainbow {
-    --rainbow: #ff4d6d, #ff9f4d, #ffe14d, #3ddc84, #4d9fff, #a06bff, #ff4d6d;
-    position: relative;
-    /* A stacking context in every state. Without it, `.btn:active`'s transform
-       makes one only while pressed, which flips where the z-index: -1 layers
-       below land relative to this element's own background. */
-    isolation: isolate;
-    background: none;
-    /* The border eats 2px on each side, so the padding gives it back and the
-       button measures exactly the same as any other .btn. */
-    border: 2px solid transparent;
-    padding: calc(0.8rem - 2px) calc(1.5rem - 2px);
-    color: var(--color-void);
-    animation: btn-spin 5.5s linear infinite;
-}
-
-/* The light. Unclipped, so it falls off into the page the way light does. */
-.btn-rainbow::before {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    z-index: -1;
-    border-radius: inherit;
-    background: conic-gradient(from var(--spin), var(--rainbow));
-    filter: blur(10px);
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-.btn-rainbow:hover::before {
-    opacity: 1;
-}
-
-/* The button face, painted over the light: two layers, two clips — the opaque
-   pill stops at the padding edge, the gradient shows only through the ring. */
-.btn-rainbow::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border: 2px solid transparent;
-    border-radius: inherit;
-    background:
-        linear-gradient(var(--color-fg), var(--color-fg)) padding-box,
-        conic-gradient(from var(--spin), var(--rainbow)) border-box;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .btn-rainbow,
-    .btn-rainbow::before {
-        animation: none;
-    }
+    background-color: color-mix(in oklab, var(--color-fg) 7%, transparent);
 }
 
 /* ── Surfaces ───────────────────────────────────────────────────────────── */
 
-/* A real plane, not frosted glass: a solid lifted surface, one hairline, and
-   a shadow that behaves like a shadow. */
+/* A real plane, not frosted glass: one solid surface, one hairline, and a
+   shadow that behaves like a shadow. */
 .plane {
     background-color: var(--color-surface);
     border: 1px solid var(--color-hairline);
@@ -327,58 +350,71 @@
     transition:
         background-color 0.3s ease,
         border-color 0.3s ease,
-        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow 0.45s ease,
+        transform 0.7s var(--spring);
 }
-/* Hover lifts the plane and deepens its shadow — a real change in elevation
-   rather than a colour wash or a glow. */
 .plane-hover:is(:hover, :focus-within) {
-    background-color: var(--color-surface-2);
     border-color: var(--color-hairline-strong);
-    transform: translateY(-3px);
-    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.9);
+    transform: translateY(-4px);
+    box-shadow: 0 22px 44px -24px rgb(0 0 0 / 0.55);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .plane-hover:is(:hover, :focus-within) {
-        transform: none;
-    }
+/* A sheet of paper lying on the stage. On a long page the stage section before
+   it pins (see .pin) and the sheet slides over it on plain native scroll. */
+.sheet {
+    position: relative;
+    z-index: 1;
+    border-radius: var(--sheet-radius);
+    box-shadow:
+        0 -1px 0 #ffffff24,
+        0 -28px 70px -24px rgb(0 0 0 / 0.85);
+}
+
+/* A whole page that is one sheet, sitting just under the nav. */
+.sheet-page {
+    margin-top: 4.25rem;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
 }
 
 /* Photographic falloff: an image that dissolves into the page instead of
-   ending at a hard edge or sitting in a bordered box. */
+   ending at a hard edge. */
 .falloff {
-    -webkit-mask-image: linear-gradient(
-        to bottom,
-        black 62%,
-        transparent 99%
-    );
+    -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 99%);
     mask-image: linear-gradient(to bottom, black 62%, transparent 99%);
 }
 
-/* Load entrances and section reveals use CSS. The story measures its SVG
-   separately so the drawn trail stays attached to its chapters. */
+/* ── Arrivals ─────────────────────────────────────────────────────────────
+   Crossing a threshold starts the motion; the spring finishes it, whether or
+   not you keep scrolling. A half-scrubbed heading never hangs mid-air. It runs
+   once and never reverses. The `reveal-on` class is set by the inline script in
+   Layout, so without JS, in print, and under reduced motion nothing is hidden. */
 
-/* Individual translate leaves a card's hover transform independent. */
+.line {
+    display: block;
+    overflow: clip;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+}
+.line > * {
+    display: block;
+}
+
+@keyframes line-up {
+    from {
+        translate: 0 112%;
+    }
+}
 @keyframes rise {
-    from { opacity: 0; translate: 0 24px; }
-    to { opacity: 1; translate: 0 0; }
+    from {
+        opacity: 0;
+        translate: 0 22px;
+    }
 }
 
-.rise {
-    animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-/* ── Masked line reveal ───────────────────────────────────────────────────
-   Display type rises out from behind its own edge rather than fading in.
-   This is the single most expensive-feeling text gesture available and it
-   costs nothing: one clipped wrapper, one translate.
-
-   The padding/negative-margin pair keeps descenders (g, y, p) from being
-   sheared off by the clip — forgetting it is what makes most attempts at
-   this look broken. */
+/* Inner-page masthead lines, still using the July markup. */
 .mask {
     display: block;
-    /* Clip without creating a scroll container for descendant timelines. */
     overflow: clip;
     padding-bottom: 0.14em;
     margin-bottom: -0.14em;
@@ -387,207 +423,184 @@
     display: block;
 }
 
-@keyframes line-up {
+@media (prefers-reduced-motion: no-preference) {
+    html:not([data-motion="off"]) .rise {
+        animation: rise 1s var(--spring) both;
+    }
+    html:not([data-motion="off"]) :is(.mask-load, .line-load) > * {
+        animation: line-up 1.1s var(--spring) both;
+    }
+
+    /* Animations rather than transitions, so a card's own hover transition is
+       left alone. Separate `translate` keeps JS transforms independent too. */
+    html.reveal-on:not([data-motion="off"]) :is(.reveal, .card-arrive, [data-reveal]:not([data-reveal="lines"])).is-in {
+        animation: rise 1.05s var(--spring) var(--reveal-delay, 0ms) both;
+    }
+    html.reveal-on:not([data-motion="off"]) :is(.reveal, .card-arrive, [data-reveal]:not([data-reveal="lines"])):not(.is-in) {
+        opacity: 0;
+    }
+
+    html.reveal-on:not([data-motion="off"]) [data-reveal="lines"].is-in .line > * {
+        animation: line-up 1.1s var(--spring) calc(var(--l, 0) * 80ms) both;
+    }
+    html.reveal-on:not([data-motion="off"]) [data-reveal="lines"]:not(.is-in) .line > * {
+        translate: 0 112%;
+    }
+
+    html.reveal-on:not([data-motion="off"]) :is(.reveal, [data-reveal]):not(.is-in) .ink :is(path, line),
+    html.reveal-on:not([data-motion="off"]) .ink[data-reveal]:not(.is-in) :is(path, line) {
+        stroke-dashoffset: 1;
+    }
+}
+
+/* ── Scroll-linked depth ──────────────────────────────────────────────────
+   Whatever the scrollbar moves stays 1:1 with the scrollbar. These run on the
+   compositor where supported, are never eased, and vanish elsewhere. */
+
+@keyframes drift {
     from {
-        transform: translateY(105%);
+        translate: 0 var(--drift);
     }
     to {
-        transform: translateY(0);
+        translate: 0 calc(var(--drift) * -1);
     }
 }
-
-/* On load, for the hero only. */
-.mask-load > * {
-    animation: line-up 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+@keyframes lag {
+    to {
+        translate: 0 44px;
+    }
 }
-
-/* ── Per-character reveal ─────────────────────────────────────────────────
-   The same masked rise, but each letter carries its own delay, so the line
-   assembles left to right instead of arriving as one slab. Reserved for the
-   hero headline — it is the one line on the site with the room to earn it.
-
-   Words stay whole so the line still wraps and balances normally; only the
-   letters inside them are broken out. Splitting into inline-blocks does cost
-   kerning between adjacent letters, which is why this is not applied to
-   every masked line on the site. */
-.split-word {
-    display: inline-block;
-    white-space: nowrap;
+@keyframes recede {
+    to {
+        opacity: 0;
+        translate: 0 -36px;
+    }
 }
-.split-char {
-    display: inline-block;
-    animation: char-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: var(--char-delay, 0ms);
-
-    /* Each letter hides behind its own edge, not the line's. On a narrow
-       viewport a line wraps to two rows inside one `.mask`, and a letter
-       waiting its turn one row up would otherwise sit on top of the row
-       below rather than out of sight.
-
-       `clip-path` rather than `overflow`, because `overflow` on an
-       inline-block moves its baseline to the bottom margin edge and would
-       drop the whole headline off its own baseline. Only the bottom edge
-       does any work: 0.14em of slack spares descenders, and the sides and
-       top are held well clear so nothing trims a letterform at rest. */
-    clip-path: inset(-100% -0.25em -0.14em -0.25em);
-}
-
-/* The 0.16em is what puts a letter just past that 0.14em descender slack, so
-   no sliver of it shows in the band before its turn. */
-@keyframes char-up {
+@keyframes approach {
     from {
-        transform: translateY(calc(100% + 0.16em));
+        opacity: 0;
+        transform: perspective(1200px) translateY(56px) rotateX(7deg) scale(0.94);
+    }
+    65% {
+        opacity: 1;
     }
     to {
-        transform: translateY(0);
+        transform: none;
+    }
+}
+@keyframes sheet-dim {
+    to {
+        opacity: 0.62;
+    }
+}
+@keyframes nav-solidify {
+    to {
+        background-color: rgb(8 8 10 / 0.96);
+        border-bottom-color: #ffffff1a;
     }
 }
 
 @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
-        /* Use viewport distance, not a fraction of the text's own height:
-           short labels otherwise finish in a few pixels and appear to pop. */
-        .reveal {
-            animation: rise linear both;
-            animation-timeline: view();
-            animation-range: entry 0% entry clamp(160px, 24vh, 240px);
-        }
-
-        /* Product art arrives with mass: it comes toward you and settles,
-           scrubbed to scroll position rather than fired by an observer. This
-           is the one gesture the whole page is built around, so it uses the
-           same curve as everything else. */
-        .approach {
-            animation: approach linear both;
-            animation-timeline: view();
-            animation-range: entry 0% entry 72%;
-        }
-
-        /* Section titles get the same masked rise, scrubbed to scroll. */
-        .mask-scroll > * {
-            animation: line-up linear both;
-            animation-timeline: view();
-            animation-range: entry 0% entry clamp(180px, 28vh, 280px);
-        }
-
-        /* Differential parallax. Two elements crossing the viewport at
-           slightly different rates read as two objects at different depths,
-           which is most of what makes a product shot feel physical. Amplitudes
-           stay small on purpose — past about 40px it stops reading as depth
-           and starts reading as a gimmick. */
-        .drift-slow,
-        .drift-fast {
-            animation-name: drift;
-            animation-timing-function: linear;
-            animation-fill-mode: both;
-            animation-timeline: view();
+        html:not([data-motion="off"]) :is(.drift-slow, .drift-fast) {
+            animation: drift linear both;
+            /* Keep the timeline separate: Lightning CSS otherwise folds it
+               into a shorthand that older browsers cannot parse. */
+            animation-timeline: var(--view-clock, view());
             animation-range: cover;
         }
         .drift-slow {
             --drift: 13px;
         }
         .drift-fast {
-            --drift: 30px;
+            --drift: 34px;
         }
-
-        /* The hero portrait lags the text it sits under, so leaving the hero
-           separates the two planes instead of sliding one flat layer away. */
-        .lag {
+        html:not([data-motion="off"]) .lag {
             animation: lag linear both;
-            animation-timeline: scroll(root);
+            animation-timeline: var(--scroll-clock, scroll(root));
             animation-range: 0vh 100vh;
         }
-
-        .recede {
+        html:not([data-motion="off"]) .recede {
             animation: recede linear both;
-            animation-timeline: scroll(root);
-            animation-range: 0vh 100vh;
-            transform-origin: 50% 40%;
+            animation-timeline: var(--scroll-clock, scroll(root));
+            animation-range: 8vh 72vh;
+        }
+        html:not([data-motion="off"]) .approach {
+            animation: approach linear both;
+            animation-timeline: var(--view-clock, view());
+            animation-range: entry 0% entry 72%;
         }
     }
 }
 
-@keyframes approach {
-    0% {
-        opacity: 0;
-        transform: perspective(1200px) translateY(56px) rotateX(7deg) scale(.94);
+/* ── Pinned stage, sliding sheet ──────────────────────────────────────────
+   `--pin-top` is measured by lib/interaction.ts so a section taller than the
+   viewport sticks once its last screen is showing. Unmeasured, it never sticks.
+   The scope bounds how long it stays pinned: it leaves with the end of the sheet. */
+
+.pin-scope {
+    position: relative;
+    timeline-scope: --sheet;
+}
+.sheet-over {
+    view-timeline: --sheet block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html:not([data-motion="off"]) .pin {
+        position: sticky;
+        top: var(--pin-top, auto);
+        z-index: 0;
     }
-    65% {
-        opacity: 1;
-        transform: perspective(1200px) translateY(6px) rotateX(0deg) scale(.995);
-    }
-    100% {
-        opacity: 1;
-        transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
+    @supports (animation-timeline: view()) {
+        html:not([data-motion="off"]) .pin::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            animation: sheet-dim linear both;
+            animation-timeline: var(--sheet-clock, --sheet);
+            animation-range: entry 0% entry 100%;
+        }
     }
 }
 
-@keyframes drift {
-    from {
-        transform: translateY(var(--drift));
-    }
-    to {
-        transform: translateY(calc(var(--drift) * -1));
-    }
+/* The preference also applies to component hover/press transitions. */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+    animation: none !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
 }
-
-@keyframes lag {
-    to {
-        transform: translateY(38px);
-    }
-}
-
-@keyframes recede {
-    to {
-        transform: scale(0.955);
-        opacity: 0;
-        filter: blur(3px);
-    }
-}
-
-
 @media (prefers-reduced-motion: reduce) {
-    .rise,
-    .mask-load > *,
-    .split-char {
-        animation: none;
-    }
-    html {
-        scroll-behavior: auto;
-    }
-    .btn:active,
-    .a-link:hover .chev,
-    .a-link:focus-visible .chev {
-        transform: none;
-        transition: none;
+    *, *::before, *::after {
+        animation: none !important;
+        transition-duration: 0s !important;
+        scroll-behavior: auto !important;
     }
 }
 
-/* Screenshot/QA harness: `/preview` sets this so scroll-driven work renders
-   in its settled state in a static capture. Not used by the real page. */
-html[data-noanim] :is(
-        .rise,
-        .reveal,
-        .approach,
-        .recede,
-        .drift-slow,
-        .drift-fast,
-        .lag,
-        .card-arrive
-    ),
-html[data-noanim] .split-char,
-html[data-noanim] :is(.mask-load, .mask-scroll) > * {
+/* Screenshot/QA harness: `noanim` renders everything in its settled state. */
+html[data-noanim] :is(.rise, .reveal, .approach, .recede, .drift-slow, .drift-fast, .lag, .card-arrive),
+html[data-noanim] :is(.mask-load, .line-load) > * {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
-    filter: none !important;
     translate: none !important;
 }
 
-/* ── Long-form essays (/art pieces) ────────────────────────────────────────
-   Rendered markdown, so these have to be global. Measure is capped near 68
-   characters because that is where reading comfort sits — the rest of the
-   site is short copy, this is the one place with real prose. */
+@media print {
+    :is(.reveal, .card-arrive, [data-reveal]),
+    [data-reveal] .line > * {
+        opacity: 1 !important;
+        translate: none !important;
+    }
+}
+
+/* ── Long-form essays (/art pieces) ──────────────────────────────────────── */
 .essay {
     max-width: 34rem;
     font-size: 1.0625rem;
@@ -646,15 +659,8 @@ html[data-noanim] :is(.mask-load, .mask-scroll) > * {
 
 /* ── Status ribbons ────────────────────────────────────────────────────────
    A corner ribbon in the "fork me on GitHub" idiom, for work that is retired,
-   unmaintained or still in progress.
-
-   This introduces the palette's only second colour. It is deliberately not
-   the accent: --color-accent means "this is interactive, click it", and a
-   status flag means the opposite. Keeping them distinct is what stops the
-   ribbon from reading as a button. */
-@theme {
-    --color-flag: #ffd60a;
-}
+   unmaintained or still in progress. Yellow, because the accent means "click
+   this" and a status flag means the opposite. */
 
 .ribbon {
     position: absolute;
@@ -674,43 +680,22 @@ html[data-noanim] :is(.mask-load, .mask-scroll) > * {
     width: 12rem;
     transform: rotate(45deg);
     background-color: var(--color-flag);
-    color: var(--color-void);
+    color: #172036;
     padding: 0.3rem 0;
     text-align: center;
     font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.01em;
-    box-shadow: 0 2px 10px rgb(0 0 0 / 0.55);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
 }
 
-/* Row-level equivalent for the libraries index, which is a list rather than a
-   set of bounded cards — a diagonal ribbon has no corner to sit in there. */
+/* Row-level equivalent for the libraries index, which has no corner to sit in. */
 .flag {
-    border: 1px solid color-mix(in oklab, var(--color-flag) 45%, transparent);
-    color: var(--color-flag);
+    border: 1px solid color-mix(in oklab, var(--color-flag-ink) 45%, transparent);
+    color: var(--color-flag-ink);
     border-radius: 980px;
     padding: 0.1rem 0.5rem;
     font-size: 0.6875rem;
     font-weight: 600;
     white-space: nowrap;
 }
-
-/* Individual translate leaves the card's hover transform independent. */
-@keyframes card-arrive {
-    from { opacity: 0; translate: 0 36px; }
-    to { opacity: 1; translate: 0 0; }
-}
-@media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: view()) {
-        .card-arrive {
-            animation: card-arrive cubic-bezier(.22, 1, .36, 1) both;
-            animation-timeline: view();
-            animation-range: entry 0% entry 85%;
-        }
-        @media (min-width: 768px) {
-            .card-arrive:nth-child(2) { animation-range: entry 8% entry 93%; }
-            .card-arrive:nth-child(3) { animation-range: entry 16% entry 100%; }
-        }
-    }
-}
-html[data-noanim] .card-arrive { translate: none !important; }

@@ -1,9 +1,167 @@
 ---
-const links=[['Projects','/thelist'],['Photos','/photography'],['Résumé','/resume.pdf'],['Contact','/contact']];
+const links = [
+    ["Projects", "/thelist"],
+    ["Photos", "/photography"],
+    ["Résumé", "/resume.pdf"],
+    ["Contact", "/contact"],
+];
+const path = Astro.url.pathname.replace(/\/$/, "");
+const isCurrent = (href: string) => (href === "/thelist" ? path.startsWith(href) : path === href);
 ---
-<header class="site-nav"><a class="site-wordmark" href="/"><img src="/profile.png" width="34" height="34" alt=""/>Bryan Hu</a><nav aria-label="Main navigation">{links.map(([label,href])=><a href={href} aria-current={Astro.url.pathname.replace(/\/$/,'')===href?'page':undefined}>{label}</a>)}</nav></header>
+
+<header class="site-nav">
+    <a class="site-wordmark" href="/" aria-label="Bryan Hu, home">
+        <img src="/profile.png" width="28" height="28" alt="" />
+        <span>Bryan Hu</span>
+    </a>
+    <nav aria-label="Main navigation">
+        {links.map(([label, href]) => (
+            <a href={href} aria-current={isCurrent(href) ? "page" : undefined}>{label}</a>
+        ))}
+        <span class="nav-ink" aria-hidden="true"></span>
+    </nav>
+</header>
+
+<script>
+    import { lifetime, Spring } from "../lib/motion";
+
+    // A single pen stroke that travels between links instead of one underline
+    // per link. It carries its speed, so a fast sweep overshoots the target a touch.
+    const nav = document.querySelector<HTMLElement>(".site-nav nav");
+    const ink = nav?.querySelector<HTMLElement>(".nav-ink");
+    if (nav && ink) {
+        const signal = lifetime();
+        const header = nav.closest<HTMLElement>("header")!;
+        const syncHeader = () => header.toggleAttribute("data-at-top", window.scrollY < 24);
+        syncHeader();
+        window.addEventListener("scroll", syncHeader, { signal, passive: true });
+        const links = [...nav.querySelectorAll<HTMLAnchorElement>("a")];
+        const current = links.find((link) => link.hasAttribute("aria-current"));
+        const config = { stiffness: 340, damping: 30, precision: 0.05 };
+        const render = () => {
+            ink.style.transform = `translateX(${x.value.toFixed(2)}px) scaleX(${width.value.toFixed(2)})`;
+            ink.style.opacity = String(Math.min(1, opacity.value));
+        };
+        const x = new Spring(0, config, render);
+        const width = new Spring(0, config, render);
+        const opacity = new Spring(0, { stiffness: 200, damping: 28, precision: 0.01 }, render);
+
+        const point = (link?: HTMLAnchorElement, jump = false) => {
+            if (!link) {
+                opacity.to(0);
+                return;
+            }
+            if (jump || opacity.value < 0.05) {
+                x.set(link.offsetLeft);
+                width.set(link.offsetWidth);
+            } else {
+                x.to(link.offsetLeft);
+                width.to(link.offsetWidth);
+            }
+            if (jump) opacity.set(1);
+            else opacity.to(1);
+        };
+
+        links.forEach((link) => {
+            link.addEventListener("pointerenter", () => point(link), { signal, passive: true });
+            link.addEventListener("focus", () => point(link), { signal });
+        });
+        nav.addEventListener("pointerleave", () => point(current), { signal, passive: true });
+        nav.addEventListener("focusout", () => point(current), { signal });
+
+        const settle = () => point(current, true);
+        settle();
+        nav.dataset.ready = "";
+        // Layout changes once Inter arrives, and the stroke is measured in pixels.
+        document.fonts?.ready.then(settle);
+        window.addEventListener("resize", settle, { signal, passive: true });
+    }
+</script>
+
 <style>
-.site-nav{position:fixed;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:102px;padding:20px 4%;background:#fffefbf5;border-bottom:1px solid #17203620;color:#172036;}
-.site-wordmark{display:flex;align-items:center;gap:10px;font:26px var(--font-sketch);}.site-wordmark img{border:1px solid #172036;border-radius:6px;}nav{display:flex;gap:26px;font:19px var(--font-sketch);}nav a{white-space:nowrap;}nav a:hover,nav a[aria-current]{color:#3473ff;text-decoration:underline;text-underline-offset:5px;}
-@media(max-width:760px){.site-nav{align-items:flex-start;flex-direction:column;gap:10px;padding:14px 7%;}.site-wordmark{font-size:23px;}.site-wordmark img{width:28px;height:28px;}nav{gap:8px;font-size:15px;width:100%;justify-content:space-between;}}
+    .site-nav {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        min-height: 4.25rem;
+        padding: 0.5rem var(--page-edge);
+        color: #f5f5f7;
+        background-color: rgb(8 8 10 / 0.96);
+        border-bottom: 1px solid #ffffff1a;
+        -webkit-backdrop-filter: saturate(160%) blur(18px);
+        backdrop-filter: saturate(160%) blur(18px);
+    }
+    /* Clear over the hero, solid once anything is passing underneath it. */
+    @media (prefers-reduced-motion: no-preference) {
+        :global(html:not([data-motion="off"])) .site-nav[data-at-top] {
+            background-color: transparent;
+            border-bottom-color: transparent;
+        }
+    }
+    .site-wordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        min-height: 2.75rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+    }
+    .site-wordmark img {
+        border-radius: 7px;
+        transition: transform 0.55s var(--spring-lively);
+    }
+    .site-wordmark:hover img {
+        transform: rotate(-5deg) scale(1.06);
+    }
+    nav {
+        position: relative;
+        display: flex;
+        gap: clamp(0.875rem, 2.2vw, 1.75rem);
+    }
+    nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        font-size: 0.875rem;
+        color: #c9c9cf;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+    }
+    nav a:hover,
+    nav a[aria-current] {
+        color: #f5f5f7;
+    }
+    /* Without the script, the current page still has its own underline. */
+    nav:not([data-ready]) a[aria-current] {
+        text-decoration: underline;
+        text-decoration-color: #7fa8ff;
+        text-underline-offset: 6px;
+    }
+    .nav-ink {
+        position: absolute;
+        left: 0;
+        bottom: 7px;
+        width: 1px;
+        height: 1.5px;
+        background: #7fa8ff;
+        border-radius: 1px;
+        opacity: 0;
+        pointer-events: none;
+        transform-origin: 0 50%;
+    }
+    @media (max-width: 26rem) {
+        .site-wordmark span {
+            display: none;
+        }
+    }
+    @media print {
+        .site-nav {
+            position: static;
+        }
+    }
 </style>

@@ -3,28 +3,128 @@ import PlayableTrombone from "./PlayableTrombone.astro";
 import { Icon } from "astro-icon/components";
 const year = new Date().getFullYear();
 const instruments = [
-  { name: 'Piano', since: 2017, role: 'Solo pianist', awards: ['Certificate of Merit Level 10, State Honors', '3rd place, USOMC Intermediate Baroque (2023)'] },
-  { name: 'Trombone', since: 2018, role: 'Concert band & jazz band', awards: ['2nd place, Folsom Jazz Festival (2025)'] },
+    { name: "Piano", since: 2017, role: "Solo pianist", awards: ["Certificate of Merit Level 10, State Honors", "3rd place, USOMC Intermediate Baroque (2023)"] },
+    { name: "Trombone", since: 2018, role: "Concert band & jazz band", awards: ["2nd place, Folsom Jazz Festival (2025)"] },
 ];
 ---
-<section class="notebook-section music" id="music" aria-labelledby="music-title">
-  <div class="notebook-heading"><p class="hand-note">there’s usually music involved.</p><h2 id="music-title">Away from<br/><em>the screen…</em></h2>
-    <p class="section-intro">I’m also a pianist and trombonist. I perform solo, play in concert and jazz bands, and release music.</p>
-    <div class="section-links"><a href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"><Icon name="simple-icons:spotify" aria-hidden="true" style="width:22px;height:22px;flex-shrink:0"/>Listen on Spotify ↗</a><a href="https://music.apple.com/us/artist/bryan-hu/1751789628"><Icon name="simple-icons:applemusic" aria-hidden="true" style="width:22px;height:22px;flex-shrink:0"/>Apple Music ↗</a></div>
-    <div class="music-playground"><h3>Try the trombone</h3><PlayableTrombone /></div>
-  </div>
-  <div class="instrument-notes">{instruments.map(instrument=><article><div class="instrument-heading"><h3>{instrument.name}</h3><span>{year-instrument.since} years</span></div><p class="role-label">{instrument.role} · since {instrument.since}</p><ul>{instrument.awards.map(award=><li>{award}</li>)}</ul></article>)}</div>
+
+<section class="music pin" data-pin id="music" aria-labelledby="music-title">
+    <div class="music-grid">
+        <div>
+            <p class="hand" data-reveal>there’s usually music involved.</p>
+            <h2 class="t-title" id="music-title" data-reveal="lines">
+                <span class="line"><span>Away from</span></span>
+                <span class="line" style="--l:1"><span>the screen…</span></span>
+            </h2>
+            <p class="t-lede music-intro" data-reveal>I’m also a pianist and trombonist. I perform solo, play in concert and jazz bands, and release music.</p>
+            <div class="music-links" data-reveal>
+                <a class="btn btn-ghost" href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj"><Icon name="simple-icons:spotify" aria-hidden="true" class="size-4" />Listen on Spotify <span aria-hidden="true">↗</span></a>
+                <a class="btn btn-ghost" href="https://music.apple.com/us/artist/bryan-hu/1751789628"><Icon name="simple-icons:applemusic" aria-hidden="true" class="size-4" />Apple Music <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="instruments">
+                {
+                    instruments.map((instrument) => (
+                        <article data-reveal>
+                            <div class="instrument-heading">
+                                <h3 class="t-headline">{instrument.name}</h3>
+                                <span class="tnum">{year - instrument.since} years</span>
+                            </div>
+                            <p class="t-caption">{instrument.role} · since {instrument.since}</p>
+                            <ul>{instrument.awards.map((award) => <li>{award}</li>)}</ul>
+                        </article>
+                    ))
+                }
+            </div>
+        </div>
+        <div class="music-playground" data-reveal>
+            <p class="hand playground-note">Because without music, life would B<span class="flat">♭</span></p>
+            <h3 class="t-eyebrow">Try the trombone</h3>
+            <PlayableTrombone />
+        </div>
+    </div>
 </section>
 
 <style>
-.music .section-intro { margin-top:24px; max-width:40ch; font-size:16px; line-height:1.75; }
-.music .section-links { margin-top:20px; gap:14px 24px; }
-.music-playground { margin-top:36px; padding-top:24px; border-top:1px solid #17203626; max-width:430px; }
-.music-playground h3 { font:24px var(--font-sketch); margin:0 0 8px; }
-.music-playground :global(.playable-trombone) { width:100%; margin-top:0; }
-.music-playground :global(.instrument-panel) { margin-top:6px; }
-.music-playground :global(small) { margin-top:6px; font-size:11px; line-height:1.6; }
-@media(max-width:760px) { .music .section-intro { font-size:15px; } .music-playground { margin-top:28px; } }
-
-.section-links a { display:inline-flex; align-items:center; gap:10px; }
+    .flat {
+        font-family: var(--font-sans);
+        margin-left: -0.12em;
+    }
+    .music {
+        background: var(--color-void);
+        padding-block: clamp(4.5rem, 10vw, 8.5rem) calc(clamp(4.5rem, 10vw, 8.5rem) + var(--sheet-radius));
+    }
+    .music-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: clamp(2.5rem, 7vw, 6.5rem);
+        align-items: start;
+        max-width: 1320px;
+        margin-inline: auto;
+        padding-inline: var(--spacing-gutter);
+    }
+    #music-title {
+        font-size: clamp(2.25rem, 5vw, 4.5rem);
+    }
+    .hand {
+        margin-bottom: 1.25rem;
+    }
+    .music-intro {
+        max-width: 36ch;
+        margin-top: 1.75rem;
+    }
+    .music-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.625rem;
+        margin-top: 1.75rem;
+    }
+    .instruments {
+        margin-top: 3rem;
+    }
+    .instruments article {
+        padding-block: 1.25rem 1.5rem;
+        border-top: 1px solid var(--color-hairline);
+    }
+    .instrument-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .instrument-heading > span {
+        color: var(--color-fg-muted);
+        font-size: 0.9375rem;
+    }
+    .instruments .t-caption {
+        margin-top: 0.25rem;
+    }
+    ul {
+        margin: 0.75rem 0 0;
+        padding: 0;
+        list-style: none;
+    }
+    li {
+        padding-block: 0.25rem;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        color: var(--color-fg-muted);
+    }
+    .music-playground {
+        position: sticky;
+        top: 6rem;
+    }
+    .playground-note {
+        margin-bottom: 2.25rem;
+    }
+    .music-playground h3 {
+        margin: 0 0 0.875rem;
+    }
+    @media (max-width: 860px) {
+        .music-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .music-playground {
+            position: static;
+        }
+    }
 </style>

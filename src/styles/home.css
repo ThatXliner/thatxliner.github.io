@@ -1,0 +1,489 @@
+/* The home page's own layout. Colour, type and motion tokens live in global.css. */
+
+.skip-link {
+    position: fixed;
+    top: -5rem;
+    left: 1rem;
+    z-index: 60;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--color-fg);
+    color: var(--color-void);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.skip-link:focus {
+    top: 0.75rem;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────
+   The dark site's lit portrait, the notebook's "Hi, I'm Bryan" and its playable
+   piano. The keyboard forms the fold beneath the portrait. */
+
+.hero {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: max(100svh, 40rem);
+    overflow: clip;
+    isolation: isolate;
+}
+.hero-portrait {
+    position: absolute;
+    right: var(--page-edge);
+    bottom: clamp(5.75rem, 17svh, 10.5rem);
+    z-index: 0;
+    width: 40vw;
+    max-width: 540px;
+    height: min(68svh, 48vw);
+    pointer-events: none;
+}
+.hero-portrait img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 48%;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.hero-copy {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    width: 100%;
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: 6rem var(--spacing-gutter) 5rem;
+}
+.hero h1 {
+    margin: 0;
+    font-size: clamp(4.5rem, min(11.5vw, 20svh), 12rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+}
+.hero-name {
+    position: relative;
+    display: inline-block;
+}
+.hero-name .line {
+    position: relative;
+    z-index: 1;
+    padding-right: 0.05em;
+}
+.hero-underline {
+    z-index: 0;
+    position: absolute;
+    left: -2%;
+    right: -3%;
+    bottom: -0.06em;
+    width: 105%;
+    height: 0.13em;
+}
+.hero-underline path {
+    transition-delay: 0.95s;
+}
+.hero-lede {
+    max-width: 24em;
+    margin: 2rem 0 0;
+    font-size: clamp(1.125rem, 1.75vw, 1.5rem);
+    line-height: 1.32;
+    letter-spacing: -0.016em;
+    color: var(--color-fg);
+}
+.hero-lede span {
+    color: var(--color-fg-muted);
+}
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-top: 1.75rem;
+}
+
+/* The underline starts undrawn and writes itself in as the page opens. */
+@keyframes write-in {
+    from {
+        stroke-dashoffset: 1;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+@media (prefers-reduced-motion: no-preference) {
+    html:not([data-motion="off"]) .hero-underline path {
+        animation: write-in 1.05s cubic-bezier(0.45, 0.05, 0.2, 1) 0.8s both;
+    }
+}
+
+@media (max-width: 1100px) {
+    .hero-copy {
+        align-self: start;
+        padding-top: 10rem;
+    }
+    .hero-portrait {
+        width: 44vw;
+        height: min(72svh, 65vw);
+        transform: translateY(2.75rem);
+    }
+    .hero-actions {
+        max-width: 48%;
+    }
+    /* Keeps running text off the face on tablets and small laptops. */
+    .hero-lede {
+        max-width: 15em;
+    }
+}
+
+@media (max-width: 760px) {
+    .hero {
+        grid-template-rows: auto auto auto;
+    }
+    .hero-portrait {
+        position: relative;
+        grid-row: 2;
+        justify-self: end;
+        align-self: end;
+        right: auto;
+        bottom: auto;
+        margin-right: var(--page-edge);
+        height: clamp(11rem, 40svh, 22rem);
+        width: min(58vw, 18rem);
+    }
+    .hero-copy {
+        grid-row: 1;
+        align-self: start;
+        padding: 5.5rem var(--spacing-gutter) 2rem;
+    }
+    .hero h1 {
+        font-size: clamp(4rem, 21vw, 7rem);
+    }
+    .hero-lede {
+        max-width: 19em;
+        margin-top: 1.25rem;
+    }
+    .hero-actions {
+        margin-top: 1.25rem;
+        max-width: 100%;
+    }
+    .hero-actions .btn {
+        min-height: 2.75rem;
+        padding: 0.55rem 1.05rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* ── Stage chapters ──────────────────────────────────────────────────────── */
+
+.chapter {
+    background: var(--color-void);
+    padding-block: clamp(5rem, 11vw, 9.5rem);
+}
+.chapter-inner {
+    max-width: 1320px;
+    margin-inline: auto;
+    padding-inline: var(--spacing-gutter);
+}
+.chapter-lede {
+    max-width: 34ch;
+    margin-top: 1.5rem;
+}
+
+/* ── From idea to app ────────────────────────────────────────────────────── */
+
+.product {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: center;
+    margin-top: clamp(4rem, 9vw, 8rem);
+}
+.product-wide {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+}
+.product-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+.product h3 {
+    margin: 0.625rem 0 0;
+    max-width: 22ch;
+    font-size: clamp(1.625rem, 2.9vw, 2.625rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.032em;
+    text-wrap: balance;
+}
+.product-body {
+    max-width: 46ch;
+    margin-top: 1.125rem;
+}
+.product-note {
+    margin-top: 1.25rem;
+}
+.product-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.875rem 1.5rem;
+    margin-top: 1.75rem;
+    font-size: 0.9375rem;
+}
+.device-stage {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(1rem, 2.4vw, 1.75rem);
+    transform-style: preserve-3d;
+}
+.device-stage > .drift-fast {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+.product-window-art {
+    transform-style: preserve-3d;
+}
+
+@media (max-width: 860px) {
+    .product,
+    .product-wide {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .product-wide .product-art {
+        order: 2;
+    }
+}
+
+/* ── Look closer ─────────────────────────────────────────────────────────
+   Static by default, which is what no-JS and reduced motion get. Only when motion
+   is genuinely available does the section grow its scroll travel. Done in CSS so
+   the page has its full height at first paint and anchor links land correctly. */
+
+.observe {
+    position: relative;
+    background: var(--color-void);
+}
+.observe-stage {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    align-items: center;
+    gap: 2rem;
+    overflow: hidden;
+    padding: clamp(4rem, 9vw, 7rem) var(--page-edge);
+}
+.observe-light {
+    display: none;
+}
+.observe-canvas {
+    display: none;
+}
+.observe-copy {
+    position: relative;
+    z-index: 2;
+}
+.observe-copy .hand {
+    margin-bottom: 1.25rem;
+}
+.observe-fallback {
+    width: 100%;
+    height: auto;
+    /* The photograph's own black melts into the page's. */
+    mix-blend-mode: lighten;
+}
+.observe-status {
+    position: absolute;
+    right: var(--spacing-gutter);
+    bottom: 1.5rem;
+    margin: 0;
+}
+.observe-status[hidden] {
+    display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    html.js:not([data-motion="off"]) .observe:not([data-static]) {
+        height: 340svh;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-stage {
+        position: sticky;
+        top: 0;
+        display: flex;
+        align-items: center;
+        height: 100svh;
+        padding-block: 0;
+        touch-action: pan-y;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-stage[tabindex] {
+        cursor: grab;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-stage[data-grabbed] {
+        cursor: grabbing;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-light {
+        display: block;
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse 46% 56% at 66% 50%, rgb(255 255 255 / 0.1), transparent 72%);
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-canvas {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.9s ease;
+    }
+    html.js:not([data-motion="off"]) .observe[data-state="ready"]:not([data-static]) .observe-canvas {
+        opacity: 1;
+    }
+    html.js:not([data-motion="off"]) .observe[data-state="ready"]:not([data-static]) .observe-fallback {
+        display: none;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-copy {
+        max-width: min(32rem, 44%);
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-state="ready"]):not([data-static]) .observe-fallback {
+        position: absolute;
+        right: var(--page-edge);
+        width: 42%;
+        pointer-events: none;
+    }
+}
+.observe-stage:focus-visible {
+    outline-offset: -6px;
+}
+
+@media (max-width: 760px) {
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-light {
+        background: radial-gradient(ellipse 80% 36% at 50% 65%, rgb(255 255 255 / 0.1), transparent 72%);
+    }
+    .observe-stage {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-stage {
+        align-items: flex-start;
+        padding-top: 5.5rem;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-copy {
+        max-width: 100%;
+    }
+    html.js:not([data-motion="off"]) .observe:not([data-state="ready"]):not([data-static]) .observe-fallback {
+        width: 80%;
+        bottom: 15%;
+    }
+}
+
+/* ── Photographs ─────────────────────────────────────────────────────────── */
+
+.frames {
+    position: relative;
+    background: var(--color-void);
+    padding-block: clamp(5rem, 10vw, 8.5rem) clamp(3rem, 6vw, 5rem);
+}
+.frames-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    max-width: 1320px;
+    margin: 0 auto clamp(2rem, 4vw, 3rem);
+    padding-inline: var(--spacing-gutter);
+}
+.frames-foot {
+    max-width: 1320px;
+    margin: 1.25rem auto 0;
+    padding-inline: var(--spacing-gutter);
+}
+
+/* ── Résumé: the receipts ────────────────────────────────────────────────── */
+
+.resume-index {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(2.5rem, 7vw, 6.5rem);
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: clamp(3rem, 6vw, 5rem) var(--spacing-gutter) clamp(5rem, 10vw, 8.5rem);
+}
+.resume-index .hand {
+    margin-bottom: 1.25rem;
+}
+.resume-actions {
+    margin-top: 1.75rem;
+}
+.resume-contact {
+    margin-top: 1.75rem;
+    font-style: normal;
+    font-size: 1.0625rem;
+    scroll-margin-top: 6rem;
+}
+.resume-contact > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+}
+.index-details h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-fg-muted);
+}
+.index-details h3:not(:first-child) {
+    margin-top: 2.75rem;
+}
+.award-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding-block: 0.75rem;
+    border-top: 1px solid var(--color-hairline);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}
+.award-row > span:first-child {
+    transition: color 0.2s ease;
+}
+a.award-row:hover > span:first-child {
+    color: var(--color-accent);
+}
+.award-row > i {
+    flex: 1;
+    min-width: 1rem;
+    border-bottom: 1px dotted var(--color-hairline-strong);
+    translate: 0 -0.25em;
+}
+.award-row > b {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--color-fg-dim);
+}
+
+@media (max-width: 760px) {
+    .resume-index {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Closing ─────────────────────────────────────────────────────────────── */
+
+.closing {
+    max-width: 1320px;
+    margin-inline: auto;
+    padding: clamp(5rem, 11vw, 9.5rem) var(--spacing-gutter);
+}
+.closing-email {
+    display: inline-block;
+    margin-top: 2rem;
+    font-size: clamp(1.25rem, 2.6vw, 2.25rem);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+}

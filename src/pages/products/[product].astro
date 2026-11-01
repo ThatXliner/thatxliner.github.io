@@ -1,48 +1,198 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import billionBrowse from '../../assets/products/billion-browse.png';
-import billionFeed from '../../assets/products/billion-feed.png';
-import quillium from '../../assets/products/quillium-revision.png';
-import '../../styles/resume-film.css';
-export function getStaticPaths() { return ['billion','quillium'].map(product => ({params:{product}})); }
-const isBillion = Astro.params.product === 'billion';
-const name = isBillion ? 'Billion' : 'Quillium';
-const points = isBillion ? [
- ['Dual-Lens view', 'Progressive and conservative readings of the same bill, side by side.'],
- ['Your ballot', 'Track what you’re voting on, and who is on the ballot.'],
- ['Primary sources', 'Every summary cites the original documents.'],
-] : [
- ['Branching drafts', 'Keep alternative versions inside the document until you choose one.'],
- ['Local-first writing', 'One SQLite file on your disk, with crash-safe storage and offline access.'],
- ['Anchored notes', 'Attach comments to the exact words they refer to.'],
-];
+import Layout from "../../layouts/Layout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import PhoneFrame from "../../components/ui/PhoneFrame.astro";
+import WindowFrame from "../../components/ui/WindowFrame.astro";
+import billionBrowse from "../../assets/products/billion-browse.png";
+import billionFeed from "../../assets/products/billion-feed.png";
+import quillium from "../../assets/products/quillium-revision.png";
+export function getStaticPaths() {
+    return ["billion", "quillium"].map((product) => ({ params: { product } }));
+}
+const isBillion = Astro.params.product === "billion";
+const name = isBillion ? "Billion" : "Quillium";
+const points = isBillion
+    ? [
+          ["Dual-Lens view", "Progressive and conservative readings of the same bill, side by side."],
+          ["Your ballot", "Track what you’re voting on, and who is on the ballot."],
+          ["Primary sources", "Every summary cites the original documents."],
+      ]
+    : [
+          ["Branching drafts", "Keep alternative versions inside the document until you choose one."],
+          ["Local-first writing", "One SQLite file on your disk, with crash-safe storage and offline access."],
+          ["Anchored notes", "Attach comments to the exact words they refer to."],
+      ];
+const description = isBillion
+    ? "Most people find out what their government did after it has already changed their life. I’m building Billion to make bills, executive orders, and court rulings easier to follow."
+    : "I built Quillium because I kept losing the better draft. Write a sentence three ways and decide later. Every version stays inside the document.";
 ---
-<Layout title={`${name} — Bryan Hu`}>
- <main class="product-story">
-  <header><a href="/#build">← Back to my work</a><nav aria-label="Products"><a href="/products/billion" aria-current={isBillion ? 'page' : undefined}>Billion</a><a href="/products/quillium" aria-current={!isBillion ? 'page' : undefined}>Quillium</a></nav></header>
-  <section class="product-detail">
-   <div><p class="hand-note">{name}</p><h1>{isBillion ? <>Know what<br/>your government<br/><em>is doing.</em></> : <>Keep the<br/><em>better draft.</em></>}</h1>
-   <p class="product-description">{isBillion ? 'Most people find out what their government did after it has already changed their life. I’m building Billion to make bills, executive orders, and court rulings easier to follow.' : 'I built Quillium because I kept losing the better draft. Write a sentence three ways and decide later. Every version stays inside the document.'}</p>
-   {isBillion && <p class="product-origin">It started as my Congressional App Challenge entry, which placed 3rd in CA-19 in 2025, and grew into the product I’m building today.</p>}
-   <a class="text-link" href={isBillion ? 'https://www.billion-news.app/' : 'https://quillium.bryanhu.com/'}>{isBillion ? 'Explore Billion' : 'Explore Quillium'} ↗</a>
-   </div>
-   <div class:list={['product-art', {'product-phones':isBillion}]}>{isBillion ? <><img src={billionBrowse.src} alt="Billion Browse: recent bills with plain-language titles"/><img src={billionFeed.src} alt="Billion bill summary with political perspectives and a source link"/></> : <img src={quillium.src} alt="Quillium editor with alternative drafts and comments"/>}</div>
-  </section>
-  <section class="product-features" aria-label={`${name} features`}>{points.map(([title,body])=><article><h2>{title}</h2><p>{body}</p></article>)}</section>
- </main>
+
+<Layout title={`${name} — Bryan Hu`} description={description}>
+    <Nav />
+    <main class="product-story">
+        <div class="product-top">
+            <a class="a-link back" href="/#build"><span class="chev" aria-hidden="true">←</span> Back to my work</a>
+            <nav aria-label="Products">
+                <a href="/products/billion" aria-current={isBillion ? "page" : undefined}>Billion</a>
+                <a href="/products/quillium" aria-current={!isBillion ? "page" : undefined}>Quillium</a>
+            </nav>
+        </div>
+        <section class:list={["product-detail", { "product-detail-wide": !isBillion }]}>
+            <div>
+                <p class="hand rise">{name}</p>
+                <h1 class="t-title">
+                    {
+                        isBillion ? (
+                            <>
+                                <span class="mask mask-load"><span>Know what</span></span>
+                                <span class="mask mask-load"><span style="animation-delay:70ms">your government</span></span>
+                                <span class="mask mask-load text-fg-muted"><span style="animation-delay:140ms">is doing.</span></span>
+                            </>
+                        ) : (
+                            <>
+                                <span class="mask mask-load"><span>Keep the</span></span>
+                                <span class="mask mask-load text-fg-muted"><span style="animation-delay:70ms">better draft.</span></span>
+                            </>
+                        )
+                    }
+                </h1>
+                <p class="t-lede rise description" style="animation-delay:220ms">{description}</p>
+                {isBillion && <p class="t-body rise origin" style="animation-delay:280ms">It started as my Congressional App Challenge entry, which placed 3rd in CA-19 in 2025, and grew into the product I’m building today.</p>}
+                <a class="btn btn-primary rise explore" style="animation-delay:340ms" href={isBillion ? "https://www.billion-news.app/" : "https://quillium.bryanhu.com/"}>{isBillion ? "Explore Billion" : "Explore Quillium"} <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="rise" style="animation-delay:200ms">
+                <div class="product-art" data-tilt>
+                    {
+                        isBillion ? (
+                            <>
+                                <PhoneFrame src={billionBrowse} alt="Billion Browse: recent bills with plain-language titles" class="drift-slow" />
+                                <PhoneFrame src={billionFeed} alt="Billion bill summary with political perspectives and a source link" class="drift-fast phone-low" />
+                            </>
+                        ) : (
+                            <WindowFrame src={quillium} alt="Quillium editor with alternative drafts and comments" title="A Tale of Two Cities — draft" class="drift-slow" />
+                        )
+                    }
+                </div>
+            </div>
+        </section>
+    </main>
+    <section class="paper sheet product-sheet" aria-label={`${name} features`}>
+        <div class="product-features">
+            {
+                points.map(([title, body]) => (
+                    <article data-reveal>
+                        <h2 class="t-headline">{title}</h2>
+                        <p class="t-body">{body}</p>
+                    </article>
+                ))
+            }
+        </div>
+    </section>
+    <Footer />
 </Layout>
+
+<script>
+    import { lifetime } from "../../lib/motion";
+    import { initTilt } from "../../lib/interaction";
+    const signal = lifetime();
+    document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((element) => initTilt(element, signal));
+</script>
+
 <style>
-.product-story { --font-sketch:"Patrick Hand", cursive; --paper:#fffefb; --ink:#172036; --accent:#3473ff; background:var(--paper); color:var(--ink); min-height:100svh; padding:34px 6% 80px; }
-header,header nav { display:flex; justify-content:space-between; gap:26px; font:22px var(--font-sketch); }
-header a[aria-current] { color:var(--accent); text-decoration:underline; text-underline-offset:6px; }
-.product-detail { display:grid; grid-template-columns:1fr 1.2fr; gap:7%; align-items:center; padding:80px 0 64px; }
-h1 { font:clamp(58px,6vw,88px)/1.06 var(--font-sketch); margin:20px 0 28px; } h1 em { color:var(--accent); font-style:normal; }
-.product-description,.product-origin { font-size:16px; line-height:1.85; color:#515b6e; max-width:480px; margin-bottom:20px; }
-.product-art img { width:100%; height:auto; border:1px solid #17203660; border-radius:5px 10px 3px 8px; }
-.product-phones { display:flex; gap:24px; align-items:center; justify-content:center; }
-.product-phones img { width:43%; max-height:620px; object-fit:contain; }
-.product-phones img:last-child { margin-top:60px; }
-.product-features { display:grid; grid-template-columns:repeat(3,1fr); gap:5%; border-top:1px solid #17203640; padding-top:30px; }
-h2 { font:30px var(--font-sketch); margin-bottom:12px; } .product-features p { color:#515b6e; line-height:1.8; }
-@media(max-width:760px) { .product-detail { grid-template-columns:1fr; padding-top:44px; gap:40px; } .product-features { grid-template-columns:1fr; gap:28px; } header,header nav { gap:16px; font-size:19px; } }
+    .product-story {
+        max-width: 1320px;
+        margin-inline: auto;
+        padding: 6.5rem var(--spacing-gutter) clamp(4rem, 8vw, 7rem);
+    }
+    .product-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem 1.5rem;
+        font-size: 0.9375rem;
+    }
+    .back {
+        min-height: 2.75rem;
+    }
+    .back:hover .chev {
+        transform: translateX(-3px);
+    }
+    .product-top nav {
+        display: flex;
+        gap: 1.25rem;
+    }
+    .product-top nav a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        color: var(--color-fg-muted);
+    }
+    .product-top nav a:hover {
+        color: var(--color-fg);
+    }
+    .product-top nav a[aria-current] {
+        color: var(--color-fg);
+        text-decoration: underline;
+        text-decoration-color: var(--color-accent);
+        text-underline-offset: 6px;
+    }
+    .product-detail {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: clamp(2.5rem, 6vw, 6rem);
+        align-items: center;
+        padding-top: clamp(2.5rem, 6vw, 5rem);
+    }
+    .product-detail-wide {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+    .hand {
+        margin-bottom: 1rem;
+    }
+    .description {
+        max-width: 38ch;
+        margin-top: 1.75rem;
+    }
+    .origin {
+        max-width: 44ch;
+        margin-top: 1rem;
+    }
+    .explore {
+        margin-top: 1.75rem;
+    }
+    .product-art {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: clamp(1rem, 2.4vw, 1.75rem);
+    }
+    .product-art :global(.phone-low) {
+        margin-top: clamp(2.5rem, 5vw, 4rem);
+    }
+    .product-sheet {
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+    }
+    .product-features {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2rem clamp(2rem, 5vw, 4rem);
+        max-width: 1320px;
+        margin-inline: auto;
+        padding: clamp(3.5rem, 7vw, 6rem) var(--spacing-gutter);
+    }
+    .product-features .t-body {
+        margin-top: 0.625rem;
+    }
+    @media (max-width: 860px) {
+        .product-detail,
+        .product-detail-wide {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .product-features {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
 </style>

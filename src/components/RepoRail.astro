@@ -1,0 +1,149 @@
+---
+import type { getAllRepositories } from "../lib/github";
+interface Props {
+    repositories: Awaited<ReturnType<typeof getAllRepositories>>;
+}
+const { repositories } = Astro.props;
+const repos = repositories.filter((repo) => repo.starCount >= 2 && !["ThatXliner", "dotfiles"].includes(repo.name));
+---
+
+<!-- The ticker from both earlier sites, with its motor taken out. It moves when
+     you move it. Without JS it is an ordinary scrolling list. -->
+<div class="repo-rail-wrap">
+    <div class="repo-rail-head">
+        <h3 class="t-eyebrow">A few more things I’ve made</h3>
+        <p class="t-caption repo-rail-hint">Drag or scroll sideways</p>
+    </div>
+    <div class="repo-rail" data-rail tabindex="0" role="region" aria-label="More repositories, scrollable">
+        <ul>
+            {
+                repos.map((repo) => (
+                    <li>
+                        <a href={`https://github.com/ThatXliner/${repo.name}`} draggable="false">
+                            <strong>
+                                {repo.name} <span aria-hidden="true">↗</span>
+                            </strong>
+                            <p>{repo.body}</p>
+                            <small class="tnum">
+                                {repo.language && (
+                                    <span class="repo-language" style={`--language-color:${repo.languageColor || "#515b6e"}`}>
+                                        {repo.language}
+                                    </span>
+                                )}
+                                <span>☆ {repo.starCount}</span>
+                            </small>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</div>
+
+<style>
+    .repo-rail-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        max-width: 1320px;
+        margin: 0 auto 1rem;
+        padding-inline: var(--spacing-gutter);
+    }
+    .repo-rail {
+        overflow-x: auto;
+        overflow-y: hidden;
+        cursor: grab;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-hairline-strong) transparent;
+        padding-bottom: 1rem;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    .repo-rail[data-dragging] {
+        cursor: grabbing;
+    }
+    .repo-rail[data-dragging] a {
+        pointer-events: none;
+    }
+    .repo-rail:focus-visible {
+        outline-offset: -2px;
+    }
+    @media (pointer: coarse) {
+        .repo-rail {
+            scroll-snap-type: x proximity;
+            scroll-padding-inline: var(--spacing-gutter);
+        }
+        li {
+            scroll-snap-align: start;
+        }
+    }
+    ul {
+        display: flex;
+        gap: 0.75rem;
+        width: max-content;
+        margin: 0;
+        padding: 0.25rem max(var(--spacing-gutter), calc((100vw - 1320px) / 2 + var(--spacing-gutter)));
+        list-style: none;
+    }
+    li {
+        display: flex;
+    }
+    a {
+        display: flex;
+        flex-direction: column;
+        width: 15.5rem;
+        min-height: 9.5rem;
+        padding: 1.125rem;
+        background: var(--color-surface);
+        border: 1px solid var(--color-hairline);
+        border-radius: 0.875rem;
+        transition:
+            border-color 0.25s ease,
+            transform 0.6s var(--spring);
+    }
+    a:hover {
+        border-color: var(--color-hairline-strong);
+        transform: translateY(-3px);
+    }
+    strong {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+        overflow-wrap: anywhere;
+    }
+    strong span {
+        color: var(--color-accent);
+    }
+    p {
+        margin: 0.5rem 0 0.875rem;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--color-fg-muted);
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+    small {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: auto;
+        font-size: 0.75rem;
+        color: var(--color-fg-dim);
+    }
+    .repo-language {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .repo-language::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: var(--language-color);
+    }
+</style>

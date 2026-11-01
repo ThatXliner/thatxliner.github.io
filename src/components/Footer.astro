@@ -32,13 +32,15 @@ const elsewhere = [
 const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-hairline">
-    <div
-        class="mx-auto flex max-w-[1180px] flex-col-reverse items-center justify-between gap-6 px-gutter py-8 md:flex-row"
-    >
-        <p class="t-caption">&copy; {year} Bryan Hu</p>
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <div class="site-footer-meta">
+            <p class="t-caption">&copy; {year} Bryan Hu</p>
+            <a class="t-caption a-underline" href="/classic/">The previous site</a>
+            <button class="t-caption motion-toggle" type="button" data-motion-toggle aria-pressed="true">Motion on</button>
+        </div>
 
-        <nav class="flex items-center gap-6">
+        <nav class="site-footer-links" aria-label="Elsewhere">
             {
                 elsewhere.map((item) => (
                     <a
@@ -47,7 +49,6 @@ const year = new Date().getFullYear();
                         rel="noopener noreferrer"
                         aria-label={item.label}
                         title={item.label}
-                        class="text-fg-dim transition-colors hover:text-fg"
                     >
                         <Icon name={item.icon} class="size-[1.125rem]" />
                     </a>
@@ -56,3 +57,89 @@ const year = new Date().getFullYear();
         </nav>
     </div>
 </footer>
+
+<script>
+    // The site's own motion switch, for anyone who wants stillness here without
+    // changing an OS-wide setting. It is remembered between visits.
+    document.querySelectorAll<HTMLButtonElement>("[data-motion-toggle]").forEach((button) => {
+        const root = document.documentElement;
+        const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+        const sync = () => {
+            const on = root.dataset.motion !== "off" && !reduced.matches;
+            button.textContent = on ? "Motion on" : "Motion off";
+            button.setAttribute("aria-pressed", String(on));
+            button.disabled = reduced.matches;
+        };
+        button.addEventListener("click", () => {
+            if (root.dataset.motion === "off") delete root.dataset.motion;
+            else root.dataset.motion = "off";
+            try {
+                if (root.dataset.motion === "off") localStorage.setItem("motion", "off");
+                else localStorage.removeItem("motion");
+            } catch {
+                // Private modes can refuse storage; the switch still works for this page.
+            }
+            sync();
+            document.dispatchEvent(new Event("motionchange"));
+        });
+        reduced.addEventListener("change", sync);
+        sync();
+    });
+</script>
+
+<style>
+    .site-footer {
+        position: relative;
+        border-top: 1px solid var(--color-hairline);
+        background: var(--color-void);
+    }
+    .site-footer-inner {
+        margin-inline: auto;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem 2rem;
+        max-width: 1320px;
+        padding: 1.75rem var(--spacing-gutter);
+    }
+    .site-footer-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 1.5rem;
+    }
+    .motion-toggle {
+        min-height: 2.75rem;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+    .motion-toggle:hover:not(:disabled) {
+        color: var(--color-fg);
+    }
+    .motion-toggle:disabled {
+        cursor: default;
+    }
+    :global(html:not(.js)) .motion-toggle {
+        display: none;
+    }
+    .site-footer-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .site-footer-links a {
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        color: var(--color-fg-dim);
+        transition:
+            color 0.2s ease,
+            transform 0.55s var(--spring-lively);
+    }
+    .site-footer-links a:hover {
+        color: var(--color-fg);
+        transform: translateY(-2px);
+    }
+</style>

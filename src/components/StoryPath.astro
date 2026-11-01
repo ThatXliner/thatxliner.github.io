@@ -1,93 +1,303 @@
 ---
-import { resume } from '../data/resume';
 const stops = [
- {year:'2017',title:'First, the piano.',body:'I started playing piano. Music became a lasting part of my life, alongside the things I would learn to build.',awards:[]},
- {year:'2018',title:'Then, another kind of ensemble.',body:'I picked up trombone, later playing in concert and jazz bands as well as performing solo on piano.',awards:[]},
- {year:'2018–19',title:'My first lines of code.',body:'I started programming in fourth grade.',awards:[]},
- {year:'2020',title:'Getting serious about programming.',body:'I had been programming since fourth grade, but 2020 was when I began taking it seriously.',awards:[]},
- {year:'2022–23',title:'Building for my school.',body:'I joined VC Assist in eighth grade and later became CEO. At the student-run nonprofit, I built the full-stack platform for my school’s digital infrastructure and later led a frontend rewrite.',awards:[]},
- {year:'2023',title:'Practice started to show.',body:'Music and competitive programming gave me two very different ways to work through a difficult problem.',awards:['3rd place · USOMC Intermediate Baroque','Passed USACO Bronze · qualified for Silver']},
- {year:'2023–24',title:'Starting a place to build together.',body:'In freshman year, I founded the VCSD software development club. I built its website, wrote the curriculum, and made restlock-holmes to teach beginners about REST APIs.',awards:[]},
- {year:'2024',title:'Code met the real world.',body:'On FRC Team 3256, software had to work on a physical robot, under a deadline, with a team depending on it. My work across the 2024–2025 seasons included the elevator subsystem, driver simulation, anti-tip logic, and scouting tools.',awards:resume.frcAwards.filter(a=>a.year===2024),team:true},
- {year:'2025',title:'Another season. A stronger team.',body:'Robotics taught me to care about the parts around the code: testing, controls, structured logs, and helping other people use what I built.',awards:resume.frcAwards.filter(a=>a.year===2025),team:true},
- {year:'2025',title:'Still making music.',body:'Concert and jazz bands kept collaboration in my life away from the keyboard, too.',awards:['2nd place · Folsom Jazz Festival']},
- {year:'2025',title:'An entry became a product.',body:'My Congressional App Challenge entry grew into Billion. I kept building beyond the competition, working on a way to make government decisions easier to follow.',awards:['3rd place · Congressional App Challenge, CA-19'],link:'/products/billion',linkText:'The story behind Billion'},
- {year:'2026',title:'A different kind of challenge.',body:'picoCTF put my problem-solving to work across cybersecurity: reverse engineering, cryptography, binary exploitation, and web security.',awards:['picoCTF · 174th of 8,747']},
- {year:'Today',title:'Focused on Billion.',body:'My biggest focus right now is Billion: making government decisions easier to follow. I’m continuing to build the app, bringing bills, court rulings, and executive orders into one place.',awards:[],link:'/products/billion',linkText:'Explore Billion'},
+    { year: "2017–18", title: "First, the music.", body: "I started piano in 2017 and trombone in 2018, later performing solo and in concert and jazz bands.", awards: [] },
+    { year: "2018–20", title: "My first lines of code.", body: "I started programming in fourth grade and began taking it seriously in 2020.", awards: [] },
+    { year: "2022–23", title: "Building for my school.", body: "I joined VC Assist in eighth grade and later became CEO. I built the full-stack platform for my school’s digital infrastructure and later led a frontend rewrite.", awards: [] },
+    { year: "2023–24", title: "A place to build together.", body: "In freshman year, I founded the VCSD software development club, built its website, wrote the curriculum, and made restlock-holmes to teach beginners about REST APIs.", awards: [] },
+    { year: "2024–25", title: "Code met the real world.", body: "On FRC Team 3256, I worked on the elevator subsystem, driver simulation, anti-tip logic, structured logging, and scouting tools.", awards: [], team: true },
+    { year: "2025", title: "An entry became a product.", body: "My Congressional App Challenge entry grew into Billion. I kept building beyond the competition to make government decisions easier to follow.", awards: ["3rd place · Congressional App Challenge, CA-19"], link: "/products/billion", linkText: "The story behind Billion" },
+    { year: "2026", title: "A different kind of challenge.", body: "picoCTF put my problem-solving to work across reverse engineering, cryptography, binary exploitation, and web security.", awards: ["picoCTF · 174th of 8,747"] },
 ];
 ---
-<section class="story-path" id="story" aria-labelledby="story-title">
- <header><p class="hand-note">a few turns along the way.</p><h2 id="story-title">How I <em>got here.</em></h2><p>Music, software, and learning to build with other people.</p></header>
- <div class="story-route"><svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible" class="story-trail" aria-hidden="true" fill="none"><path class="route-guide" stroke="#3473ff25" stroke-width="2"/><path class="route-ink" stroke="#3473ff" stroke-width="2" stroke-linecap="round"/><circle class="route-tip" fill="#3473ff" r="4"/></svg><ol class="story-stops">
- {stops.map(stop=><li class="story-stop"><span class="story-date">{stop.year}</span><article><h3>{stop.title}</h3><p>{stop.body}</p>{stop.awards.length>0 && <div class="story-achievements">{stop.team && <p class="team-credit">With FRC Team 3256 · team awards</p>}<ul>{stop.awards.map(award=><li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z"/></svg>{typeof award === "string" ? award : <a href={award.url}>{award.label} <span aria-hidden="true">↗</span></a>}</li>)}</ul></div>}{stop.link && <a href={stop.link}>{stop.linkText} ↗</a>}</article></li>)}
- </ol></div>
- <aside class="story-undated"><h3>Along the way</h3><p>Certificate of Merit Level 10, State Honors · Piano</p><small>Year to be added.</small></aside>
-</section>
-<style>
-.story-achievements a { text-decoration:underline; text-decoration-color:#3473ff60; text-underline-offset:4px; } .story-achievements a:hover { color:#3473ff; }
 
-.story-path { position:relative; z-index:5; background:#fffefb; padding:100px 9%; color:#172036; scroll-margin-top:105px; }
-header { text-align:center; margin:0 auto 75px; } h2 { font:clamp(56px,6vw,86px)/1.1 var(--font-sketch); margin:20px 0; } h2 em { color:#3473ff; font-style:normal; } header>p:last-child { color:#515b6e; }
-.story-stops { list-style:none; padding:0; margin:0 auto; max-width:1100px; position:relative; }
-.story-stops::before { display:none; content:""; position:absolute; top:10px; bottom:30px; left:50%; border-left:2px dashed #3473ff70; transform:rotate(.3deg); }
-.story-stop { position:relative; display:grid; grid-template-columns:1fr 1fr; column-gap:110px; padding:0 0 65px; }
-.story-stop article { grid-column:1; padding:24px 26px; background:#fffefb; border:1px solid #17203635; border-radius:4px 14px 5px 10px; }
-.story-stop:nth-child(even) article { grid-column:2; border-radius:12px 4px 10px 3px; background:#edf2ff60; }
-.story-date { position:absolute; left:50%; top:24px; transform:translateX(-50%) rotate(-4deg); padding:5px 9px; background:#3473ff; color:white; font:25px var(--font-sketch); border-radius:4px 7px 3px 5px; }
-h3 { font:32px/1.2 var(--font-sketch); margin:0 0 14px; } article>p { font-size:14px; line-height:1.85; color:#515b6e; } article>a { display:inline-block; margin-top:22px; color:#3473ff; font:21px var(--font-sketch); }
-.story-achievements { margin-top:24px; } .story-achievements ul { list-style:none; padding:0; } .story-achievements li { display:flex; gap:10px; align-items:flex-start; font:20px/1.4 var(--font-sketch); padding:9px 0; } .story-achievements svg { width:19px; height:19px; flex-shrink:0; margin-top:4px; fill:#e7a3ad40; stroke:#172036; stroke-width:1.4; } .team-credit { font-size:11px; color:#515b6e; margin-bottom:8px; }
-.story-undated { max-width:460px; margin:10px auto 0; padding:24px; border-top:1px solid #17203635; text-align:center; } .story-undated p { line-height:1.8; } .story-undated small { color:#515b6e; }
-@media(max-width:760px) { .story-path { padding:70px 7%; } header { text-align:left; margin-bottom:48px; } .story-stops::before { display:none; left:25px; } .story-stop { display:block; padding:50px 0 32px 48px; } .story-date { top:0; left:25px; font-size:21px; } .story-stop article { padding:20px; } h3 { font-size:29px; } }
-.story-route { position:relative; max-width:1100px; margin:auto; }
-.story-trail { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; stroke-linecap:round; }
-.route-guide { stroke:#3473ff25; stroke-width:2; }
-.route-ink { stroke:#3473ff; stroke-width:2; }
-.route-tip { fill:#3473ff; }
-@media(min-width:761px) { .story-date { left:75%; } .story-stop:nth-child(even) .story-date { left:25%; } }
+<section class="story-path" id="story" aria-labelledby="story-title">
+    <header>
+        <p class="hand" data-reveal>a few turns along the way.</p>
+        <h2 class="t-title" id="story-title" data-reveal="lines">
+            <span class="line"><span>How I <span>got here.</span></span></span>
+        </h2>
+        <p class="t-lede" data-reveal>Music, software, and learning to build with other people.</p>
+    </header>
+    <div class="story-route">
+        <svg class="story-trail" aria-hidden="true" fill="none">
+            <path class="route-guide" stroke-width="1.5" />
+            <path class="route-ink" stroke-width="2" stroke-linecap="round" />
+            <circle class="route-tip" r="4" />
+        </svg>
+        <ol class="story-stops">
+            {
+                stops.map((stop) => (
+                    <li class="story-stop">
+                        <span class="story-date hand">{stop.year}</span>
+                        <article>
+                            <h3 class="t-headline">{stop.title}</h3>
+                            <p class="t-body">{stop.body}</p>
+                            {stop.awards.length > 0 && (
+                                <div class="story-achievements">
+                                    {stop.team && <p class="t-caption team-credit">With FRC Team 3256 · team awards</p>}
+                                    <ul>
+                                        {stop.awards.map((award) => (
+                                            <li>
+                                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" /></svg>
+                                                {typeof award === "string" ? (
+                                                    <span>{award}</span>
+                                                ) : (
+                                                    <a class="a-underline" href={award.url}>
+                                                        {award.label} <span aria-hidden="true">↗</span>
+                                                    </a>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                            {stop.link && (
+                                <a class="a-link story-link" href={stop.link}>
+                                    {stop.linkText} <span class="chev" aria-hidden="true">→</span>
+                                </a>
+                            )}
+                        </article>
+                    </li>
+                ))
+            }
+        </ol>
+    </div>
+    <aside class="story-undated" data-reveal>
+        <h3 class="t-eyebrow">Along the way</h3>
+        <p class="t-body">Certificate of Merit Level 10, State Honors · Piano</p>
+    </aside>
+</section>
+
+<style>
+    .story-path {
+        padding-block: clamp(4.5rem, 10vw, 8.5rem);
+        padding-inline: var(--spacing-gutter);
+    }
+    header {
+        text-align: center;
+        margin: 0 auto clamp(3.5rem, 7vw, 6rem);
+    }
+    header .hand {
+        margin-bottom: 1.25rem;
+        transform-origin: 50% 50%;
+    }
+    header .t-lede {
+        margin-top: 1.25rem;
+    }
+    .story-route {
+        position: relative;
+        max-width: 1100px;
+        margin-inline: auto;
+    }
+    .story-trail {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        overflow: visible;
+    }
+    .route-guide {
+        stroke: var(--color-hairline-strong);
+        stroke-dasharray: 2 7;
+        stroke-linecap: round;
+    }
+    .route-ink {
+        stroke: var(--color-accent);
+    }
+    .route-tip {
+        fill: var(--color-accent);
+        opacity: 0;
+    }
+    .story-stops {
+        position: relative;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .story-stop {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: clamp(3rem, 7vw, 6.5rem);
+        padding-bottom: clamp(3rem, 6vw, 5.25rem);
+    }
+    .story-stop article {
+        grid-column: 1;
+    }
+    .story-stop:nth-child(even) article {
+        grid-column: 2;
+    }
+    /* The paper knocks the line out behind the date, so the route seems to pass
+       underneath a note written on top of it. */
+    .story-date {
+        position: absolute;
+        top: -0.2rem;
+        left: 75%;
+        translate: -50% 0;
+        padding: 0.125rem 0.5rem;
+        background: var(--color-void);
+        white-space: nowrap;
+        transform-origin: 50% 50%;
+    }
+    .story-stop:nth-child(even) .story-date {
+        left: 25%;
+    }
+    .t-body {
+        margin-top: 0.75rem;
+    }
+    .story-achievements {
+        margin-top: 1.25rem;
+    }
+    .team-credit {
+        margin-bottom: 0.5rem;
+    }
+    .story-achievements ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .story-achievements li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.625rem;
+        padding-block: 0.375rem;
+        font-size: 0.9375rem;
+        line-height: 1.45;
+    }
+    .story-achievements svg {
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1rem;
+        margin-top: 0.15rem;
+        fill: none;
+        stroke: var(--color-accent);
+        stroke-width: 1.6;
+        stroke-linejoin: round;
+    }
+    .story-link {
+        margin-top: 1.25rem;
+        font-size: 0.9375rem;
+    }
+    .story-undated {
+        max-width: 28rem;
+        margin: 0 auto;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--color-hairline);
+        text-align: center;
+    }
+    :global(html:not(.js)) .story-trail {
+        display: none;
+    }
+    @media (max-width: 760px) {
+        header {
+            text-align: left;
+        }
+        header .hand {
+            transform-origin: 0 50%;
+        }
+        .story-stop {
+            display: block;
+            padding: 0 0 2.75rem 2rem;
+        }
+        .story-date,
+        .story-stop:nth-child(even) .story-date {
+            position: static;
+            display: inline-block;
+            translate: none;
+            margin: 0 0 0.375rem -0.5rem;
+        }
+    }
 </style>
 
 <script>
-const route = document.querySelector<HTMLElement>('.story-route');
-if (route) {
- const svg=route.querySelector<SVGSVGElement>('svg')!;
- const ink=svg.querySelector<SVGPathElement>('.route-ink')!;
- const guide=svg.querySelector<SVGPathElement>('.route-guide')!;
- const tip=svg.querySelector<SVGCircleElement>('.route-tip')!;
- const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- let samples:{y:number;length:number}[]=[];
- let length=0, frame=0;
- function render() {
-  frame=0;
-  const y=innerHeight*.65-route!.getBoundingClientRect().top;
-  const staticMode=reduced.matches||!!document.querySelector('.film[data-static]');
-  const at=staticMode?length:(samples.find(sample=>sample.y>=y)?.length ?? length);
-  const progress=y<0&&!staticMode?0:at;
-  ink.style.strokeDashoffset=String(length-progress);
-  const point=ink.getPointAtLength(progress);
-  tip.setAttribute('cx',String(point.x));tip.setAttribute('cy',String(point.y));
-  tip.style.opacity=staticMode||progress===0?'0':'1';
- }
- function schedule(){if(!frame)frame=requestAnimationFrame(render);}
- function measure(){
-  const box=route!.getBoundingClientRect();
-  const stops=[...route!.querySelectorAll<HTMLElement>('.story-stop')];
-  const points=stops.map(stop=>{const date=stop.querySelector<HTMLElement>('.story-date')!.getBoundingClientRect();return {x:date.left+date.width/2-box.left,y:date.top+date.height/2-box.top,bottom:stop.offsetTop+stop.offsetHeight-65};});
-  let d=`M ${points[0].x} 0`;
-  points.forEach((point,i)=>{
-   d+=` L ${point.x} ${point.y}`;
-   const next=points[i+1];
-   if(next){const bend=point.bottom+20; d+=` C ${point.x+18} ${point.y+65} ${point.x-18} ${bend-40} ${point.x} ${bend} C ${point.x} ${next.y-8} ${next.x} ${bend} ${next.x} ${next.y}`;}
-  });
-  svg.setAttribute('viewBox',`0 0 ${box.width} ${route!.offsetHeight}`);
-  ink.setAttribute('d',d);guide.setAttribute('d',d);
-  length=ink.getTotalLength();ink.style.strokeDasharray=String(length);
-  let maxY=0;samples=Array.from({length:Math.min(2000,Math.ceil(length/8))+1},(_,i)=>{const at=Math.min(i*length/Math.min(2000,Math.ceil(length/8)),length);maxY=Math.max(maxY,ink.getPointAtLength(at).y);return {y:maxY,length:at};});
-  schedule();
- }
- const resize=new ResizeObserver(measure);resize.observe(route);
- const motion=new MutationObserver(schedule);const film=document.querySelector('.film');if(film)motion.observe(film,{attributes:true,attributeFilter:['data-static']});
- window.addEventListener('scroll',schedule,{passive:true});reduced.addEventListener('change',schedule);
- document.fonts.ready.then(measure);
- document.addEventListener('astro:before-swap',()=>{resize.disconnect();motion.disconnect();cancelAnimationFrame(frame);window.removeEventListener('scroll',schedule);reduced.removeEventListener('change',schedule);},{once:true});
-}
+    import { lifetime, motionEnabled, onMotionChange, Spring } from "../lib/motion";
+
+    // The drawn route from both earlier sites. Its length is measured against the
+    // real layout, so it survives text reflow, and it inks in to wherever you are
+    // reading. The tip follows on a spring, so the pen arrives slightly after you.
+    const route = document.querySelector<HTMLElement>(".story-route");
+    if (route) {
+        const signal = lifetime();
+        const svg = route.querySelector<SVGSVGElement>("svg")!;
+        const ink = svg.querySelector<SVGPathElement>(".route-ink")!;
+        const guide = svg.querySelector<SVGPathElement>(".route-guide")!;
+        const tip = svg.querySelector<SVGCircleElement>(".route-tip")!;
+        let samples: { y: number; length: number }[] = [];
+        let length = 0;
+
+        const draw = (at: number) => {
+            ink.style.strokeDashoffset = String(length - at);
+            const point = ink.getPointAtLength(Math.max(0, at));
+            tip.setAttribute("cx", String(point.x));
+            tip.setAttribute("cy", String(point.y));
+            tip.style.opacity = motionEnabled() && at > 1 && at < length - 1 ? "1" : "0";
+        };
+        const pen = new Spring(0, { stiffness: 90, damping: 18, precision: 0.2 }, draw);
+
+        // Binary search on a monotonic envelope, so a loop in the line never makes
+        // the ink run backward as you scroll forward.
+        const targetLength = () => {
+            const y = window.innerHeight * 0.65 - route.getBoundingClientRect().top;
+            if (y < 0) return 0;
+            let low = 0;
+            let high = samples.length;
+            while (low < high) {
+                const middle = (low + high) >> 1;
+                if (samples[middle].y >= y) high = middle;
+                else low = middle + 1;
+            }
+            return samples[low]?.length ?? length;
+        };
+
+        const update = () => {
+            if (!length) return;
+            if (!motionEnabled()) pen.set(length);
+            else pen.to(targetLength());
+        };
+
+        const measure = () => {
+            const box = route.getBoundingClientRect();
+            const mobile = matchMedia("(max-width: 760px)").matches;
+            const stops = [...route.querySelectorAll<HTMLElement>(".story-stop")];
+            const points = stops.map((stop) => {
+                const date = stop.querySelector<HTMLElement>(".story-date")!.getBoundingClientRect();
+                return {
+                    x: mobile ? 10 : date.left + date.width / 2 - box.left,
+                    y: date.top + date.height / 2 - box.top,
+                    bottom: stop.getBoundingClientRect().bottom - box.top,
+                };
+            });
+            let d = `M ${points[0].x} 0`;
+            points.forEach((point, i) => {
+                d += ` L ${point.x} ${point.y}`;
+                const next = points[i + 1];
+                if (!next) return;
+                const bend = point.bottom - 28;
+                const wobble = mobile ? 7 : 18;
+                d += ` C ${point.x + wobble} ${point.y + 65} ${point.x - wobble} ${bend - 40} ${point.x} ${bend}`;
+                d += ` C ${point.x} ${next.y - 8} ${next.x} ${bend} ${next.x} ${next.y}`;
+            });
+            svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+            ink.setAttribute("d", d);
+            guide.setAttribute("d", d);
+            length = ink.getTotalLength();
+            ink.style.strokeDasharray = String(length);
+            let maxY = 0;
+            const count = Math.min(2000, Math.ceil(length / 8));
+            samples = Array.from({ length: count + 1 }, (_, i) => {
+                const at = Math.min((i * length) / count, length);
+                maxY = Math.max(maxY, ink.getPointAtLength(at).y);
+                return { y: maxY, length: at };
+            });
+            pen.set(motionEnabled() ? targetLength() : length);
+        };
+
+        const observer = new ResizeObserver(measure);
+        observer.observe(route);
+        signal.addEventListener("abort", () => observer.disconnect());
+        window.addEventListener("scroll", update, { passive: true, signal });
+        onMotionChange(update, signal);
+        document.fonts?.ready.then(measure);
+    }
 </script>

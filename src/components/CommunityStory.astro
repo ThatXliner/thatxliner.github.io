@@ -1,69 +1,256 @@
 ---
-import SketchMarquee from './SketchMarquee.astro';
-import { projects } from '../data/projects';
-import { getAllRepositories, getForkedRepositories, getGitHubStats } from '../lib/github';
-import { resume } from '../data/resume';
+import RepoRail from "./RepoRail.astro";
+import { projects } from "../data/projects";
+import { getAllRepositories, getForkedRepositories, getGitHubStats } from "../lib/github";
+import { resume } from "../data/resume";
 const [repositories, forks, stats] = await Promise.all([getAllRepositories(), getForkedRepositories(), getGitHubStats()]);
-const publicRepos = repositories.filter(repo => repo.isPublic);
+const publicRepos = repositories.filter((repo) => repo.isPublic);
 const stars = publicRepos.reduce((sum, repo) => sum + repo.starCount, 0);
-const upstream = forks.filter(repo => repo.isPublic);
-const upstreamSearch = 'https://github.com/search?q=author%3AThatXliner+is%3Apr+is%3Amerged&type=pullrequests';
+const upstream = forks.filter((repo) => repo.isPublic);
+const upstreamSearch = "https://github.com/search?q=author%3AThatXliner+is%3Apr+is%3Amerged&type=pullrequests";
+const figures = [
+    { label: "Stars on my public work", value: stars },
+    { label: "Contributions in the past year", value: stats.totalContributions },
+    { label: "Upstream projects with merged PRs", value: upstream.length },
+];
 ---
-<section class="notebook-section open-source" id="open-source" aria-labelledby="source-title">
-  <div class="notebook-heading">
-    <p class="hand-note">software is better when it’s shared.</p>
-    <h2 id="source-title">Built for me.<br/><em>Useful to others.</em></h2>
-    <p class="section-intro">I publish Python libraries and developer tools, maintain them in public, and contribute fixes to projects I use.</p>
-    <SketchMarquee repositories={publicRepos} />
-  </div>
-  <div class="source-evidence">
-    <dl class="impact-numbers">
-      <div><dt>Stars on my public work</dt><dd><svg class="impact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 2.9 6.2 6.8.8-5 4.7 1.3 6.8-6-3.3-6.1 3.2 1.3-6.7-5-4.7 6.9-.9Z"/></svg><span>{stars.toLocaleString('en-US')}</span></dd></div>
-      <div><dt>Contributions in the past year</dt><dd><svg class="impact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h5m10 0h5M8 9.5 11.8 7l4.2 2.4v5.1L12 17l-4-2.6Z"/></svg><span>{stats.totalContributions.toLocaleString('en-US')}</span></dd></div>
-      <div><dt>Upstream projects with merged PRs</dt><dd><svg class="impact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="4" r="2"/><circle cx="6" cy="20" r="2"/><circle cx="18" cy="5" r="2"/><path d="m6 6 .1 12M18 7c0 6-11.8 3.2-11.8 8M14 11l-3-1 1-3"/></svg><span>{upstream.length}</span></dd></div>
-    </dl>
-    <p class="data-note">GitHub snapshot at build time. Upstream count covers projects tracked by my current forks.</p>
-    <div class="source-projects">
-      {projects.map(project => <article class="source-project">
-        <div class="source-project-heading"><h3><a href={project.url}>{project.name} <span aria-hidden="true">↗</span></a></h3><span>{publicRepos.find(repo=>repo.name===project.repoName)?.starCount ?? '—'} stars</span></div>
-        <p>{project.description.replace(/\*\*(.*?)\*\*/g, '$1')}</p>
-      </article>)}
+
+<section class="notebook" id="open-source" aria-labelledby="source-title">
+    <div class="notebook-grid">
+        <div class="notebook-heading">
+            <p class="hand" data-reveal>software is better when it’s shared.</p>
+            <h2 class="t-title" id="source-title" data-reveal="lines">
+                <span class="line"><span>Built for me.</span></span>
+                <span class="line" style="--l:1"><span>Useful to others.</span></span>
+            </h2>
+            <p class="t-lede section-intro" data-reveal>
+                I publish Python libraries and developer tools, maintain them in public, and contribute fixes to projects I use.
+            </p>
+        </div>
+        <div>
+            <dl class="figures" data-reveal>
+                {
+                    figures.map((figure) => (
+                        <div>
+                            <dt>{figure.label}</dt>
+                            <dd class="tnum">{figure.value.toLocaleString("en-US")}</dd>
+                        </div>
+                    ))
+                }
+            </dl>
+            <p class="t-caption data-note" data-reveal>GitHub snapshot at build time. Upstream count covers projects tracked by my current forks.</p>
+            <ul class="ledger">
+                {
+                    projects.map((project) => (
+                        <li>
+                            <a href={project.url}>
+                                <span class="ledger-title">
+                                    <strong>{project.name}</strong>
+                                    <span class="t-caption tnum">{publicRepos.find((repo) => repo.name === project.repoName)?.starCount ?? "—"} stars</span>
+                                    <span class="ledger-arrow" aria-hidden="true">↗</span>
+                                </span>
+                                <span class="ledger-body">{project.description.replace(/\*\*(.*?)\*\*/g, "$1")}</span>
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+            <div class="section-links" data-reveal>
+                <a class="btn btn-primary" href="/thelist">All my projects <span aria-hidden="true">→</span></a>
+                <a class="a-underline" href={upstreamSearch}>Merged contributions <span aria-hidden="true">↗</span></a>
+            </div>
+        </div>
     </div>
-    <div class="section-links"><a href="/thelist">All my projects ↗</a><a href={upstreamSearch}>Merged contributions ↗</a></div>
-  </div>
-</section>
-<section class="notebook-section community" id="community" aria-labelledby="community-title">
-  <div class="notebook-heading"><p class="hand-note">and sometimes, building the team.</p><h2 id="community-title">Code is only<br/><em>part of it.</em></h2>
-    <svg class="community-drawing" viewBox="0 0 310 165" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M40 31c-20-4-26 31-7 35 25 7 30-31 7-35Zm-4 37-1 41m0-32-20 21m21-20 24 16m-25 15-16 30m17-30 17 31M269 27c-19-2-25 28-7 33 25 8 31-30 7-33Zm-5 36-1 43m0-26-26 18m27-22 23 24m-24 6-17 33m17-32 19 29M125 77l62-2 6 40-74 1zM107 124l99-2m-59-35-10 10 11 8m18-18 10 8-10 9M64 69q42-54 66-17m-6-13 7 14-16-1M229 69q-28-31-40-15m0-11-1 12 13-3"/></g><text x="106" y="158" fill="currentColor" font-family="var(--font-sketch)" font-size="20">better together</text></svg>
-  </div>
-  <div class="community-roles">{resume.contributions.map(role=><article><p class="role-label">{role.role}</p><h3><a href={role.url}>{role.name} ↗</a></h3><p>{role.description}</p></article>)}</div>
+    <div class="rail-slot" data-reveal>
+        <RepoRail repositories={publicRepos} />
+    </div>
 </section>
 
-<script>
-  const stats = document.querySelector<HTMLElement>('.impact-numbers');
-  if (stats) {
-    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const numbers = [...stats.querySelectorAll<HTMLElement>('dd > span')].map(element => ({element, value:Number(element.textContent?.replaceAll(',', '')), label:element.textContent || ''}));
-    // Keep the complete values available to assistive technology throughout the count.
-    numbers.forEach(({element,label}) => {
-      element.parentElement!.setAttribute('aria-label', label);
-      element.setAttribute('aria-hidden','true');
-    });
-    let frame = 0;
-    const observer = new IntersectionObserver(entries => {
-      if (!entries.some(entry => entry.isIntersecting)) return;
-      observer.disconnect();
-      if (reduced.matches || document.querySelector('.film[data-static]')) return;
-      const start = performance.now();
-      const tick = (now:number) => {
-        const progress = reduced.matches || document.querySelector('.film[data-static]') ? 1 : Math.min((now-start)/1100,1);
-        const eased = 1-Math.pow(1-progress,3);
-        numbers.forEach(({element,value,label}) => { element.textContent = progress === 1 ? label : Math.round(value*eased).toLocaleString('en-US'); });
-        if (progress < 1) frame = requestAnimationFrame(tick);
-      };
-      frame = requestAnimationFrame(tick);
-    }, {threshold:.6});
-    observer.observe(stats);
-    document.addEventListener('astro:before-swap', () => {observer.disconnect(); cancelAnimationFrame(frame);}, {once:true});
-  }
-</script>
+<section class="notebook" id="community" aria-labelledby="community-title">
+    <div class="notebook-grid">
+        <div class="notebook-heading">
+            <p class="hand" data-reveal>and sometimes, building the team.</p>
+            <h2 class="t-title" id="community-title" data-reveal="lines">
+                <span class="line"><span>Code is only</span></span>
+                <span class="line" style="--l:1"><span>part of it.</span></span>
+            </h2>
+            <div data-reveal>
+                <svg class="community-drawing ink" viewBox="0 0 310 165" aria-hidden="true">
+                    <g stroke-width="2.5">
+                        <path pathLength="1" d="M40 31c-20-4-26 31-7 35 25 7 30-31 7-35Zm-4 37-1 41m0-32-20 21m21-20 24 16m-25 15-16 30m17-30 17 31" />
+                        <path pathLength="1" d="M269 27c-19-2-25 28-7 33 25 8 31-30 7-33Zm-5 36-1 43m0-26-26 18m27-22 23 24m-24 6-17 33m17-32 19 29" />
+                        <path pathLength="1" d="M125 77l62-2 6 40-74 1zM107 124l99-2m-59-35-10 10 11 8m18-18 10 8-10 9" />
+                        <path pathLength="1" d="M64 69q42-54 66-17m-6-13 7 14-16-1M229 69q-28-31-40-15m0-11-1 12 13-3" />
+                    </g>
+                    <text x="106" y="158" fill="currentColor" font-size="20" style="font-family:var(--font-hand)">better together</text>
+                </svg>
+            </div>
+        </div>
+        <div class="roles">
+            {
+                resume.contributions.map((role) => (
+                    <article>
+                        <p class="hand role-label">{role.role}</p>
+                        <h3 class="t-headline">
+                            <a href={role.url}>
+                                {role.name} <span aria-hidden="true">↗</span>
+                            </a>
+                        </h3>
+                        <p class="t-body">{role.description}</p>
+                    </article>
+                ))
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    .notebook {
+        padding-block: clamp(4.5rem, 10vw, 8.5rem);
+    }
+    #community {
+        padding-top: 0;
+    }
+    .notebook-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+        gap: clamp(2.5rem, 7vw, 6.5rem);
+        max-width: 1320px;
+        margin-inline: auto;
+        padding-inline: var(--spacing-gutter);
+    }
+    .notebook-heading .hand {
+        margin-bottom: 1.25rem;
+    }
+    #source-title {
+        font-size: clamp(2rem, 4.5vw, 4rem);
+    }
+    .section-intro {
+        max-width: 34ch;
+        margin-top: 1.75rem;
+    }
+    .figures {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+        margin: 0;
+    }
+    .figures > div {
+        display: flex;
+        flex-direction: column-reverse;
+        justify-content: flex-end;
+        gap: 0.625rem;
+        border-top: 1px solid var(--color-hairline-strong);
+        padding-top: 0.875rem;
+    }
+    .figures dd {
+        margin: 0;
+        font-size: clamp(2.25rem, 4.6vw, 4rem);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.05em;
+    }
+    .figures dt {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        color: var(--color-fg-muted);
+        max-width: 18ch;
+    }
+    .data-note {
+        margin: 1rem 0 2.5rem;
+    }
+    .ledger {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .ledger li {
+        border-top: 1px solid var(--color-hairline);
+    }
+    .ledger a {
+        display: block;
+        padding-block: 1.125rem 1.25rem;
+    }
+    .ledger-title {
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+    }
+    .ledger-title strong {
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.022em;
+        transition: color 0.2s ease;
+    }
+    .ledger-arrow {
+        margin-left: auto;
+        color: var(--color-accent);
+        transition: transform 0.55s var(--spring-lively);
+    }
+    .ledger a:hover strong {
+        color: var(--color-accent);
+    }
+    .ledger a:hover .ledger-arrow {
+        transform: translate(3px, -3px);
+    }
+    .ledger-body {
+        display: block;
+        margin-top: 0.5rem;
+        max-width: 56ch;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        color: var(--color-fg-muted);
+    }
+    .section-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem 1.75rem;
+        margin-top: 1.75rem;
+        font-size: 0.9375rem;
+    }
+    .rail-slot {
+        margin-top: clamp(3.5rem, 7vw, 6rem);
+    }
+    .community-drawing {
+        display: block;
+        width: min(85%, 19.5rem);
+        height: auto;
+        margin-top: 2.25rem;
+    }
+    .roles article {
+        padding-block: 1.75rem 2rem;
+        border-top: 1px solid var(--color-hairline);
+    }
+    .roles article:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+    .role-label {
+        margin-bottom: 0.375rem;
+    }
+    .roles h3 a {
+        transition: color 0.2s ease;
+    }
+    .roles h3 a:hover {
+        color: var(--color-accent);
+    }
+    .roles .t-body {
+        margin-top: 0.75rem;
+    }
+    @media (max-width: 760px) {
+        .notebook-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .figures {
+            gap: 0.75rem;
+        }
+        .figures dd {
+            letter-spacing: -0.04em;
+        }
+        .community-drawing {
+            width: min(70%, 15rem);
+            margin-top: 1.5rem;
+        }
+    }
+</style>

@@ -1,0 +1,239 @@
+---
+import { Image } from "astro:assets";
+import { photographs } from "../data/photography";
+
+// Only Bryan's own selection hangs here, never every file in the assets folder.
+const prints = photographs.filter((photo) => photo.featured);
+---
+
+<!-- Prints drying on a line. It is a native horizontal scroller, so touch,
+     trackpad, keyboard and no-JS all work unassisted. The script only adds the
+     physics: each print is a pendulum, and moving the line swings it. -->
+<div class="print-line" data-print-line>
+    <div class="print-rail" data-rail tabindex="0" role="region" aria-label="Selected photographs, scrollable">
+        <ul>
+            {
+                prints.map((photo) => (
+                    <li class="print" data-print>
+                        <a href="/photography" draggable="false">
+                            <span class="print-clip" aria-hidden="true" />
+                            <Image
+                                src={photo.image}
+                                alt={photo.alt}
+                                widths={[360, 560, 840]}
+                                sizes="(max-width: 760px) 70vw, 34vw"
+                                loading="lazy"
+                                draggable="false"
+                            />
+                            <span class="print-title">{photo.title}</span>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</div>
+
+<style>
+    .print-rail {
+        overflow-x: auto;
+        /* A swinging corner must not grow a second, vertical scrollbar. */
+        overflow-y: hidden;
+        cursor: grab;
+        padding-bottom: 2.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-hairline-strong) transparent;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    .print-rail[data-dragging] {
+        cursor: grabbing;
+    }
+    .print-rail[data-dragging] a {
+        pointer-events: none;
+    }
+    .print-rail:focus-visible {
+        outline-offset: -2px;
+    }
+    ul {
+        --edge: max(var(--spacing-gutter), calc((100vw - 1320px) / 2 + var(--spacing-gutter)));
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: clamp(1.25rem, 3vw, 2.75rem);
+        width: max-content;
+        margin: 0;
+        padding: 2.5rem var(--edge) 1.5rem;
+        list-style: none;
+    }
+    /* The line itself, running past both ends of the rail. */
+    ul::before {
+        content: "";
+        position: absolute;
+        inset: 1.5rem 0 auto;
+        height: 1px;
+        background: linear-gradient(90deg, #ffffff30, #ffffff59 12%, #ffffff59 88%, #ffffff30);
+    }
+    .print {
+        flex: none;
+        /* Hung from the clip, so that is what it pivots on. */
+        transform-origin: 50% -1rem;
+    }
+    .print a {
+        position: relative;
+        display: block;
+        padding: 0.625rem 0.625rem 0;
+        background: #f4f2ec;
+        box-shadow:
+            0 1px 0 #ffffff,
+            0 28px 50px -22px rgb(0 0 0 / 0.95);
+        transition: translate 0.7s var(--spring);
+    }
+    .print a:hover {
+        translate: 0 -5px;
+    }
+    .print a:focus-visible {
+        outline-offset: 5px;
+    }
+    .print-clip {
+        position: absolute;
+        top: -1.375rem;
+        left: 50%;
+        translate: -50% 0;
+        width: 0.875rem;
+        height: 1.75rem;
+        border-radius: 2px;
+        background: linear-gradient(90deg, #2a2a2f, #55555d 45%, #1d1d21);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+    }
+    .print img {
+        display: block;
+        width: auto;
+        height: clamp(15rem, 50svh, 30rem);
+        max-width: none;
+        background: #1a1a1e;
+    }
+    /* Titled in pen on the mat, the way a print gets labelled. */
+    .print-title {
+        display: block;
+        padding: 0.5rem 0.125rem 0.625rem;
+        font-family: var(--font-hand);
+        font-size: 1.1875rem;
+        line-height: 1.2;
+        color: #172036;
+        white-space: nowrap;
+    }
+    @media (pointer: coarse) {
+        .print-rail {
+            scroll-snap-type: x proximity;
+            scroll-padding-inline: var(--spacing-gutter);
+        }
+        .print {
+            scroll-snap-align: start;
+        }
+    }
+    @media (max-width: 760px) {
+        .print img {
+            height: clamp(14rem, 42svh, 22rem);
+        }
+    }
+</style>
+
+<script>
+    import { lifetime, motionEnabled, onMotionChange, Spring } from "../lib/motion";
+
+    const line = document.querySelector<HTMLElement>("[data-print-line]");
+    const rail = line?.querySelector<HTMLElement>("[data-rail]");
+    if (line && rail) {
+        const signal = lifetime();
+        const MAX_SWING = 7;
+        const prints = [...line.querySelectorAll<HTMLElement>("[data-print]")].map((element, index) => {
+            // A hair of difference per print, because no two sheets hang alike.
+            const weight = 1 + ((index * 7) % 5) * 0.05;
+            const swing = new Spring(
+                0,
+                { stiffness: 46 / weight, damping: 2.6, precision: 0.01 },
+                (degrees) => {
+                    const clamped = Math.max(-MAX_SWING, Math.min(MAX_SWING, degrees));
+                    element.style.transform = clamped === 0 ? "" : `rotate(${clamped.toFixed(3)}deg)`;
+                },
+            );
+            return { element, swing, weight, left: 0, right: 0 };
+        });
+        const settle = () => prints.forEach((print) => print.swing.set(0));
+        onMotionChange(() => {
+            if (!motionEnabled()) settle();
+        }, signal);
+        signal.addEventListener("abort", settle);
+
+        const measure = () => {
+            for (const print of prints) {
+                print.left = print.element.offsetLeft;
+                print.right = print.left + print.element.offsetWidth;
+            }
+        };
+        const resize = new ResizeObserver(measure);
+        resize.observe(rail);
+        signal.addEventListener("abort", () => resize.disconnect());
+        measure();
+
+        // The line moves and the prints' inertia keeps them where they were, so
+        // they lag behind the change in its speed and swing back through rest.
+        let lastLeft = rail.scrollLeft;
+        let lastTime = performance.now();
+        let lastSpeed = 0;
+        rail.addEventListener(
+            "scroll",
+            () => {
+                const now = performance.now();
+                const elapsed = Math.max(1, now - lastTime) / 1000;
+                const speed = (rail.scrollLeft - lastLeft) / elapsed;
+                const change = speed - lastSpeed;
+                lastLeft = rail.scrollLeft;
+                lastTime = now;
+                lastSpeed = speed;
+                if (!motionEnabled()) return;
+                const start = rail.scrollLeft;
+                const end = start + rail.clientWidth;
+                for (const print of prints) {
+                    if (print.right < start || print.left > end) continue;
+                    print.swing.kick(Math.max(-40, Math.min(40, change * 0.011)) / print.weight);
+                }
+            },
+            { signal, passive: true },
+        );
+        // A long pause should not read as a sudden stop when scrolling resumes.
+        rail.addEventListener("scrollend", () => { lastSpeed = 0; }, { signal, passive: true });
+
+        // Brushing past a print nudges it. It only reacts to a moving mouse.
+        line.addEventListener(
+            "pointermove",
+            (event) => {
+                if (event.pointerType !== "mouse" || rail.hasAttribute("data-dragging") || !motionEnabled()) return;
+                if (Math.abs(event.movementX) < 2) return;
+                const element = (event.target as Element).closest<HTMLElement>("[data-print]");
+                const print = element && prints.find((item) => item.element === element);
+                if (print) print.swing.kick(Math.max(-7, Math.min(7, event.movementX * 0.14)) / print.weight);
+            },
+            { signal, passive: true },
+        );
+
+        // First sight of the line: the visible prints have only just been hung.
+        const firstSight = new IntersectionObserver(
+            (entries) => {
+                if (!entries.some((entry) => entry.isIntersecting)) return;
+                firstSight.disconnect();
+                const end = rail.scrollLeft + rail.clientWidth;
+                prints.forEach((print, index) => {
+                    if (print.left > end) return;
+                    setTimeout(() => {
+                        if (!signal.aborted) print.swing.kick((index % 2 ? -1 : 1) * 9);
+                    }, index * 70);
+                });
+            },
+            { threshold: 0.35 },
+        );
+        firstSight.observe(rail);
+        signal.addEventListener("abort", () => firstSight.disconnect());
+    }
+</script>

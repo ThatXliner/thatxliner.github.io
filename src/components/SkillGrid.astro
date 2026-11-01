@@ -26,11 +26,11 @@ const skills = [
 ];
 ---
 <div class="skill-explorer">
- <h3>Skills</h3><p class="skill-hint">Pick a skill to see my work.</p>
+ <h3 class="t-headline">Skills</h3><p class="skill-hint t-caption">Pick a skill to see my work.</p>
  <div class="skill-grid">{skills.map((skill,i)=><button type="button" aria-label={skill.name} title={skill.name} aria-expanded="false" aria-controls={`skill-${i}`} data-skill={i} style={`--skill-color:${skill.color}`}><Icon name={skill.icon.includes(':') ? skill.icon : `simple-icons:${skill.icon}`}/></button>)}</div>
  {skills.map((skill,i)=>{
  const matches=repositories.filter(repo=>skill.repos.some(name=>name.toLowerCase()===repo.name.toLowerCase())||skill.languages.includes(repo.language||'')).sort((a,b)=>b.starCount-a.starCount).slice(0,6);
- return <section id={`skill-${i}`} class="skill-detail" hidden aria-labelledby={`skill-title-${i}`}><h4 id={`skill-title-${i}`}>{skill.name}</h4><p>{skill.body}</p>{(matches.length>0||skill.extra)&&<><h5>Relevant repositories</h5><ul>{matches.map(repo=><li><a href={`https://github.com/ThatXliner/${repo.name}`}>{repo.name} ↗</a><span>{repo.body}</span></li>)}{skill.extra&&<li><a href={skill.extra.url}>{skill.extra.name} ↗</a></li>}</ul></>}</section>
+ return <section id={`skill-${i}`} class="skill-detail" hidden aria-labelledby={`skill-title-${i}`}><h4 id={`skill-title-${i}`}>{skill.name}</h4><p>{skill.body}</p>{(matches.length>0||skill.extra)&&<><h5>Relevant repositories</h5><ul>{matches.map(repo=><li><a href={`https://github.com/ThatXliner/${repo.name}`}>{repo.name} <span aria-hidden="true">↗</span></a><small>{repo.body}</small></li>)}{skill.extra&&<li><a href={skill.extra.url}>{skill.extra.name} <span aria-hidden="true">↗</span></a></li>}</ul></>}</section>
  })}
 </div>
 <script>
@@ -43,12 +43,28 @@ const skills = [
  });
 </script>
 <style>
-.skill-explorer { margin-top:42px; max-width:470px; }
-h3 { font:30px var(--font-sketch); margin-bottom:8px; }.skill-hint { color:#515b6e; font-size:13px; margin-bottom:18px; }
-.skill-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
-button { display:grid; place-items:center; aspect-ratio:1; border:1px solid #17203640; border-radius:4px 9px 3px 7px; color:var(--skill-color); background:#fffefb; cursor:pointer; }
-button svg { width:30px; height:30px; } button:hover,button[aria-expanded=true] { background:#edf2ff; border-color:#3473ff; }button:focus-visible {outline:2px solid #3473ff;outline-offset:3px;}
-.skill-detail { margin-top:22px; padding:22px; background:#edf2ff70; border:1px solid #3473ff40; border-radius:6px 12px 4px 8px; }
-.skill-detail[hidden] {display:none;}h4 {font:29px var(--font-sketch);margin-bottom:12px;} .skill-detail p {font-size:14px;line-height:1.8;color:#515b6e;}h5 {font:21px var(--font-sketch);margin:22px 0 10px;}ul {list-style:none;padding:0;}li {padding:10px 0;border-top:1px solid #17203620;}li a {font:21px var(--font-sketch);color:#3473ff;}li span {display:block;font-size:12px;line-height:1.7;color:#515b6e;margin-top:4px;}
-@media(max-width:760px){.skill-grid{gap:8px;}button svg{width:25px;height:25px;}}
+.skill-explorer { margin-top: 3rem; max-width: 30rem; }
+.skill-hint { margin: 0.375rem 0 1.125rem; }
+.skill-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.625rem; }
+button { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid var(--color-hairline); border-radius: 0.875rem; color: var(--skill-color); background: var(--color-surface); cursor: pointer; transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.55s var(--spring-lively); }
+button svg { width: 1.75rem; height: 1.75rem; }
+button:hover { border-color: var(--color-hairline-strong); transform: translateY(-2px); }
+button:active { transform: scale(0.94); transition-duration: 0.2s, 0.2s, 0.05s; }
+button[aria-expanded=true] { border-color: var(--color-accent); background: var(--color-surface-2); }
+@media (prefers-reduced-motion: reduce) { button:hover, button:active { transform: none; } }
+.skill-detail { margin-top: 1.25rem; padding: 1.25rem 1.375rem; background: var(--color-surface); border: 1px solid var(--color-hairline); border-radius: 0.875rem; }
+.skill-detail[hidden] { display: none; }
+/* Without the script the buttons can't open anything, so everything stays open. */
+:global(html:not(.js)) .skill-detail[hidden] { display: block; }
+:global(html:not(.js)) .skill-hint { display: none; }
+@media (prefers-reduced-motion: no-preference) { :global(html:not([data-motion="off"])) .skill-detail:not([hidden]) { animation: rise 0.8s var(--spring) both; } }
+h4 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.018em; margin: 0 0 0.5rem; }
+.skill-detail p { font-size: 0.9375rem; line-height: 1.6; color: var(--color-fg-muted); }
+h5 { font-size: 0.8125rem; font-weight: 600; margin: 1.25rem 0 0.375rem; color: var(--color-fg-muted); }
+ul { list-style: none; margin: 0; padding: 0; }
+li { padding-block: 0.625rem; border-top: 1px solid var(--color-hairline); }
+li a { font-size: 0.9375rem; font-weight: 500; color: var(--color-accent); }
+li a:hover { text-decoration: underline; text-underline-offset: 3px; }
+li small { display: block; margin-top: 0.125rem; font-size: 0.8125rem; line-height: 1.5; color: var(--color-fg-muted); }
+@media (max-width: 760px) { .skill-grid { gap: 0.5rem; } button svg { width: 1.5rem; height: 1.5rem; } }
 </style>
