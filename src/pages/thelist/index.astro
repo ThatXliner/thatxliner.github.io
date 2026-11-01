@@ -11,7 +11,7 @@ import { libraries, other, tools } from "@/data/libraries";
 
 <Layout
     title="The List — Apps by Bryan Hu"
-    description="Every app Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch. All free, all open source."
+    description="Every app Bryan Hu has shipped: VR displays, photo culling, debate tooling, games, and a handful of things built to scratch an itch."
     image="/og/thelist.png"
 >
     <Nav />
@@ -33,8 +33,7 @@ import { libraries, other, tools } from "@/data/libraries";
                 I build a lot of small things. These are the ones that got
                 finished enough for other people to use — apps you can open, and
                 libraries you can import, tools you can install, and stranger
-                experiments that don't fit either box. All free, all open
-                source.
+                experiments that don't fit either box.
             </p>
 
             <div class="rise mt-9" style="animation-delay:300ms">
@@ -127,7 +126,7 @@ import { libraries, other, tools } from "@/data/libraries";
                                         </span>
                                     </a>
                                 )}
-                                <a
+                                {app.repo && <a
                                     href={app.repo}
                                     target="_blank"
                                     rel="noopener noreferrer"
@@ -138,7 +137,7 @@ import { libraries, other, tools } from "@/data/libraries";
                                         class="size-3.5"
                                     />
                                     Source
-                                </a>
+                                </a>}
                                 <span class="t-caption ml-auto">
                                     {app.language}
                                 </span>
