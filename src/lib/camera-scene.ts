@@ -84,7 +84,7 @@ export async function createCameraScene(canvas: HTMLCanvasElement, frames: LcdFr
 
     const textureLoader = new THREE.TextureLoader();
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-    const modelPaths = ["/models/gear/r7.glb?v=94aff49376cb", "/models/gear/35.glb", "/models/gear/adapter.glb"];
+    const modelPaths = ["/models/gear/r7.glb?v=94aff49376cb", "/models/gear/28-135.glb?v=c371a5932cc9", "/models/gear/adapter.glb"];
     // Settled, not raced: when one asset fails, the ones that arrived still get
     // owned and freed instead of being stranded by the rejection.
     const models = await Promise.allSettled(modelPaths.map((path) => loader.loadAsync(path).then(({ scene }) => scene)));
