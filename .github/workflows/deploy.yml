@@ -20,17 +20,29 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
+      # resume.tex is self-contained. An exact source match lets us skip the
+      # TeX installation altogether; no fallback keys may serve an older PDF.
+      - name: Cache compiled resume
+        id: resume-cache
+        uses: actions/cache@v5
+        with:
+          path: public/resume.pdf
+          key: resume-pdf-${{ runner.os }}-v1-${{ hashFiles('resume.tex') }}
       - name: Install LaTeX
+        if: steps.resume-cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y texlive-latex-extra
       - name: Compile resume PDF
+        if: steps.resume-cache.outputs.cache-hit != 'true'
         run: pdflatex -interaction=nonstopmode -output-directory=public resume.tex
       - name: Install, build, and upload your site
         uses: withastro/action@v5
         with:
           package-manager: npm@10.9.9
           node-version: 24.22.1
+          # The action also caches npm downloads through setup-node.
+          cache: true
         env: # Or as an environment variable
           ASTRO_GITHUB_TOKEN: ${{ secrets.ASTRO_GITHUB_TOKEN }}
 
