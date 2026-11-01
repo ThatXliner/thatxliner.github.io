@@ -4433,3 +4433,10 @@ this is one geometry correction, not full completion. No commit/push this turn.
 User reported the EOS R7 badge was deformed. Reproduced in front and oblique browser views. The body-width fit compressed lettering X by .65 while Y used .87, and the glyphs were projected from world Z onto the shoulder. Keep the existing thin molded backing; exclude its two text lines from body deformation, scale their glyphs uniformly, then fit each line in its local badge tangent frame. Surface accommodation is limited by a .015-unit build assertion; measured maximum relief is .3734 mm for EOS and .3809 mm for R7 (55 mm/model unit). Ray misses fail the build.
 
 Rejected an intermediate fully planar backing because it protruded excessively from the curved shoulder. Accepted the lettering-only fix after matching front/oblique captures and an actual /classic viewer check. Evidence: output/gear-modeling/r7-logo-{inspection,oblique-before,oblique-final,front-final,classic-final}.png. Rebuilt and compressed public R7 asset; refreshed preview. Site build passed (15 pages). Local/unpushed; this is a badge correction, not full photographic acceptance.
+
+
+## 28–135 zoom-grip relief — 2026-10-23
+
+Compared saved Canon side photo (output/gear-reference/28-135-canon-side.jpg) with fixed-pose browser baseline. The modeled lands had thick vertical walls and nearly sharp edges. Reduced nominal protrusion from .0135 to .007 model units (about .74 to .39 mm at 55 mm/unit), retained 40 lands and short center grooves, and increased edge rounding to .002 with three segments. These depths are reference-guided estimates, not measured manufacturing dimensions.
+
+Matched screenshots 28-135-grip-{before,after}.png show reduced block-like shadows with grooves still visible. Actual /classic front and side captures show the same improvement; the rear camera view hides most of the lens and is not proof of rear-lens fidelity. Captures: 28-135-grip-classic-{front,side,rear}.png. Retained compressed asset, generator change, editable blend, and refreshed previews. Build passed (15 pages). Local/unpushed. Photographic acceptance of the complete camera/lens set remains unproven.

@@ -3131,14 +3131,14 @@ def lens(which):
             n=24
             def capsule(w,h,z):
                 return [(w/2*cos(a), (h-w)/2*(1 if sin(a)>=0 else -1)+w/2*sin(a),z) for a in [2*pi*j/n for j in range(n)]]
-            verts=capsule(.089,zoom[1]*.90,-.0125)+capsule(.089,zoom[1]*.90,.0125)+capsule(.014,.16,.0125)+capsule(.014,.16,.006)
+            verts=capsule(.089,zoom[1]*.90,-.008)+capsule(.089,zoom[1]*.90,.006)+capsule(.014,.16,.006)+capsule(.014,.16,.002)
             faces=[tuple(reversed(range(n))),tuple(range(3*n,4*n))]
             for j in range(n):
                 k=(j+1)%n
                 faces.extend([(j,k,n+k,n+j),(n+j,n+k,2*n+k,2*n+j),(2*n+j,2*n+k,3*n+k,3*n+j)])
             mesh=bpy.data.meshes.new('Grooved grip land');mesh.from_pydata(verts,[],faces);mesh.update()
             template=bpy.data.objects.new('Grooved grip land',mesh);scene.collection.objects.link(template);register(template,'Rounded zoom grip land','Focus rubber')
-            edge_round=template.modifiers.new('Grip perimeter edge radius','BEVEL');edge_round.width=.001;edge_round.segments=1;edge_round.limit_method='ANGLE';edge_round.angle_limit=.4;apply(template,edge_round)
+            edge_round=template.modifiers.new('Grip perimeter edge radius','BEVEL');edge_round.width=.002;edge_round.segments=3;edge_round.limit_method='ANGLE';edge_round.angle_limit=.4;apply(template,edge_round)
             for i in range(40):
                 a=i*2*pi/40
                 if i==0:pad=template

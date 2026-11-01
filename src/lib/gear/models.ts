@@ -37,7 +37,8 @@ export async function loadModelLibrary(initialIds: string[]) {
         const existing = pending.get(id);
         if (existing) return existing;
         const request = (async () => {
-          const { scene } = await loader.loadAsync(`/models/gear/${id}.glb`);
+          const version = id === "28-135" ? "?v=c371a5932cc9" : "";
+          const { scene } = await loader.loadAsync(`/models/gear/${id}.glb${version}`);
           scene.traverse((object) => {
             if (!(object instanceof THREE.Mesh)) return;
             geometries.add(object.geometry);
