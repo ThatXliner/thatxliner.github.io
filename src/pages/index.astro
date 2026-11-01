@@ -1,5 +1,5 @@
 ---
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
@@ -17,7 +17,17 @@ import billionBrowse from "../assets/products/billion-browse.png";
 import billionFeed from "../assets/products/billion-feed.png";
 import quillium from "../assets/products/quillium-revision.png";
 import { resume } from "../data/resume";
+import { reviewFrames } from "../data/print-selection";
 import "../styles/home.css";
+
+// Sized for the camera's screen. The true proportions travel with each one.
+const lcdFrames = await Promise.all(
+    reviewFrames.map(async ({ image }) => ({
+        src: (await getImage({ src: image, width: 960, format: "webp" })).src,
+        width: image.width,
+        height: image.height,
+    })),
+);
 ---
 
 <Layout title="Bryan Hu — Developer, Photographer & Musician">
@@ -112,7 +122,7 @@ import "../styles/home.css";
         </div>
 
         <section class="observe" id="observe" data-camera-stage aria-labelledby="observe-title">
-            <div class="observe-stage" data-stage>
+            <div class="observe-stage" data-stage data-lcd-frames={JSON.stringify(lcdFrames)}>
                 <div class="observe-light" aria-hidden="true"></div>
                 <canvas class="observe-canvas" aria-hidden="true"></canvas>
                 <div class="observe-copy" data-stage-copy>
@@ -132,6 +142,10 @@ import "../styles/home.css";
                     loading="lazy"
                     draggable="false"
                 />
+                <p class="observe-note hand" data-stage-note aria-hidden="true">
+                    <svg class="ink" viewBox="0 0 34 40" width="34" height="40"><path pathLength="1" stroke-width="2" d="M6 36C22 32 28 20 24 5M16 13l8-9 7 10" /></svg>
+                    the keeper.
+                </p>
                 <p class="observe-status t-caption" data-stage-status role="status" hidden>Loading 3D model…</p>
             </div>
         </section>

@@ -1,9 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { photographs } from "../data/photography";
-
-// Only Bryan's own selection hangs here, never every file in the assets folder.
-const prints = photographs.filter((photo) => photo.featured);
+import { prints } from "../data/print-selection";
 ---
 
 <!-- Prints drying on a line. It is a native horizontal scroller, so touch,
@@ -14,7 +11,7 @@ const prints = photographs.filter((photo) => photo.featured);
         <ul>
             {
                 prints.map((photo) => (
-                    <li class="print" data-print>
+                    <li class="print" data-print style={`--ratio:${(photo.image.width / photo.image.height).toFixed(4)}`}>
                         <a href="/photography" draggable="false">
                             <span class="print-clip" aria-hidden="true" />
                             <Image
@@ -95,6 +92,17 @@ const prints = photographs.filter((photo) => photo.featured);
     .print a:focus-visible {
         outline-offset: 5px;
     }
+    /* The clip is up and the print is still on its way from the camera. Focus
+       always gets a real print to land on. */
+    @media screen {
+        .print[data-awaiting]:not(:focus-within) a {
+            background: none;
+            box-shadow: none;
+        }
+        .print[data-awaiting]:not(:focus-within) :is(img, .print-title) {
+            visibility: hidden;
+        }
+    }
     .print-clip {
         position: absolute;
         top: -1.375rem;
@@ -133,8 +141,9 @@ const prints = photographs.filter((photo) => photo.featured);
         }
     }
     @media (max-width: 760px) {
+        /* A landscape print fits the phone whole, in its own proportions. */
         .print img {
-            height: clamp(14rem, 42svh, 22rem);
+            height: min(clamp(14rem, 42svh, 22rem), calc((100vw - 2 * var(--spacing-gutter) - 1.25rem) / var(--ratio)));
         }
     }
 </style>
@@ -165,6 +174,9 @@ const prints = photographs.filter((photo) => photo.featured);
             if (!motionEnabled()) settle();
         }, signal);
         signal.addEventListener("abort", settle);
+
+        // The kept frame has just been clipped on, so it alone settles on the line.
+        prints[0]?.element.addEventListener("print:hung", () => prints[0].swing.kick(6), { signal });
 
         const measure = () => {
             for (const print of prints) {
@@ -217,23 +229,5 @@ const prints = photographs.filter((photo) => photo.featured);
             },
             { signal, passive: true },
         );
-
-        // First sight of the line: the visible prints have only just been hung.
-        const firstSight = new IntersectionObserver(
-            (entries) => {
-                if (!entries.some((entry) => entry.isIntersecting)) return;
-                firstSight.disconnect();
-                const end = rail.scrollLeft + rail.clientWidth;
-                prints.forEach((print, index) => {
-                    if (print.left > end) return;
-                    setTimeout(() => {
-                        if (!signal.aborted) print.swing.kick((index % 2 ? -1 : 1) * 9);
-                    }, index * 70);
-                });
-            },
-            { threshold: 0.35 },
-        );
-        firstSight.observe(rail);
-        signal.addEventListener("abort", () => firstSight.disconnect());
     }
 </script>

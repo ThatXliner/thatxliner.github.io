@@ -258,7 +258,11 @@
 /* ── Look closer ─────────────────────────────────────────────────────────
    Static by default, which is what no-JS and reduced motion get. Only when motion
    is genuinely available does the section grow its scroll travel. Done in CSS so
-   the page has its full height at first paint and anchor links land correctly. */
+   the page has its full height at first paint and anchor links land correctly.
+
+   The camera is checked, a frame is kept, and the print leaves on its own. The
+   photographs then rise over the last 100svh of the pin to take it, so the travel
+   is never empty. BEATS in lib/camera-beats.ts assumes these two numbers. */
 
 .observe {
     position: relative;
@@ -301,10 +305,51 @@
 .observe-status[hidden] {
     display: none;
 }
+.observe .observe-note {
+    display: none;
+}
+/* The print on its way from the camera to the line. It sits above the rising
+   photographs, the way anything in your hand is nearer than the wall. */
+.observe-print {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: max-content;
+    pointer-events: none;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+.observe-print[hidden] {
+    display: none;
+}
+.observe-print > * {
+    display: block;
+}
+.observe-print-mat {
+    position: absolute;
+    inset: 0;
+    background: #f4f2ec;
+    box-shadow:
+        0 1px 0 #ffffff,
+        0 28px 50px -22px rgb(0 0 0 / 0.95);
+    opacity: 0;
+}
 
 @media (prefers-reduced-motion: no-preference) {
     html.js:not([data-motion="off"]) .observe:not([data-static]) {
-        height: 340svh;
+        height: 280svh;
+    }
+    html.js:not([data-motion="off"]) .observe[data-state="ready"]:not([data-static]) .observe-note {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        gap: 0.25rem;
+        margin: 0;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
     html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-stage {
         position: sticky;
@@ -327,6 +372,8 @@
         inset: 0;
         pointer-events: none;
         background: radial-gradient(ellipse 46% 56% at 66% 50%, rgb(255 255 255 / 0.1), transparent 72%);
+        /* Follows the camera from beside the words to the middle of the stage. */
+        translate: calc(var(--turn, 0) * -16%) 0;
     }
     html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-canvas {
         display: block;
@@ -360,6 +407,7 @@
 @media (max-width: 760px) {
     html.js:not([data-motion="off"]) .observe:not([data-static]) .observe-light {
         background: radial-gradient(ellipse 80% 36% at 50% 65%, rgb(255 255 255 / 0.1), transparent 72%);
+        translate: none;
     }
     .observe-stage {
         grid-template-columns: minmax(0, 1fr);
@@ -383,6 +431,25 @@
     position: relative;
     background: var(--color-void);
     padding-block: clamp(5rem, 10vw, 8.5rem) clamp(3rem, 6vw, 5rem);
+}
+/* The heading waits for the print on screen only. Paper gets the whole page. */
+@media print {
+    .frames-head {
+        opacity: 1 !important;
+    }
+    .observe-print {
+        display: none;
+    }
+}
+/* Opaque until the scene is ready, so a late model is simply covered. */
+@media (prefers-reduced-motion: no-preference) {
+    html.js:not([data-motion="off"]) .observe:not([data-static]) + .frames {
+        z-index: 1;
+        margin-top: -100svh;
+    }
+    html.js:not([data-motion="off"]) .observe[data-state="ready"]:not([data-static]) + .frames {
+        background: transparent;
+    }
 }
 .frames-head {
     display: flex;

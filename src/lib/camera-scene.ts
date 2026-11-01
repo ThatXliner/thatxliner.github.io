@@ -2,27 +2,32 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import lcdPhoto from "../assets/photography/rosewater.webp?url";
+import { BEATS, mix, smoothstep, type Rect } from "./camera-beats";
 
-const { lerp: mix, smoothstep } = THREE.MathUtils;
-
-// x, y, z, pitch, yaw, roll, scale.
-const OFFSTAGE = [5, 0, -3, 0.1, -1.2, 0.1, 0.4];
-const PRESENTED = [1.85, -0.15, 0, 0.08, -0.36, -0.05, 1.1];
+export interface LcdFrame {
+    src: string;
+    width: number;
+    height: number;
+}
 
 export interface CameraScene {
-    /** progress runs 0 to 1 through the chapter; yaw is the hand's extra turn. */
+    /** progress is the chapter's timeline (see BEATS); yaw is the hand's extra turn. */
     render(progress: number, yaw: number): void;
+    /** Where the kept picture and the body sit on screen while being reviewed. */
+    measure(): { image: Rect; body: Rect };
     resize(): void;
     dispose(): void;
 }
 
 /**
- * The September film's best shot, without its laptop or furnished room: the real
- * R7 model arrives, turns its back to you, and you go in through its rear LCD
- * until a selected photograph fills the screen. Throws if WebGL is unavailable.
+ * The real R7 model, handled the way a photographer handles it: it faces you, gets
+ * turned over and brought up to check the shot, and then lowered. It never grows
+ * past something you could hold. The screen shows the frames in `frames`, whole
+ * and uncropped. Throws if WebGL or any asset is unavailable.
  */
-export async function createCameraScene(canvas: HTMLCanvasElement): Promise<CameraScene> {
+export async function createCameraScene(canvas: HTMLCanvasElement, frames: LcdFrame[]): Promise<CameraScene> {
+    if (!frames.length) throw new Error("Nothing to review");
+
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -40,7 +45,7 @@ export async function createCameraScene(canvas: HTMLCanvasElement): Promise<Came
     pmrem.dispose();
 
     // A black camera on a black page is all edges: one soft key, then two rims
-    // to draw its outline. The same reason the portrait has its key light.
+    // to draw its outline.
     scene.add(new THREE.HemisphereLight(0xffffff, 0x3c3e42, 0.9));
     const key = new THREE.DirectionalLight(0xfff4e6, 2.8);
     key.position.set(-3, 5, 5);
@@ -65,28 +70,34 @@ export async function createCameraScene(canvas: HTMLCanvasElement): Promise<Came
         });
     };
 
-    let mobile = false;
-    let screen: THREE.Mesh | undefined;
-    const screenAnchor = new THREE.Vector3();
-    let screenWidth = 1;
-    const anchor = new THREE.Vector3();
-
-    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-    const [body, lens, adapter, photo] = await Promise.all([
-        loader.loadAsync("/models/gear/r7.glb?v=94aff49376cb").then(({ scene }) => scene),
-        loader.loadAsync("/models/gear/35.glb").then(({ scene }) => scene),
-        loader.loadAsync("/models/gear/adapter.glb").then(({ scene }) => scene),
-        new THREE.TextureLoader().loadAsync(lcdPhoto),
-    ]).catch((error) => {
+    const dispose = () => {
+        for (const resource of resources) resource.dispose();
         envMap.dispose();
         renderer.dispose();
+    };
+    /** For a build that never finished: nothing will draw here, so free the context too. */
+    const abandon = (error: unknown): never => {
+        dispose();
+        renderer.forceContextLoss();
         throw error;
-    });
-    photo.colorSpace = THREE.SRGBColorSpace;
-    resources.add(photo);
+    };
+
+    const textureLoader = new THREE.TextureLoader();
+    const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+    const modelPaths = ["/models/gear/r7.glb?v=94aff49376cb", "/models/gear/35.glb", "/models/gear/adapter.glb"];
+    // Settled, not raced: when one asset fails, the ones that arrived still get
+    // owned and freed instead of being stranded by the rejection.
+    const models = await Promise.allSettled(modelPaths.map((path) => loader.loadAsync(path).then(({ scene }) => scene)));
+    const textures = await Promise.allSettled(frames.map((frame) => textureLoader.loadAsync(frame.src)));
+    for (const model of models) if (model.status === "fulfilled") own(model.value);
+    for (const texture of textures) if (texture.status === "fulfilled") resources.add(texture.value);
+    const failure = [...models, ...textures].find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failure) abandon(failure.reason);
+    const [body, lens, adapter] = models.map((model) => (model as PromiseFulfilledResult<THREE.Group>).value);
+    const pictures = textures.map((texture) => (texture as PromiseFulfilledResult<THREE.Texture>).value);
+    for (const picture of pictures) picture.colorSpace = THREE.SRGBColorSpace;
 
     for (const object of [body, lens, adapter]) {
-        own(object);
         object.traverse((node) => {
             if (!(node instanceof THREE.Mesh)) return;
             for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -99,32 +110,48 @@ export async function createCameraScene(canvas: HTMLCanvasElement): Promise<Came
     }
 
     // The authored rear display decides where the screen goes and how big it is.
+    let lcd: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> | undefined;
+    let lcdWidth = 1;
+    let lcdHeight = 1;
     body.updateMatrixWorld(true);
     body.traverse((node) => {
-        if (screen || !(node instanceof THREE.Mesh)) return;
+        if (lcd || !(node instanceof THREE.Mesh)) return;
         const materials = Array.isArray(node.material) ? node.material : [node.material];
         if (!materials.some((material) => /R7 display glass/i.test(material.name))) return;
         const bounds = new THREE.Box3().setFromObject(node);
         const size = bounds.getSize(new THREE.Vector3());
         const center = bounds.getCenter(new THREE.Vector3());
-        const width = size.x * 0.96;
-        const height = size.y * 0.94;
-        // object-fit: cover, so the photograph is cropped and never stretched.
-        const image = photo.image as { width: number; height: number };
-        const imageAspect = image.width / image.height;
-        const screenAspect = width / height;
-        if (imageAspect > screenAspect) photo.repeat.set(screenAspect / imageAspect, 1);
-        else photo.repeat.set(1, imageAspect / screenAspect);
-        photo.offset.set((1 - photo.repeat.x) / 2, (1 - photo.repeat.y) / 2);
-        const geometry = new THREE.PlaneGeometry(width, height);
-        const material = new THREE.MeshBasicMaterial({ map: photo, toneMapped: false });
-        screen = new THREE.Mesh(geometry, material);
-        screen.position.set(center.x, center.y, bounds.min.z - 0.003);
-        screen.rotation.y = Math.PI;
-        body.add(screen);
+        lcdWidth = size.x * 0.96;
+        lcdHeight = size.y * 0.94;
+        const geometry = new THREE.PlaneGeometry(1, 1);
+        // A picture that doesn't match the screen's shape gets black bars, as on the camera.
+        const backing = new THREE.MeshBasicMaterial({ color: 0x050506, toneMapped: false });
+        const glass = new THREE.Mesh(geometry, backing);
+        glass.scale.set(lcdWidth, lcdHeight, 1);
+        glass.position.set(center.x, center.y, bounds.min.z - 0.002);
+        glass.rotation.y = Math.PI;
+        const material = new THREE.MeshBasicMaterial({ map: pictures[0], toneMapped: false });
+        lcd = new THREE.Mesh(geometry, material);
+        lcd.position.set(center.x, center.y, bounds.min.z - 0.003);
+        lcd.rotation.y = Math.PI;
+        body.add(glass, lcd);
         resources.add(geometry);
+        resources.add(backing);
         resources.add(material);
     });
+    if (!lcd) return abandon(new Error("The model has no display"));
+    const screen = lcd;
+
+    let shown = -1;
+    const showFrame = (index: number) => {
+        if (index === shown) return;
+        shown = index;
+        screen.material.map = pictures[index];
+        const aspect = frames[index].width / frames[index].height;
+        const height = Math.min(lcdHeight, lcdWidth / aspect);
+        screen.scale.set(height * aspect, height, 1);
+    };
+    showFrame(0);
 
     const assembly = new THREE.Group();
     adapter.position.z = 0.53;
@@ -140,59 +167,112 @@ export async function createCameraScene(canvas: HTMLCanvasElement): Promise<Came
 
     // Measured with the rig at rest, so a later pose can't skew the numbers.
     rig.updateMatrixWorld(true);
-    if (screen) {
-        screen.getWorldPosition(screenAnchor);
-        screenWidth = new THREE.Box3().setFromObject(screen).getSize(new THREE.Vector3()).x;
+    const bodyBox = new THREE.Box3().setFromObject(body);
+    const bodyCenter = bodyBox.getCenter(new THREE.Vector3());
+    const bodySize = bodyBox.getSize(new THREE.Vector3());
+    const screenCenter = screen.getWorldPosition(new THREE.Vector3());
+    const anchor = new THREE.Vector3();
+
+    const layout = { frontX: 1.85, frontY: -0.15, frontScale: 1.1, enterX: 0.9, reviewY: 0, reviewScale: 1, sinkBy: 6 };
+
+    function poseRig(progress: number, yaw: number) {
+        const settle = smoothstep(progress, BEATS.settle);
+        const turn = smoothstep(progress, BEATS.turn);
+        const sink = smoothstep(progress, BEATS.sink);
+        const scale = mix(layout.frontScale, layout.reviewScale, turn);
+        rig.scale.setScalar(scale);
+        // Turning something in the hand rolls it a little on the way round. The
+        // tip of the wrist as it is lowered stays slight, or the lens swings up at you.
+        rig.rotation.set(
+            mix(0.08, 0, turn) + sink * 0.18,
+            mix(-0.36 - (1 - settle) * 0.55, -Math.PI, turn) + yaw * (1 - turn),
+            mix(-0.05, 0, turn) + Math.sin(turn * Math.PI) * 0.05,
+        );
+        // At review the body is centred and its screen sits at z = 0, so its size
+        // on the page comes from reviewScale alone and perspective can't inflate it.
+        anchor.copy(screenCenter).multiplyScalar(scale).applyEuler(rig.rotation);
+        const screenDepth = anchor.z;
+        anchor.copy(bodyCenter).multiplyScalar(scale).applyEuler(rig.rotation);
+        rig.position.set(
+            mix(layout.frontX + (1 - settle) * layout.enterX, -anchor.x, turn),
+            mix(layout.frontY, layout.reviewY - anchor.y, turn) - sink * layout.sinkBy,
+            -screenDepth * turn,
+        );
     }
 
     function render(progress: number, yaw: number) {
-        const enter = smoothstep(progress, 0, 0.26);
-        const turn = smoothstep(progress, 0.5, 0.68);
-        const zoom = smoothstep(progress, 0.7, 1);
-        const pose = OFFSTAGE.map((value, i) => mix(value, PRESENTED[i], enter));
-        if (mobile) {
-            pose[0] *= 0.12;
-            pose[1] = mix(pose[1], -1.5, 0.75);
-            pose[6] *= 0.49;
-        }
-        const heldYaw = yaw * (1 - turn);
-        if (turn === 0) {
-            rig.position.set(pose[0], pose[1], pose[2]);
-            rig.rotation.set(pose[3], pose[4] + heldYaw, pose[5]);
-            rig.scale.setScalar(pose[6]);
-        } else {
-            // Scale exponentially, which reads as a constant approach, and keep
-            // the display's own centre pinned to the middle of the frame.
-            const baseScale = pose[6];
-            const finalScale = Math.max(18, (mobile ? 11 : 15) / screenWidth);
-            const scale = baseScale * Math.pow(finalScale / baseScale, zoom);
-            rig.rotation.set(mix(pose[3], 0, turn), mix(pose[4], -Math.PI, turn) + heldYaw, mix(pose[5], 0, turn));
-            rig.scale.setScalar(scale);
-            anchor.copy(screenAnchor).multiplyScalar(scale).applyEuler(rig.rotation);
-            rig.position.set(mix(pose[0], -anchor.x, turn), mix(pose[1], -anchor.y, turn), -anchor.z * zoom);
-        }
+        showFrame(Math.min(BEATS.cuts.filter((cut) => progress >= cut).length, frames.length - 1));
+        poseRig(progress, yaw);
         renderer.render(scene, camera);
+    }
+
+    const projected = new THREE.Vector3();
+    function toScreen(points: THREE.Vector3[], matrix: THREE.Matrix4): Rect {
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+        for (const point of points) {
+            projected.copy(point).applyMatrix4(matrix).project(camera);
+            const x = ((projected.x + 1) / 2) * canvas.clientWidth;
+            const y = ((1 - projected.y) / 2) * canvas.clientHeight;
+            left = Math.min(left, x);
+            top = Math.min(top, y);
+            right = Math.max(right, x);
+            bottom = Math.max(bottom, y);
+        }
+        return { left, top, width: right - left, height: bottom - top };
+    }
+
+    const screenCorners = [
+        [-0.5, -0.5],
+        [0.5, -0.5],
+        [0.5, 0.5],
+        [-0.5, 0.5],
+    ].map(([x, y]) => new THREE.Vector3(x, y, 0));
+    const bodyCorners = [0, 1, 2, 3, 4, 5, 6, 7].map(
+        (i) =>
+            new THREE.Vector3(
+                i & 1 ? bodyBox.max.x : bodyBox.min.x,
+                i & 2 ? bodyBox.max.y : bodyBox.min.y,
+                i & 4 ? bodyBox.max.z : bodyBox.min.z,
+            ),
+    );
+
+    /** Leaves the rig in the review pose. The next render puts it back. */
+    function measure() {
+        showFrame(frames.length - 1);
+        poseRig(BEATS.lift[0], 0);
+        rig.updateMatrixWorld(true);
+        camera.updateMatrixWorld();
+        return { image: toScreen(screenCorners, screen.matrixWorld), body: toScreen(bodyCorners, rig.matrixWorld) };
     }
 
     function resize() {
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
         if (!width || !height) return;
-        mobile = width < 761 || width / height < 1;
+        const portrait = width < 761 || width / height < 1;
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
-        camera.position.z = mobile ? 11.8 : 10;
+        camera.position.z = portrait ? 11.8 : 10;
         camera.updateProjectionMatrix();
+        const visibleHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const visibleWidth = visibleHeight * camera.aspect;
+        layout.frontX = portrait ? 0.22 : 1.85;
+        layout.frontY = portrait ? -1.16 : -0.15;
+        layout.frontScale = portrait ? 0.54 : 1.1;
+        layout.enterX = portrait ? 0.3 : 0.9;
+        layout.reviewScale = Math.min((0.84 * visibleWidth) / bodySize.x, ((portrait ? 0.5 : 0.66) * visibleHeight) / bodySize.y);
+        layout.reviewY = visibleHeight * (portrait ? 0.06 : 0.03);
+        layout.sinkBy = visibleHeight / 2 + bodySize.y * layout.reviewScale * 1.3;
     }
     resize();
 
     return {
         render,
+        measure,
         resize,
-        dispose() {
-            for (const resource of resources) resource.dispose();
-            envMap.dispose();
-            renderer.dispose();
-        },
+        dispose,
     };
 }
