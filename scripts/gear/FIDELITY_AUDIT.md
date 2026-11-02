@@ -4440,3 +4440,16 @@ Rejected an intermediate fully planar backing because it protruded excessively f
 Compared saved Canon side photo (output/gear-reference/28-135-canon-side.jpg) with fixed-pose browser baseline. The modeled lands had thick vertical walls and nearly sharp edges. Reduced nominal protrusion from .0135 to .007 model units (about .74 to .39 mm at 55 mm/unit), retained 40 lands and short center grooves, and increased edge rounding to .002 with three segments. These depths are reference-guided estimates, not measured manufacturing dimensions.
 
 Matched screenshots 28-135-grip-{before,after}.png show reduced block-like shadows with grooves still visible. Actual /classic front and side captures show the same improvement; the rear camera view hides most of the lens and is not proof of rear-lens fidelity. Captures: 28-135-grip-classic-{front,side,rear}.png. Retained compressed asset, generator change, editable blend, and refreshed previews. Build passed (15 pages). Local/unpushed. Photographic acceptance of the complete camera/lens set remains unproven.
+
+
+## R7 EOS/R7 mark redraw — 2026-11-01
+
+The shipped R7 badge used Arial on a raised plate, and the two lines were independently aligned to different face normals. The fixed front and oblique captures in `output/r7-badge-review/before-{front,oblique}.png` show the plate and slanted R7. Reference comparison used `output/gear-reference/r7.jpg` and `r7-terminal-canon-hires.png`.
+
+Redrew the letters as custom outlines, removed the plate, and seated both lines on the casting in a shared frame with level horizontal and vertical front projections. The rounded S is reference-guided, not a trace of Canon artwork. The 3.575 mm cap height is smaller than the estimated 5.4 mm reference: the modeled collar and curved shoulder leave less room. Several larger and differently placed candidates were rejected for collar clearance, visibility, surface relief, or visible tilt.
+
+The Blender rebuild passed the unchanged 0.03-unit surface relief limit: 1.161 mm EOS and 1.142 mm R7. `scripts/gear/check_r7_badge.py` passed the generated blend: EOS width 10.19 mm, R7 width 7.65 mm, both 3.58 mm cap height, collar clearance .702 units (minimum .68), and 3475 of 3480 sampled faces visible (minimum 99%). It also checks stem alignment, baseline, and shared right edge in the saved badge frame. Before and final fixed-camera renders are `output/r7-badge-review/{before,after6}-{front,oblique}.png`; they establish appearance in these views, not exact reproduction of the artwork.
+
+Rebuilt GLB optimized with WebP textures at up to 2048 pixels, no simplification, and meshopt compression (4.3 MiB). SHA-256 `dfe2d43a6ace8dd62c6ae31e8e3bde5ab5f7f6b1e9d54a5bc87f86470051e449`; all model loaders share the corresponding version in `src/lib/gear/model-urls.ts`.
+
+Refreshed the transparent R7 selector thumbnail and setup poster using the existing Three.js preview helpers, synchronizing the poster helper with the current Classic scene. The setup poster retains its 984 × 630 framing; the body thumbnail remains 480 × 330. Both rendered without browser console errors. The lens obscures the badge in the setup view, so the fixed closeups above remain the evidence for the correction.

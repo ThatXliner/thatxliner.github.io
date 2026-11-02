@@ -543,6 +543,40 @@ def fit_ink_bounds(obj,width,height):
     for v in obj.data.vertices:v.co.x=(v.co.x-cx)*sx;v.co.y=(v.co.y-cy)*sy
     obj.data.update()
 
+def r7_badge_outlines():
+    # Canon's marks, redrawn from r7.jpg and r7-terminal-canon-hires.png at unit
+    # cap height: wide, upright and even in weight, with a round O. No system font
+    # has these proportions. Reference-guided, not traced from Canon artwork.
+    def signed_power(value,power):return (1 if value>=0 else -1)*abs(value)**power
+    def oval(cx,cy,a,b,steps=64):
+        return [(cx+a*signed_power(cos(2*pi*i/steps),.85),cy+b*signed_power(sin(2*pi*i/steps),.85)) for i in range(steps)]
+    t=.135;e_w=.72;o_w=1.05;s_w=.78;gap=.15
+    e=[(0,0),(e_w,0),(e_w,t),(t,t),(t,.5-t/2),(e_w*.9,.5-t/2),(e_w*.9,.5+t/2),(t,.5+t/2),(t,1-t),(e_w,1-t),(e_w,1),(0,1)]
+    o_x=e_w+gap;s_x=o_x+o_w+gap
+    # A single non-self-intersecting S outline keeps its central stroke intact.
+    s=[(.76,.90),(.67,1),(.19,1),(.05,.90),(.05,.62),(.14,.53),
+       (.58,.42),(.64,.36),(.64,.20),(.57,.14),(.17,.14),(.08,.21),
+       (0,.12),(.13,0),(.61,0),(.78,.13),(.78,.42),(.68,.51),
+       (.24,.62),(.19,.68),(.19,.80),(.25,.86),(.61,.86),(.68,.80)]
+    # Round the corners of the S while keeping its continuous outline.
+    for _ in range(2):
+        s=[p for a,b in zip(s,s[1:]+s[:1]) for p in ((.75*a[0]+.25*b[0],.75*a[1]+.25*b[1]),(.25*a[0]+.75*b[0],.25*a[1]+.75*b[1]))]
+    eos=[e,oval(o_x+o_w/2,.5,o_w/2,.5),oval(o_x+o_w/2,.5,o_w/2-t,.5-t),[(x+s_x,y) for x,y in s]]
+    t=.15;bowl_x=.66;bowl_y=.71
+    arc=lambda r:[(bowl_x+r*cos(pi*.5-pi*i/20),bowl_y+r*sin(pi*.5-pi*i/20)) for i in range(21)]
+    r=[(0,0),(0,1),*arc(.29),(.95,0),(.77,0),(.48,.42),(t,.42),(t,0)]
+    counter=[(t,1-t),*arc(.29-t),(t,.42+t)]
+    seven_x=.95+.19
+    seven=[(seven_x+x,y) for x,y in [(0,1),(1,1),(1,.87),(.52,0),(.34,0),(.79,.85),(0,.85)]]
+    return (eos,s_x+s_w),([r,counter,seven],seven_x+1)
+
+def badge_mark(name,outlines,left,baseline,height,mat='White ink'):
+    curve=bpy.data.curves.new(name,'CURVE');curve.dimensions='2D';curve.fill_mode='BOTH';curve.resolution_u=2
+    for path in outlines:
+        sp=curve.splines.new('POLY');sp.points.add(len(path)-1);sp.use_cyclic_u=True
+        for point,(x,y) in zip(sp.points,path):point.co=(left+x*height,baseline+y*height,0,1)
+    o=bpy.data.objects.new(name,curve);scene.collection.objects.link(o);register(o,name,mat);active(o);bpy.ops.object.convert(target='MESH');return o
+
 def arc_text(words,z,radius,size=.048,start=None,span=None,mat='White ink',bottom=False):
     if span is None:
         # Bend the complete typeset line, preserving the font's glyph widths,
@@ -1240,31 +1274,23 @@ def body(which):
         line('Flash cover front seam',[(x*.68,y-.09*max(0,min(1,(y-.8)/.275)),.559) for x,y in [(-.46,.82),(-.43,.95),(-.37,1.035),(.37,1.035),(.43,.95),(.46,.82)]],.003)
         cyl('Flash release',(1.073,.37,.12),.05,.027,'Graphite polymer','x',48)
     text('Canon wordmark','Canon',(0,.896 if dslr else .840,.561 if dslr else front+.006),.12,font='Canon')
-    text('EOS badge','EOS',(.84 if dslr else .78,.35 if dslr else .490,front+(.043 if dslr else .035)),.075 if dslr else .110)
-    text('Model badge','40D' if dslr else 'R7',(.84 if dslr else .78,.245 if dslr else .355,front+(.044 if dslr else .035)),.100 if dslr else .130,font='Bold' if dslr else 'Arial')
     r7_badge_ink=[]
-    if not dslr:
-        rounded_panel('Raised R7 badge',(.78,.415,front+.026),(.270,.280,.015),.030,'Graphite polymer')
+    if dslr:
+        text('EOS badge','EOS',(.84,.35,front+.043),.075)
+        text('Model badge','40D',(.84,.245,front+.044),.100,font='Bold')
+    else:
         from mathutils.bvhtree import BVHTree
-        surface=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
-        for o in OBJECTS[start:]:
-            part_name=o.name.removeprefix(which+' / ')
-            if part_name not in ['Raised R7 badge','EOS badge','Model badge']:continue
-            active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-            if part_name in ['EOS badge','Model badge']:
-                center=Vector((.78,.490 if part_name=='EOS badge' else .355,front+.035))
-                for v in o.data.vertices:v.co=(v.co-center)*.65
-                r7_badge_ink.append((o,center))
-                continue
-            # Sample the curved shoulder on the badge and lettering together;
-            # long face chords otherwise cross the closely fitted printed glyphs.
-            refine_surface(o,lambda a,b:(a-b).length>.015,6)
-            backmost=min(v.co.z for v in o.data.vertices)
-            for v in o.data.vertices:
-                hit,_,_,_=surface.ray_cast(Vector((v.co.x,v.co.y,3)),Vector((0,0,-1)),5)
-                if hit is None:raise RuntimeError('R7 badge extends outside housing')
-                v.co.z=hit.z+(.002 if part_name=='Raised R7 badge' else .0175)+(v.co.z-backmost)
-            o.data.update()
+        # r7.jpg: both lines share one cap height and one right edge, high on the
+        # shoulder above the rubber. 3.575 mm here against roughly 5.4 mm on the camera:
+        # this model's mount collar is larger, leaving less width beside it. Laid out
+        # around the block's centre and seated after the body fit, so they never take
+        # that fit's unequal X and Y scales.
+        (eos_outlines,eos_width),(model_outlines,model_width)=r7_badge_outlines()
+        R7_BADGE_HEIGHT=.065;R7_BADGE_RIGHT=.11
+        r7_badge_ink=[
+            badge_mark('EOS badge',eos_outlines,R7_BADGE_RIGHT-eos_width*R7_BADGE_HEIGHT,.0125,R7_BADGE_HEIGHT),
+            badge_mark('Model badge',model_outlines,R7_BADGE_RIGHT-model_width*R7_BADGE_HEIGHT,-.0675,R7_BADGE_HEIGHT),
+        ]
     if dslr:
         # The thin badge has rounded outline corners and a narrow molded rim;
         # a cube bevel clamps those corners to half the plate thickness.
@@ -2396,7 +2422,7 @@ def body(which):
         # deformation to attached controls so none float beyond the new shell.
         rigid_top_parts={o for _,_,_,parts in top_controls for o in parts}|set(wheel_parts)
         for o in OBJECTS[start:]:
-            if o in mount_objects or o in release_parts or o in rigid_top_parts or any(o==ink for ink,_ in r7_badge_ink):continue
+            if o in mount_objects or o in release_parts or o in rigid_top_parts or o in r7_badge_ink:continue
             active(o);bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
             if o in [shell,rear_cover]:
                 # The crown deformation is nonlinear. Subdivide long planar
@@ -2472,36 +2498,42 @@ def body(which):
         cutter.matrix_world=pose@cutter.matrix_world
         cut=front_skin.modifiers.new('Clear lens release','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(front_skin,cut)
         OBJECTS.remove(cutter);bpy.data.objects.remove(cutter,do_unlink=True)
-        # Leave the raised badge exposed using its final projected outline.
-        from mathutils.geometry import convex_hull_2d
-        badge=next(o for o in OBJECTS[start:] if o.name.endswith(' / Raised R7 badge'))
-        # Fit each printed line in the badge's local tangent frame. Body fitting
-        # scales X and Y differently; lettering must keep its own proportions.
-        badge_surface=BVHTree.FromObject(badge,bpy.context.evaluated_depsgraph_get())
-        for ink,center in r7_badge_ink:
-            hit,normal,_,_=badge_surface.ray_cast(Vector((r7_fitted_width(center.x),center.y*.87,3)),Vector((0,0,-1)),5)
-            if hit is None:raise RuntimeError('R7 lettering missed badge')
-            pose=Matrix.Translation(hit)@Vector((0,0,1)).rotation_difference(normal).to_matrix().to_4x4()
+        # EOS and R7 are printed straight on the casting, with no plate. Both lines
+        # share one frame whose X stays level: fitting each line to the normal of a
+        # single face turned them differently, which made R7 lean beside EOS.
+        casting=BVHTree.FromObject(shell,bpy.context.evaluated_depsgraph_get())
+        badge_center=Vector((.64,.405))
+        badge_normal=Vector((0,0,0))
+        for dx in (-.11,-.055,0,.055,.11):
+            for dy in (-.09,-.045,0,.045,.09):
+                hit,normal,_,_=casting.ray_cast(Vector((badge_center.x+dx,badge_center.y+dy,3)),Vector((0,0,-1)),5)
+                if hit is None:raise RuntimeError('R7 lettering area missed casting at %.3f,%.3f'%(badge_center.x+dx,badge_center.y+dy))
+                badge_normal+=normal
+        badge_normal.normalize()
+        bpy.context.scene['r7_badge_frame_normal']=tuple(badge_normal)
+        print('R7 badge seat normal',tuple(round(c,4) for c in badge_normal),flush=True)
+        assert badge_normal.z>.75,('R7 lettering seat faces too far sideways',badge_normal)
+        badge_origin,_,_,_=casting.ray_cast(Vector((badge_center.x,badge_center.y,3)),Vector((0,0,-1)),5)
+        badge_across=Vector((badge_normal.z,0,-badge_normal.x)).normalized()
+        badge_up=Vector((0,badge_normal.z,-badge_normal.y)).normalized()
+        for ink in r7_badge_ink:
             refine_surface(ink,lambda a,b:(a-b).length>.008,6)
-            max_relief=0
+            max_relief=0;worst=None;missed=[]
             for v in ink.data.vertices:
-                flat=pose@v.co
-                seat,_,_,_=badge_surface.ray_cast(flat+normal*.20,-normal,.40)
-                if seat is None:raise RuntimeError('R7 lettering extends outside badge')
-                max_relief=max(max_relief,(seat-flat).length)
-                v.co=seat+normal*.001
+                flat=badge_origin+badge_across*v.co.x+badge_up*v.co.y
+                # First surface along the shared normal, wherever it lies either
+                # side of the seat plane. A real miss is off the casting's edge.
+                seat,_,_,_=casting.ray_cast(flat+badge_normal*.5,-badge_normal,1)
+                if seat is None:missed.append((round(flat.x,3),round(flat.y,3)));continue
+                relief=(seat-flat).length
+                if relief>max_relief:max_relief=relief;worst=(round(flat.x,3),round(flat.y,3))
+                v.co=seat+badge_normal*.0025
+            if missed:raise RuntimeError('R7 lettering extends outside casting: %d vertices, x %.3f..%.3f y %.3f..%.3f'%(len(missed),min(p[0] for p in missed),max(p[0] for p in missed),min(p[1] for p in missed),max(p[1] for p in missed)))
             ink.data.update()
-            assert max_relief<.015,('R7 lettering curvature',max_relief)
-            print('R7 badge ink tangent relief',ink.name,round(max_relief*55,4),'mm',flush=True)
-        points=[Vector((v.co.x,v.co.y)) for v in badge.data.vertices]
-        outline=[points[i] for i in convex_hull_2d(points)];center=sum(outline,Vector((0,0)))/len(outline)
-        outline=[center+(p-center)*1.02 for p in outline];n=len(outline)
-        verts=[(p.x,p.y,z) for z in [-1,2] for p in outline]
-        faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
-        mesh=bpy.data.meshes.new('Badge rubber opening');mesh.from_pydata(verts,[],faces);mesh.update()
-        cutter=bpy.data.objects.new('Badge rubber opening',mesh);scene.collection.objects.link(cutter)
-        cut=front_skin.modifiers.new('Clear raised badge','BOOLEAN');cut.operation='DIFFERENCE';cut.solver='EXACT';cut.object=cutter;apply(front_skin,cut)
-        bpy.data.objects.remove(cutter,do_unlink=True)
+            print('R7 badge ink relief',ink.name,round(max_relief*55,4),'mm at',worst,flush=True)
+            # Projected along one normal, so a wrap onto the chamfer foreshortens
+            # head-on but never shears. Above this it needs moving, not relaxing.
+            assert max_relief<.03,('R7 lettering wraps too far around the shoulder',max_relief,worst)
         # Subdivision and conformation invalidate the flat panel's custom normals.
         old=front_skin.data;mesh=bpy.data.meshes.new(old.name+' fitted')
         mesh.from_pydata([v.co[:] for v in old.vertices],[],[tuple(f.vertices) for f in old.polygons])

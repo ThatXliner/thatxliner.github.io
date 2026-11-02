@@ -3,6 +3,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { BEATS, mix, smoothstep, type Rect } from "./camera-beats";
+import { modelUrl } from "./gear/model-urls";
 
 export interface LcdFrame {
     src: string;
@@ -84,7 +85,7 @@ export async function createCameraScene(canvas: HTMLCanvasElement, frames: LcdFr
 
     const textureLoader = new THREE.TextureLoader();
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-    const modelPaths = ["/models/gear/r7.glb?v=94aff49376cb", "/models/gear/28-135.glb?v=c371a5932cc9", "/models/gear/adapter.glb"];
+    const modelPaths = [modelUrl("r7"), modelUrl("28-135"), modelUrl("adapter")];
     // Settled, not raced: when one asset fails, the ones that arrived still get
     // owned and freed instead of being stranded by the rejection.
     const models = await Promise.allSettled(modelPaths.map((path) => loader.loadAsync(path).then(({ scene }) => scene)));

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { type Body, type Lens } from "./catalog";
+import { modelUrl } from "./model-urls";
 
 /** Blender-authored meshes with optical elements, surface normals and engraved controls. */
 export async function loadModelLibrary(initialIds: string[]) {
@@ -37,8 +38,7 @@ export async function loadModelLibrary(initialIds: string[]) {
         const existing = pending.get(id);
         if (existing) return existing;
         const request = (async () => {
-          const version = id === "28-135" ? "?v=c371a5932cc9" : "";
-          const { scene } = await loader.loadAsync(`/models/gear/${id}.glb${version}`);
+          const { scene } = await loader.loadAsync(modelUrl(id));
           scene.traverse((object) => {
             if (!(object instanceof THREE.Mesh)) return;
             geometries.add(object.geometry);
