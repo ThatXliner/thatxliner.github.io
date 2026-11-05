@@ -1,4 +1,7 @@
 ---
+import { Image } from "astro:assets";
+import aboutPortrait from "../assets/about-portrait.jpg";
+
 const stops = [
     { year: "2017–18", title: "First, the music.", body: "I started piano in 2017 and trombone in 2018, later performing solo and in concert and jazz bands.", awards: [] },
     { year: "2018–20", title: "My first lines of code.", body: "I started programming in fourth grade and began taking it seriously in 2020.", awards: [] },
@@ -12,11 +15,16 @@ const stops = [
 
 <section class="story-path" id="story" aria-labelledby="story-title">
     <header>
-        <p class="hand" data-reveal>a few turns along the way.</p>
-        <h2 class="t-title" id="story-title" data-reveal="lines">
-            <span class="line"><span>How I <span>got here.</span></span></span>
-        </h2>
-        <p class="t-lede" data-reveal>Music, software, and learning to build with other people.</p>
+        <div class="story-intro">
+            <p class="hand" data-reveal>a few turns along the way.</p>
+            <h2 class="t-title" id="story-title" data-reveal="lines">
+                <span class="line"><span>How I <span>got here.</span></span></span>
+            </h2>
+            <p class="t-lede" data-reveal>Music, software, and learning to build with other people.</p>
+        </div>
+        <div class="story-portrait" data-reveal>
+            <Image src={aboutPortrait} alt="Bryan Hu, smiling, in a black hoodie" widths={[960, 1440, 1920]} sizes="(max-width: 760px) 125vw, 775px" format="webp" loading="lazy" />
+        </div>
     </header>
     <div class="story-route">
         <svg class="story-trail" aria-hidden="true" fill="none">
@@ -74,8 +82,29 @@ const stops = [
         padding-inline: var(--spacing-gutter);
     }
     header {
-        text-align: center;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        column-gap: clamp(3rem, 7vw, 6.5rem);
+        max-width: 1100px;
+        text-align: left;
         margin: 0 auto clamp(3.5rem, 7vw, 6rem);
+    }
+    .story-portrait {
+        position: relative;
+        justify-self: center;
+        width: clamp(260px, 26vw, 340px);
+        aspect-ratio: 4 / 5;
+        overflow: hidden;
+    }
+    /* Frame x=650–2550, y=800–3175 of the original, keeping the photo intact. */
+    .story-portrait img {
+        position: absolute;
+        width: 173.79%;
+        max-width: none;
+        height: auto;
+        left: -34.21%;
+        top: -33.68%;
     }
     header .hand {
         margin-bottom: 1.25rem;
@@ -191,7 +220,13 @@ const stops = [
     }
     @media (max-width: 760px) {
         header {
+            grid-template-columns: 1fr;
+            gap: 2rem;
             text-align: left;
+        }
+        .story-portrait {
+            justify-self: start;
+            width: min(72vw, 300px);
         }
         header .hand {
             transform-origin: 0 50%;
