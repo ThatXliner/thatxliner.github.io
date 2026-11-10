@@ -1,0 +1,341 @@
+---
+import { getImage } from "astro:assets";
+import Layout from "@/layouts/Layout.astro";
+import PlayablePiano from "@/components/PlayablePiano.astro";
+import { FEATURES } from "@/flags";
+import { resume } from "@/data/resume";
+import { prints } from "@/data/print-selection";
+import billionBrowse from "@/assets/products/billion-browse.png";
+import billionFeed from "@/assets/products/billion-feed.png";
+import quillium from "@/assets/products/quillium-revision.png";
+
+// A single dynamic route, so `return []` keeps the experiment out of the build.
+export function getStaticPaths() {
+    return FEATURES.room ? [{ params: { path: undefined } }] : [];
+}
+
+const web = async (src: ImageMetadata, width: number) => (await getImage({ src, width, format: "webp" })).src;
+const framed = prints.slice(0, 3);
+const room = {
+    wallpaper: await web(prints[1].image, 2048),
+    billion: [await web(billionBrowse, 720), await web(billionFeed, 720)],
+    quillium: await web(quillium, 1600),
+    prints: await Promise.all(framed.map(async (print) => ({ src: await web(print.image, 1024), aspect: print.image.width / print.image.height }))),
+};
+---
+
+<Layout title="Bryan Hu — The Room" description="A walk through the room where I build apps, take photographs and play music.">
+    <main class="room" data-room={JSON.stringify(room)} data-state="loading">
+        <p class="room-status t-caption" data-room-status role="status"></p>
+        <div class="room-track" data-room-track>
+            <div class="room-stage">
+                <canvas class="room-canvas" data-room-canvas aria-hidden="true"></canvas>
+                <div class="room-shade" aria-hidden="true"></div>
+            </div>
+
+            <div class="room-chapters">
+                <section class="chapter chapter-hero" data-chapter="hero">
+                    <h1 class="t-title">
+                        <span class="text-fg-muted">Hi, I’m</span> Bryan.
+                    </h1>
+                    <p class="t-lede">I build apps and open-source tools. <span class="text-fg-muted">I also make photographs and music.</span></p>
+                    <p class="hand cue">come in. scroll.</p>
+                </section>
+
+                <section class="chapter chapter-left chapter-screen" data-chapter="idea">
+                    <h2 class="t-title">From idea <span class="text-fg-muted">to app.</span></h2>
+                    <p class="t-lede">I build full-stack apps, from the interface to the systems behind it.</p>
+                </section>
+
+                <section class="chapter chapter-left chapter-screen" data-chapter="billion">
+                    <p class="name">Billion</p>
+                    <h2 class="t-title">Follow what changes.</h2>
+                    <p class="t-lede">I’m building Billion to make bills, executive orders, and court rulings easier to follow.</p>
+                    <div class="links">
+                        <a class="btn btn-primary" href="/products/billion">Explore Billion <span aria-hidden="true">→</span></a>
+                        <a class="a-underline" href="https://www.billion-news.app/">billion-news.app <span aria-hidden="true">↗</span></a>
+                    </div>
+                </section>
+
+                <section class="chapter chapter-left chapter-screen" data-chapter="quillium">
+                    <p class="name">Quillium</p>
+                    <h2 class="t-title">Version control for prose.</h2>
+                    <p class="t-lede">Write a sentence three ways and decide later. Quillium keeps every version inside the document.</p>
+                    <div class="links">
+                        <a class="btn btn-primary" href="/products/quillium">Explore Quillium <span aria-hidden="true">→</span></a>
+                        <a class="a-underline" href="https://quillium.bryanhu.com/">quillium.bryanhu.com <span aria-hidden="true">↗</span></a>
+                    </div>
+                </section>
+
+                <section class="chapter chapter-right" data-chapter="photography">
+                    <p class="hand">I also point cameras at things.</p>
+                    <h2 class="t-title">Look <span class="text-fg-muted">closer.</span></h2>
+                    <p class="t-lede">I photograph, operate cameras, and switch live productions. Then comes the editing, color grading, and sound.</p>
+                    <div class="links">
+                        <a class="btn btn-ghost" href="/photography">See the photographs <span aria-hidden="true">↗</span></a>
+                    </div>
+                </section>
+
+                <section class="chapter chapter-left" data-chapter="trombone">
+                    <p class="hand">there’s usually music involved.</p>
+                    <h2 class="t-title">Slide, <span class="text-fg-muted">not valves.</span></h2>
+                </section>
+
+                <section class="chapter chapter-left" data-chapter="piano">
+                    <h2 class="t-title">Keys, <span class="text-fg-muted">too.</span></h2>
+                    <p class="t-lede">I’m a pianist and trombonist. I perform solo, play in concert and jazz bands, and release music.</p>
+                    <div class="links">
+                        <a class="btn btn-ghost" href="https://open.spotify.com/artist/3CfXIgxCs9Sv7eVgZzqSEj">Spotify <span aria-hidden="true">↗</span></a>
+                        <a class="btn btn-ghost" href="https://music.apple.com/us/artist/bryan-hu/1751789628">Apple Music <span aria-hidden="true">↗</span></a>
+                    </div>
+                </section>
+
+                <section class="chapter chapter-end" data-chapter="end">
+                    <h2 class="t-title">I build things, <span class="text-fg-muted">then I rebuild them.</span></h2>
+                    <div class="links">
+                        <a class="btn btn-primary" href={`mailto:${resume.email}`}>{resume.email}</a>
+                        <a class="btn btn-ghost" href="/resume.pdf">Résumé <span aria-hidden="true">↗</span></a>
+                        <a class="a-underline" href="/">The regular site <span aria-hidden="true">→</span></a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Only shown once the script takes over; without it, the page is the static version. -->
+        <div class="room-loader" data-room-loader>
+            <div class="loader-line">
+                <p class="loader-readout t-caption" role="status" aria-live="polite">
+                    <span data-loader-label>Moving the furniture in</span>
+                    <span class="tnum" data-loader-readout>0%</span>
+                </p>
+                <div class="loader-track" aria-hidden="true"><i data-loader-bar></i></div>
+                <button class="btn btn-primary loader-enter" type="button" data-loader-enter hidden>Come in <span aria-hidden="true">↓</span></button>
+            </div>
+            <PlayablePiano />
+        </div>
+    </main>
+</Layout>
+
+<style>
+    .room-track {
+        position: relative;
+    }
+    .room-stage {
+        display: none;
+    }
+    .room-chapters {
+        display: grid;
+        gap: 6rem;
+        padding: 8rem var(--page-edge);
+    }
+    .room {
+        --piano-h: clamp(5.75rem, 17svh, 10.5rem);
+    }
+    .room-status {
+        display: none;
+        margin: 0;
+        padding: 6rem var(--page-edge) 0;
+        color: var(--color-fg-muted);
+    }
+    .room[data-state="fallback"] .room-status {
+        display: block;
+    }
+
+    /* The wait: a progress line over a piano along the bottom of the screen. */
+    .room-loader {
+        display: none;
+    }
+    .room[data-loader] .room-loader {
+        position: fixed;
+        inset: auto 0 0;
+        z-index: 5;
+        display: grid;
+        gap: 3.75rem;
+        transition:
+            translate 700ms var(--spring),
+            opacity 450ms ease;
+    }
+    .room-loader[data-leaving] {
+        translate: 0 calc(100% + 2rem);
+        opacity: 0;
+    }
+    .loader-line {
+        justify-self: end;
+        width: min(17rem, 60vw);
+        margin-right: var(--page-edge);
+        display: grid;
+        gap: 0.6rem;
+    }
+    .loader-readout {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 0;
+        color: var(--color-fg-muted);
+    }
+    .loader-track {
+        height: 1px;
+        background: var(--color-hairline);
+        overflow: hidden;
+    }
+    .loader-track i {
+        display: block;
+        height: 100%;
+        background: var(--color-fg);
+        transform-origin: 0 50%;
+        transform: scaleX(0);
+        transition: transform 300ms ease-out;
+    }
+    .loader-enter {
+        justify-self: end;
+        margin-top: 0.4rem;
+    }
+    .room[data-loader]:not([data-loader="off"]) .cue {
+        opacity: 0;
+    }
+    /* The intro waits above the keys, then settles to its place as they drop away. */
+    .chapter-hero {
+        transition: bottom 700ms var(--spring);
+    }
+    .room[data-state][data-loader="on"] .chapter-hero {
+        bottom: calc(var(--piano-h) + 9.5rem);
+    }
+
+    /* Live: the track becomes the film's length and everything else floats over the stage. */
+    .room:is([data-state="loading"], [data-state="live"]) .room-track {
+        height: 1400vh;
+    }
+    .room:is([data-state="loading"], [data-state="live"]) .room-stage {
+        display: block;
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        overflow: hidden;
+        background: #050506;
+    }
+    .room-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1200ms var(--spring);
+    }
+    .room[data-state="live"] .room-canvas {
+        opacity: 1;
+    }
+    .room-shade {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55));
+    }
+    .room:is([data-state="loading"], [data-state="live"]) .room-chapters {
+        position: fixed;
+        inset: 0;
+        display: block;
+        padding: 0;
+        pointer-events: none;
+    }
+    .room:is([data-state="loading"], [data-state="live"]) .chapter {
+        position: absolute;
+        opacity: 0;
+        will-change: opacity, transform;
+    }
+    .room[data-state="loading"] .chapter-hero {
+        opacity: 1;
+    }
+
+    .chapter {
+        max-width: 34rem;
+        display: grid;
+        gap: 1.1rem;
+        text-shadow: 0 1px 24px rgb(0 0 0 / 0.5);
+    }
+    /* Type over footage needs a floor to stand on, wherever on screen it lands. */
+    .room:is([data-state="loading"], [data-state="live"]) .chapter::before {
+        content: "";
+        position: absolute;
+        inset: -45% -35%;
+        z-index: -1;
+        background: radial-gradient(closest-side, rgb(5 5 6 / 0.7), rgb(5 5 6 / 0.35) 60%, transparent);
+        pointer-events: none;
+    }
+    .chapter-left {
+        left: var(--page-edge);
+        top: 50%;
+        translate: 0 -50%;
+    }
+    /* Over the laptop's display the words share the frame with app windows, so they give up width first. */
+    .chapter-screen {
+        max-width: min(30rem, 36vw);
+    }
+    .chapter-right {
+        right: var(--page-edge);
+        top: 50%;
+        translate: 0 -50%;
+    }
+    .chapter-hero {
+        left: var(--page-edge);
+        bottom: 14vh;
+    }
+    .chapter-end {
+        left: 50%;
+        top: 50%;
+        translate: -50% -50%;
+        text-align: center;
+        justify-items: center;
+        max-width: 44rem;
+    }
+    .chapter .t-title {
+        margin: 0;
+    }
+    .chapter .t-lede {
+        margin: 0;
+    }
+    .name {
+        font-weight: 600;
+        color: var(--color-fg-muted);
+        margin: 0;
+    }
+    .cue {
+        margin-top: 1rem;
+        color: var(--color-fg-muted);
+    }
+    .links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem 1.25rem;
+        margin-top: 0.5rem;
+    }
+
+    @media (max-width: 760px) {
+        .room {
+            --piano-h: clamp(5.5rem, 14svh, 7.25rem);
+        }
+        .room-shade {
+            background: linear-gradient(0deg, rgb(5 5 6 / 0.85), rgb(5 5 6 / 0) 55%);
+        }
+        .room:is([data-state="loading"], [data-state="live"]) :is(.chapter-left, .chapter-right, .chapter-hero) {
+            left: var(--page-edge);
+            right: var(--page-edge);
+            top: auto;
+            bottom: 7vh;
+            translate: none;
+        }
+        .chapter-end {
+            width: calc(100% - 2 * var(--page-edge));
+        }
+        .chapter-screen {
+            max-width: none;
+        }
+    }
+</style>
+
+<script>
+    import { lifetime } from "../../lib/motion";
+    import { initRoomFilm } from "../../lib/room/film";
+
+    const root = document.querySelector<HTMLElement>(".room");
+    if (root) initRoomFilm(root, lifetime());
+</script>

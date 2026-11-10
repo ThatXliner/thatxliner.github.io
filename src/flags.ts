@@ -26,4 +26,6 @@ function enabled(envVar: string): boolean {
 export const FEATURES = {
     /** /art — the gallery of code, photography and music. */
     art: enabled("ENABLE_ART"),
+    /** /room — the homepage as one continuous camera move through a 3D room. */
+    room: true,
 } as const;

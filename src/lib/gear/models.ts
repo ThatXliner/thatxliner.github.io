@@ -5,7 +5,11 @@ import { type Body, type Lens } from "./catalog";
 import { modelUrl } from "./model-urls";
 
 /** Blender-authored meshes with optical elements, surface normals and engraved controls. */
-export async function loadModelLibrary(initialIds: string[]) {
+export async function loadModelLibrary(
+  initialIds: string[],
+  /** Bytes as they arrive, per model; `total` is 0 until the server says. */
+  onProgress?: (id: string, loaded: number, total: number) => void,
+) {
   // Decode compressed meshes off the UI thread when workers are available.
   if (typeof Worker !== "undefined") MeshoptDecoder.useWorkers(1);
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
@@ -38,7 +42,9 @@ export async function loadModelLibrary(initialIds: string[]) {
         const existing = pending.get(id);
         if (existing) return existing;
         const request = (async () => {
-          const { scene } = await loader.loadAsync(modelUrl(id));
+          const { scene } = await loader.loadAsync(modelUrl(id), (event) =>
+            onProgress?.(id, event.loaded, event.lengthComputable ? event.total : 0),
+          );
           scene.traverse((object) => {
             if (!(object instanceof THREE.Mesh)) return;
             geometries.add(object.geometry);
