@@ -7,6 +7,9 @@ import { resume } from "@/data/resume";
 import { prints } from "@/data/print-selection";
 import { photographs } from "@/data/photography";
 import RoomOS from "@/components/RoomOS.astro";
+import RoomPlaces from "@/components/RoomPlaces.astro";
+import { stops } from "@/data/story";
+import { getReleases } from "@/data/music";
 import billionSite from "@/assets/room/billion-site.png";
 import quilliumSite from "@/assets/room/quillium-site.png";
 import quilliumSiteLight from "@/assets/room/quillium-site-light.png";
@@ -23,7 +26,11 @@ export function getStaticPaths() {
 const web = async (src: ImageMetadata, width: number) => (await getImage({ src, width, format: "webp" })).src;
 // Every photograph Bryan has picked as featured hangs on the back wall.
 const framed = prints;
+const releases = await getReleases();
 const room = {
+    // The path, stitched into the rug; the releases, on the music room's records.
+    story: stops.map(({ year, title }) => ({ year, title })),
+    releases: releases.map(({ title, artwork }) => ({ title, artwork })),
     wallpaper: await web(prints[1].image, 2048),
     // How the two product sites looked when captured; the live ones load in iframes at the desk.
     billion: await web(billionSite, 1520),
@@ -70,7 +77,7 @@ const room = {
                         <span class="text-fg-muted">Hi, I’m</span> Bryan.
                     </h1>
                     <p class="t-lede">I build apps and open-source tools. <span class="text-fg-muted">I also make photographs and music.</span></p>
-                    <p class="hand cue">come in. scroll.</p>
+                    <p class="cue"><span class="hand">come in. scroll.</span> <button type="button" class="skip" data-skip>or skip to the end <span aria-hidden="true">↓</span></button></p>
                 </section>
 
                 <section class="chapter chapter-right" data-chapter="photography">
@@ -97,6 +104,7 @@ const room = {
                 </section>
 
                 <section class="chapter chapter-end" data-chapter="end">
+                    <p class="hand explore-hint">the tour’s over. click any dot to walk over.</p>
                     <h2 class="t-title">I build things, <span class="text-fg-muted">then I rebuild them.</span></h2>
                     <div class="links">
                         <a class="btn btn-primary" href={`mailto:${resume.email}`}>{resume.email}</a>
@@ -108,6 +116,7 @@ const room = {
         </div>
 
         <RoomOS />
+        <RoomPlaces releases={releases} />
 
         <!-- The gallery through the door. The camera does the walking; these are the words. -->
         <div class="hall" data-hall hidden>
@@ -226,6 +235,7 @@ const room = {
     }
     .room[data-loader]:not([data-loader="off"]) .cue {
         opacity: 0;
+        visibility: hidden;
     }
     /* The intro waits above the keys, then settles to its place as they drop away. */
     .chapter-hero {
@@ -318,13 +328,37 @@ const room = {
         left: var(--page-edge);
         bottom: 14vh;
     }
+    /* The end of the tour is the start of exploring: the words step to a
+       corner so the room, and its dots, have the middle. */
     .chapter-end {
-        left: 50%;
-        top: 50%;
-        translate: -50% -50%;
-        text-align: center;
-        justify-items: center;
-        max-width: 44rem;
+        left: var(--page-edge);
+        bottom: 7vh;
+        max-width: 34rem;
+    }
+    .chapter-end .t-title {
+        font-size: clamp(2rem, 4.2vw, 3.6rem);
+    }
+    .explore-hint {
+        margin: 0;
+        color: #7fa8ff;
+        font-size: 1.15rem;
+    }
+    .skip {
+        margin-left: 0.6rem;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--color-fg-muted);
+        font: inherit;
+        font-size: 0.875rem;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        text-decoration-color: var(--color-hairline-strong);
+        cursor: pointer;
+        pointer-events: auto;
+    }
+    .skip:hover {
+        color: var(--color-fg);
     }
     .chapter .t-title {
         margin: 0;
@@ -339,6 +373,9 @@ const room = {
     }
     .cue {
         margin-top: 1rem;
+        color: var(--color-fg-muted);
+    }
+    .cue .hand {
         color: var(--color-fg-muted);
     }
     .links {
@@ -560,8 +597,10 @@ const room = {
             bottom: 7vh;
             translate: none;
         }
-        .chapter-end {
-            width: calc(100% - 2 * var(--page-edge));
+        .room:is([data-state="loading"], [data-state="live"]) .chapter-end {
+            left: var(--page-edge);
+            right: var(--page-edge);
+            bottom: 5vh;
         }
     }
 </style>

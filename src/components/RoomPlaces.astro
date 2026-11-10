@@ -1,0 +1,620 @@
+---
+import { Icon } from "astro-icon/components";
+import GearLoadout from "./GearLoadout.astro";
+import PlayableTrombone from "./PlayableTrombone.astro";
+import { stops, alongTheWay } from "@/data/story";
+import { instruments, streaming, type Release } from "@/data/music";
+import { resume } from "@/data/resume";
+import { getAllRepositories, getForkedRepositories, getGitHubStats } from "@/lib/github";
+
+/**
+ * Everything you can walk up to in /room once the tour is over: the dots
+ * that mark each thing, and what opens when the camera gets there. The film
+ * (lib/room/film.ts) moves the camera and shows one of these at a time.
+ */
+interface Props {
+    releases: Release[];
+}
+const { releases } = Astro.props;
+
+const [repositories, forks, stats] = await Promise.all([getAllRepositories(), getForkedRepositories(), getGitHubStats()]);
+const stars = repositories.filter((repo) => repo.isPublic).reduce((sum, repo) => sum + repo.starCount, 0);
+const upstream = forks.filter((repo) => repo.isPublic).length;
+const year = new Date().getFullYear();
+const releaseDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+const hotspots = [
+    { id: "desk", label: "Sit at the desk" },
+    { id: "gear", label: "Open the camera bag" },
+    { id: "path", label: "The path I took" },
+    { id: "recognition", label: "Awards & the team" },
+    { id: "music", label: "The music room" },
+    { id: "photographs", label: "The photographs" },
+];
+---
+
+<div class="hotspots">
+    {
+        hotspots.map(({ id, label }) => (
+            <button type="button" class="hotspot" data-hotspot={id} aria-label={label} hidden>
+                <span class="hotspot-dot" aria-hidden="true" />
+                <span class="hotspot-label" aria-hidden="true">{label}</span>
+            </button>
+        ))
+    }
+</div>
+
+<!-- The rug: the path, stop by stop. -->
+<aside class="place-panel" data-panel="path" aria-labelledby="path-title" hidden>
+    <header>
+        <p class="hand">a few turns along the way.</p>
+        <h2 id="path-title">How I got here.</h2>
+        <button type="button" class="place-close" data-place-close aria-label="Back to the room">×</button>
+    </header>
+    <p class="place-lede">Music, software, and learning to build with other people. Pick a stop, here or on the rug.</p>
+    <ol class="stops">
+        {
+            stops.map((stop, i) => (
+                <li>
+                    <button type="button" data-stop={i} aria-expanded={i === 0 ? "true" : "false"}>
+                        <span class="stop-year hand">{stop.year}</span>
+                        <span class="stop-title">{stop.title}</span>
+                    </button>
+                    <div class="stop-body">
+                        <p>{stop.body}</p>
+                        {stop.awards.length > 0 && (
+                            <ul class="stop-awards">
+                                {stop.awards.map((award) => (
+                                    <li>{stop.team ? `${award} (with FRC Team 3256)` : award}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {stop.link && (
+                            <a class="a-underline" href={stop.link}>
+                                {stop.linkText} <span aria-hidden="true">→</span>
+                            </a>
+                        )}
+                    </div>
+                </li>
+            ))
+        }
+    </ol>
+    <p class="place-note">Along the way: {alongTheWay.join(", ")}.</p>
+</aside>
+
+<!-- The shelf: awards, the team, and the open-source work. -->
+<aside class="place-panel" data-panel="recognition" aria-labelledby="recognition-title" hidden>
+    <header>
+        <p class="hand">the receipts.</p>
+        <h2 id="recognition-title">Awards &amp; the team.</h2>
+        <button type="button" class="place-close" data-place-close aria-label="Back to the room">×</button>
+    </header>
+    <h3>Selected recognition</h3>
+    <ul class="ledger">
+        <li><span>Congressional App Challenge 2025</span><b>3rd place · CA-19</b></li>
+        {resume.awards.map((award) => <li><a href={award.url}>{award.label} <span aria-hidden="true">↗</span></a></li>)}
+    </ul>
+    <h3>Robotics · FRC Team 3256</h3>
+    <ul class="ledger">
+        {resume.frcAwards.map((award) => <li><a href={award.url}>{award.label} <span aria-hidden="true">↗</span></a><b class="tnum">{award.year}</b></li>)}
+    </ul>
+    <h3>Code is only part of it</h3>
+    <div class="roles">
+        {
+            resume.contributions.map((role) => (
+                <article>
+                    <p class="hand">{role.role}</p>
+                    <h4>
+                        <a href={role.url}>
+                            {role.name} <span aria-hidden="true">↗</span>
+                        </a>
+                    </h4>
+                    <p>{role.description}</p>
+                </article>
+            ))
+        }
+    </div>
+    <h3>Open source</h3>
+    <p class="place-lede">I publish Python libraries and developer tools, maintain them in public, and contribute fixes to projects I use.</p>
+    <dl class="figures tnum">
+        <div><dt>Stars on my public work</dt><dd>{stars.toLocaleString("en-US")}</dd></div>
+        <div><dt>Contributions this year</dt><dd>{stats.totalContributions.toLocaleString("en-US")}</dd></div>
+        <div><dt>Upstream projects with merged PRs</dt><dd>{upstream}</dd></div>
+    </dl>
+    <div class="place-links">
+        <a class="btn btn-primary" href="/thelist">All my projects <span aria-hidden="true">→</span></a>
+        <a class="a-underline" href="https://github.com/search?q=author%3AThatXliner+is%3Apr+is%3Amerged&type=pullrequests">Merged contributions <span aria-hidden="true">↗</span></a>
+    </div>
+</aside>
+
+<!-- The music room. -->
+<aside class="place-panel" data-panel="music" aria-labelledby="music-title" hidden>
+    <header>
+        <p class="hand">there’s usually music involved.</p>
+        <h2 id="music-title">The music room.</h2>
+        <button type="button" class="place-close" data-place-close aria-label="Back to the room">×</button>
+    </header>
+    <p class="place-lede">I’m a pianist and trombonist. I perform solo, play in concert and jazz bands, and release music.</p>
+    {
+        releases.length > 0 && (
+            <>
+                <h3>Releases</h3>
+                <ul class="releases">
+                    {releases.map((release) => (
+                        <li>
+                            <a href={release.url}>
+                                <img src={release.artwork} alt="" width="64" height="64" loading="lazy" />
+                                <span>
+                                    <b>{release.title}</b>
+                                    <small>{releaseDate(release.date)}</small>
+                                </span>
+                                <span aria-hidden="true">↗</span>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </>
+        )
+    }
+    <div class="place-links">
+        <a class="btn btn-ghost" href={streaming.spotify}><Icon name="simple-icons:spotify" aria-hidden="true" class="size-4" /> Spotify <span aria-hidden="true">↗</span></a>
+        <a class="btn btn-ghost" href={streaming.appleMusic}><Icon name="simple-icons:applemusic" aria-hidden="true" class="size-4" /> Apple Music <span aria-hidden="true">↗</span></a>
+    </div>
+    <h3>Instruments</h3>
+    <div class="instruments">
+        {
+            instruments.map((instrument) => (
+                <article>
+                    <h4>
+                        {instrument.name} <span class="tnum">{year - instrument.since} years</span>
+                    </h4>
+                    <p class="place-note">
+                        {instrument.role} · since {instrument.since}
+                    </p>
+                    <ul>
+                        {instrument.awards.map((award) => (
+                            <li>{award}</li>
+                        ))}
+                    </ul>
+                </article>
+            ))
+        }
+    </div>
+    <h3>Try the trombone</h3>
+    <div class="toy"><PlayableTrombone /></div>
+</aside>
+
+<!-- The camera bag: what I shoot with, and the gear itself to play with. -->
+<div class="gear-sheet" data-gear-sheet role="dialog" aria-modal="true" aria-labelledby="gear-title" hidden>
+    <div class="gear-top">
+        <div>
+            <p class="hand">I also point cameras at things.</p>
+            <h2 id="gear-title">Behind the camera.</h2>
+        </div>
+        <ul class="production">
+            {
+                resume.production.map((job) => (
+                    <li>
+                        <b>{job.title}</b>
+                        <span>
+                            {job.detail} · {job.context}
+                        </span>
+                    </li>
+                ))
+            }
+        </ul>
+        <button type="button" class="place-close" data-place-close aria-label="Close the bag">×</button>
+    </div>
+    <GearLoadout />
+</div>
+
+<style>
+    .hotspots {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+    }
+    /* A 28px target centred on the projected point. */
+    .hotspot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 28px;
+        height: 28px;
+        margin: -14px 0 0 -14px;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        pointer-events: auto;
+        will-change: transform;
+    }
+    .hotspot[hidden] {
+        display: none;
+    }
+    /* A quiet mark: a bright centre in a soft ring, like a light on a lens. */
+    .hotspot-dot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fff 0 4px, rgb(255 255 255 / 0.18) 5px 100%);
+        box-shadow:
+            0 0 0 1.5px rgb(255 255 255 / 0.7),
+            0 2px 12px rgb(0 0 0 / 0.35);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        transition: scale 0.4s var(--spring-lively);
+    }
+    .hotspot:hover .hotspot-dot,
+    .hotspot:focus-visible .hotspot-dot {
+        scale: 1.2;
+    }
+    .hotspot-label {
+        position: absolute;
+        left: 36px;
+        top: 50%;
+        translate: 0 -50%;
+        padding: 0.3rem 0.75rem;
+        border-radius: 980px;
+        background: rgb(18 18 21 / 0.86);
+        color: var(--color-fg);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        transition:
+            opacity 0.2s,
+            translate 0.35s var(--spring);
+        translate: -4px -50%;
+        pointer-events: none;
+    }
+    .hotspot:hover .hotspot-label,
+    .hotspot:focus-visible .hotspot-label {
+        opacity: 1;
+        translate: 0 -50%;
+    }
+    .hotspot:focus-visible {
+        outline: none;
+    }
+    .hotspot:focus-visible .hotspot-dot {
+        box-shadow:
+            0 0 0 2px #7fa8ff,
+            0 2px 12px rgb(0 0 0 / 0.35);
+    }
+
+    /* One solid surface, one hairline: a panel, not a pane of frosted glass. */
+    .place-panel {
+        position: fixed;
+        z-index: 6;
+        top: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        width: min(27rem, calc(100vw - 2rem));
+        overflow: auto;
+        overscroll-behavior: contain;
+        padding: 1.5rem 1.5rem 2rem;
+        border-radius: 1.25rem;
+        background: rgb(18 18 21 / 0.94);
+        box-shadow:
+            0 0 0 1px var(--color-hairline),
+            0 2rem 4rem rgb(0 0 0 / 0.4);
+        color: var(--color-fg);
+        animation: panel-in 0.5s var(--spring);
+    }
+    .place-panel[hidden] {
+        display: none;
+    }
+    @keyframes panel-in {
+        from {
+            opacity: 0;
+            translate: 2rem 0;
+        }
+    }
+    .place-panel header {
+        position: relative;
+        padding-right: 2.5rem;
+    }
+    .place-panel .hand,
+    .gear-sheet .hand {
+        margin: 0;
+        color: #7fa8ff;
+        font-size: 1.1rem;
+    }
+    .place-panel h2,
+    .gear-sheet h2 {
+        margin: 0.2rem 0 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+    }
+    .place-panel h3 {
+        margin: 1.8rem 0 0.6rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--color-fg-muted);
+    }
+    .place-panel h4 {
+        margin: 0 0 0.3rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .place-lede {
+        margin: 0.8rem 0 0;
+        color: var(--color-fg-muted);
+        line-height: 1.5;
+    }
+    .place-note {
+        margin: 1rem 0 0;
+        color: var(--color-fg-dim);
+        font-size: 0.875rem;
+    }
+    .place-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid var(--color-hairline-strong);
+        border-radius: 50%;
+        background: none;
+        color: var(--color-fg);
+        font: inherit;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+    .place-close:hover {
+        background: rgb(255 255 255 / 0.08);
+    }
+    .place-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem 1.25rem;
+        margin-top: 1.25rem;
+    }
+
+    .stops {
+        margin: 1.4rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.25rem;
+    }
+    .stops button {
+        display: grid;
+        grid-template-columns: 4.8rem 1fr;
+        align-items: baseline;
+        width: 100%;
+        padding: 0.6rem 0.7rem;
+        border: 0;
+        border-radius: 0.6rem;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+    .stops button:hover {
+        background: rgb(255 255 255 / 0.05);
+    }
+    .stops button[aria-expanded="true"] {
+        background: rgb(243 199 107 / 0.1);
+    }
+    .stop-year {
+        color: #f3c76b;
+        font-size: 1.05rem;
+    }
+    .stop-title {
+        font-weight: 600;
+    }
+    .stop-body {
+        display: none;
+        padding: 0.2rem 0.7rem 0.8rem 5.5rem;
+        color: var(--color-fg-muted);
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+    .stop-body p {
+        margin: 0;
+    }
+    li:has(> [aria-expanded="true"]) .stop-body {
+        display: grid;
+        gap: 0.6rem;
+    }
+    .stop-awards {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--color-fg);
+    }
+
+    .ledger {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .ledger li {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.55rem 0;
+        border-bottom: 1px solid var(--color-hairline);
+        font-size: 0.9375rem;
+    }
+    .ledger b {
+        flex: none;
+        font-weight: 500;
+        color: var(--color-fg-muted);
+    }
+    .roles {
+        display: grid;
+        gap: 1.2rem;
+    }
+    .roles p {
+        margin: 0;
+        color: var(--color-fg-muted);
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+    .roles .hand {
+        font-size: 1rem;
+    }
+    .figures {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+        margin: 1rem 0 0;
+    }
+    .figures div {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 0.2rem;
+    }
+    .figures dt {
+        color: var(--color-fg-dim);
+        font-size: 0.75rem;
+        line-height: 1.3;
+    }
+    .figures dd {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .releases {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.5rem;
+    }
+    .releases a {
+        display: grid;
+        grid-template-columns: 3.5rem 1fr auto;
+        gap: 0.9rem;
+        align-items: center;
+        padding: 0.4rem;
+        border-radius: 0.7rem;
+    }
+    .releases a:hover {
+        background: rgb(255 255 255 / 0.05);
+    }
+    .releases img {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 0.35rem;
+        object-fit: cover;
+    }
+    .releases span {
+        display: grid;
+    }
+    .releases small {
+        color: var(--color-fg-dim);
+    }
+    .instruments {
+        display: grid;
+        gap: 1rem;
+    }
+    .instruments h4 span {
+        margin-left: 0.4rem;
+        color: var(--color-fg-dim);
+        font-weight: 400;
+    }
+    .instruments .place-note {
+        margin: 0;
+    }
+    .instruments ul {
+        margin: 0.4rem 0 0;
+        padding-left: 1.1rem;
+        color: var(--color-fg-muted);
+        font-size: 0.9375rem;
+    }
+    .toy {
+        margin-top: 0.4rem;
+        padding: 1rem 0.5rem;
+        border-radius: 0.8rem;
+        background: rgb(255 255 255 / 0.03);
+    }
+
+    .gear-sheet {
+        position: fixed;
+        z-index: 7;
+        inset: 2.5vh 2.5vw;
+        overflow: auto;
+        overscroll-behavior: contain;
+        padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 2rem;
+        border-radius: 1.25rem;
+        background: rgb(12 12 14 / 0.97);
+        box-shadow:
+            0 0 0 1px var(--color-hairline),
+            0 2rem 5rem rgb(0 0 0 / 0.55);
+        animation: sheet-in 0.55s var(--spring);
+    }
+    .gear-sheet[hidden] {
+        display: none;
+    }
+    @keyframes sheet-in {
+        from {
+            opacity: 0;
+            translate: 0 3rem;
+        }
+    }
+    .gear-top {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem 2.5rem;
+        padding-right: 3rem;
+    }
+    .production {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        gap: 0.6rem 1.6rem;
+        flex: 1 1 32rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.875rem;
+    }
+    .production li {
+        display: grid;
+    }
+    .production span {
+        color: var(--color-fg-dim);
+    }
+    .gear-sheet :global(.loadout) {
+        margin-top: 2rem;
+    }
+
+    @media (max-width: 760px) {
+        .place-panel {
+            top: auto;
+            left: 0.5rem;
+            right: 0.5rem;
+            bottom: 0.5rem;
+            width: auto;
+            max-height: 58svh;
+            animation-name: panel-up;
+        }
+        @keyframes panel-up {
+            from {
+                opacity: 0;
+                translate: 0 2rem;
+            }
+        }
+        .gear-sheet {
+            inset: 0;
+            border-radius: 0;
+        }
+        .figures {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

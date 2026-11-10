@@ -51,6 +51,10 @@ const CHAPTERS: Record<string, readonly [number, number]> = {
     end: BEATS.end.words,
 };
 
+/** Somewhere you can go from the room, each with its own URL hash. */
+export type PlaceId = "desk" | "gear" | "path" | "recognition" | "music" | "photographs";
+const PLACES: PlaceId[] = ["desk", "gear", "path", "recognition", "music", "photographs"];
+
 interface Key {
     at: number;
     shot: Shot;
@@ -90,8 +94,9 @@ function shotsFor(room: RoomScene, aspect: number): Key[] {
         { at: BEATS.piano.arrive, shot: piano },
         { at: BEATS.piano.hold, shot: piano },
         // Everything at once, after dark, still drifting back.
-        { at: BEATS.end.arrive, shot: { position: v(0.2, 1.75, 2.45), target: v(0, 1.05, -1.2), fov: wide + 6 } },
-        { at: 1, shot: { position: v(0.2, 1.8, 2.5), target: v(0, 1.05, -1.2), fov: wide + 6 } },
+        // The whole room in one look, rug and shelf included: where exploring starts.
+        { at: BEATS.end.arrive, shot: { position: v(0.45, 2.1, 2.45), target: v(0.05, 0.78, -0.9), fov: portrait ? 72 : 56 } },
+        { at: 1, shot: { position: v(0.45, 2.15, 2.5), target: v(0.05, 0.78, -0.9), fov: portrait ? 72 : 56 } },
     ];
 }
 
@@ -151,6 +156,8 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             labels: data.labels,
             prints,
             photographs: (data.photographs as HallPhoto[]).map(({ thumb, aspect }) => ({ thumb, aspect })),
+            story: data.story,
+            releases: data.releases,
             onProgress: loader.progress,
         });
     } catch (error) {
@@ -250,74 +257,146 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         }
     }
 
-    // ── Other rooms ──────────────────────────────────────────────────────
-    // "film": the camera follows the scroll. "fly": it's travelling between
-    // rooms along a path. "gallery": it's in the photographs' hall, and
-    // scrolling walks the wall instead of moving the page.
-    let mode: "film" | "fly" | "gallery" = "film";
-    let flight: { positions: THREE.CatmullRomCurve3; targets: THREE.CatmullRomCurve3; fovs: number[]; start: number; duration: number; to: "film" | "gallery" } | null = null;
+    // ── Places ───────────────────────────────────────────────────────────
+    // The scroll is the guided tour. When it's over you're left standing in
+    // the room, and anything with a dot can be walked up to: a "place". Four
+    // are in this room (the desk, the camera bag, the rug, the shelf) and two
+    // are through doors (the gallery and the music room). Each has a URL
+    // hash, so it can be linked to, and the back button walks you out again.
+    //
+    // "film": the camera follows the scroll. "fly": it's travelling to or from
+    // a place. "place": it's there, and the page doesn't scroll underneath.
+    let mode: "film" | "fly" | "place" = "film";
+    let place: PlaceId | null = null;
+    let flight: { positions: THREE.CatmullRomCurve3; targets: THREE.CatmullRomCurve3; fovs: number[]; start: number; duration: number; to: PlaceId | null } | null = null;
     /** Where the film was when we left it, so coming back lands in the same moment. */
     let filmShown = 0;
     let walk = 0;
     let walkTarget = 0;
-    let hallDirty = false;
+    let dirty = false;
+    let bag = 0;
+    let bagTarget = 0;
+    let coversLoaded = false;
     const portrait = () => canvas.clientWidth / canvas.clientHeight < 0.9;
     const copy = (s: Shot): Shot => ({ position: s.position.clone(), target: s.target.clone(), fov: s.fov });
+    const panels = new Map(PLACES.map((id) => [id, root.querySelector<HTMLElement>(`[data-panel="${id}"]`)]));
+    const gearSheet = root.querySelector<HTMLElement>("[data-gear-sheet]")!;
+    const html = document.documentElement;
 
-    function fly(stops: Shot[], to: "film" | "gallery") {
+    /** Where the camera stands for each place. */
+    function placeShot(id: PlaceId): Shot {
+        const a = room.anchors;
+        const p = portrait();
+        switch (id) {
+            case "desk":
+                return deskShot(room, canvas.clientWidth / canvas.clientHeight);
+            case "gear":
+                // Crouched in front of the desk, looking down into the bag.
+                return { position: a.bag.clone().add(v(0.16, 0.6, p ? 1.05 : 0.9)), target: a.bag.clone().add(v(0, -0.03, 0)), fov: p ? 54 : 40 };
+            case "path":
+                // Straight down onto the rug, shifted so it sits left of the panel.
+                // A phone can't fit the rug from under the ceiling, so it looks on at an angle.
+                return p
+                    ? { position: a.rug.clone().add(v(0, 2.35, 1.35)), target: a.rug.clone().add(v(0, 0, -0.1)), fov: 58 }
+                    : { position: a.rug.clone().add(v(0.5, 2.55, 0.002)), target: a.rug.clone().add(v(0.5, 0, 0)), fov: 44 };
+            case "recognition":
+                return p
+                    ? { position: v(0.55, 1.45, -0.3), target: v(2.2, 1.42, -0.3), fov: 62 }
+                    : { position: v(0.9, 1.5, 0.15), target: v(2.2, 1.42, -0.62), fov: 44 };
+            case "music":
+                return room.music.view(p);
+            case "photographs":
+                return room.gallery.walk(walk, p);
+        }
+    }
+    /** The doorways a place is reached through, in order from the room. */
+    const via = (id: PlaceId): Shot[] =>
+        id === "photographs" ? [room.gallery.doorway.outside, room.gallery.doorway.inside] : id === "music" ? [room.music.doorway.outside, room.music.doorway.inside] : [];
+    /** Rise and turn before crossing the room, so the path clears the desk and the piano. */
+    const lift = (from: Shot, toward: Shot): Shot => ({
+        position: from.position.clone().lerp(toward.position, 0.45).setY(Math.max(1.35, (from.position.y + toward.position.y) / 2)),
+        target: toward.target.clone(),
+        fov: (from.fov + toward.fov) / 2,
+    });
+
+    function fly(stops: Shot[], to: PlaceId | null) {
         flight = {
             positions: new THREE.CatmullRomCurve3(stops.map((s) => s.position), false, "centripetal"),
             targets: new THREE.CatmullRomCurve3(stops.map((s) => s.target), false, "centripetal"),
             fovs: stops.map((s) => s.fov),
             start: performance.now(),
-            duration: reduced.matches ? 0 : 2600,
+            duration: reduced.matches ? 0 : 1600 + 500 * Math.min(2, stops.length - 2),
             to,
         };
         mode = "fly";
     }
 
-    /** Through the door and into the gallery, from wherever the camera is. */
-    function enterGallery(push: boolean) {
+    function go(id: PlaceId, push = true) {
         if (mode !== "film") return;
-        if (push) history.pushState({ room: "photographs" }, "", "#photographs");
+        if (push) history.pushState({ room: id }, "", `#${id}`);
         filmShown = shown;
+        place = id;
+        // The page holds still while you're somewhere else in the house.
+        html.style.overflow = "hidden";
+        hideHotspots();
         const from = copy(shot);
-        const { outside, inside } = room.gallery.doorway;
-        // Rise and turn toward the door before crossing the room, so the path
-        // never cuts through the desk or the piano.
-        const lift: Shot = { position: from.position.clone().lerp(outside.position, 0.45).setY(1.6), target: outside.target.clone(), fov: (from.fov + outside.fov) / 2 };
-        fly([from, lift, outside, inside, room.gallery.walk(walk, portrait())], "gallery");
-        hall.show(true);
+        const stops = via(id);
+        const dest = placeShot(id);
+        fly([from, lift(from, stops[0] ?? dest), ...stops, dest], id);
+        if (id === "photographs") hall.show(true);
         canvas.style.cursor = "";
     }
 
-    function leaveGallery() {
-        if (mode !== "gallery") return;
+    function arrive(id: PlaceId) {
+        mode = "place";
+        panels.get(id)?.removeAttribute("hidden");
+        if (id === "gear") bagTarget = 1;
+        if (id === "path") room.showStop(selectedStop);
+        if (id === "music" && !coversLoaded) {
+            coversLoaded = true;
+            room.music.loadCovers();
+        }
+        panels.get(id)?.querySelector<HTMLElement>("[data-place-close]")?.focus({ preventScroll: true });
+        dirty = true;
+    }
+
+    function leave() {
+        if (mode !== "place" || !place) return;
+        const id = place;
+        panels.get(id)?.setAttribute("hidden", "");
+        gearSheet.hidden = true;
         hall.show(false);
+        bagTarget = 0;
+        if (id === "path") room.showStop(-1);
         const back = sample(keys, filmShown, { position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 40 });
-        const { outside, inside } = room.gallery.doorway;
-        const lift: Shot = { position: back.position.clone().lerp(outside.position, 0.45).setY(1.6), target: outside.target.clone(), fov: (back.fov + outside.fov) / 2 };
-        fly([copy(shot), inside, outside, lift, back], "film");
+        const stops = via(id).reverse();
+        fly([copy(shot), ...stops, lift(back, stops.at(-1) ?? copy(shot)), back], null);
         canvas.style.cursor = "";
     }
 
     /** Leave by the way you came: the back button if we added the entry, otherwise straight out. */
     function goBack() {
-        if (history.state?.room === "photographs") history.back();
+        if (history.state?.room) history.back();
         else {
             history.replaceState(null, "", location.pathname + location.search);
-            leaveGallery();
+            leave();
         }
     }
+    const hashPlace = () => {
+        const id = location.hash.slice(1) as PlaceId;
+        return PLACES.includes(id) ? id : null;
+    };
     addEventListener(
         "popstate",
         () => {
-            if (location.hash === "#photographs") enterGallery(false);
-            else if (mode === "gallery") leaveGallery();
+            const id = hashPlace();
+            if (id && mode === "film") go(id, false);
+            else if (!id && mode === "place") leave();
         },
         { signal },
     );
     root.querySelector("[data-hall-back]")!.addEventListener("click", goBack, { signal });
+    for (const close of root.querySelectorAll("[data-place-close]")) close.addEventListener("click", goBack, { signal });
 
     // Every way of asking for the photographs leads through the door.
     root.addEventListener(
@@ -328,21 +407,64 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             const url = new URL(link.href);
             if (url.origin !== location.origin || url.pathname.replace(/\/$/, "") !== "/photography") return;
             event.preventDefault();
-            enterGallery(true);
+            go("photographs");
         },
         { signal },
     );
     root.addEventListener(
         "room:open",
         (event) => {
-            if ((event as CustomEvent).detail !== "photographs" || mode !== "film") return;
+            const id = (event as CustomEvent).detail as PlaceId;
+            if (!PLACES.includes(id) || mode !== "film") return;
             event.preventDefault();
-            enterGallery(true);
+            go(id);
         },
         { signal },
     );
 
-    // Walking the wall: the wheel, a swipe, or the keys move you along it.
+    // ── Hotspots ─────────────────────────────────────────────────────────
+    // A dot over each thing you can walk up to. All of them once the tour's
+    // over; a few earlier, while the tour is looking right at their thing.
+    const hotspots = [...root.querySelectorAll<HTMLButtonElement>("[data-hotspot]")].map((element) => {
+        const id = element.dataset.hotspot as PlaceId;
+        element.addEventListener("click", () => go(id), { signal });
+        return { element, id };
+    });
+    const anchorOf = (id: PlaceId) => {
+        const a = room.anchors;
+        return { desk: a.laptop, gear: a.r7, path: a.rug.clone().add(v(0.35, 0.02, -0.35)), recognition: a.shelf, music: a.piano.clone().add(v(-0.2, 0.55, 0)), photographs: a.prints }[id];
+    };
+    const exploring = (p: number) => p >= BEATS.end.arrive;
+    const duringTour: Partial<Record<PlaceId, readonly [number, number]>> = { gear: BEATS.photography.words, music: BEATS.piano.words };
+    function placeHotspots(p: number) {
+        const explore = exploring(p);
+        root.toggleAttribute("data-exploring", explore);
+        for (const { element, id } of hotspots) {
+            const beat = duringTour[id];
+            const wanted = mode === "film" && (explore || (beat !== undefined && p >= beat[0] && p <= beat[1]));
+            const at = wanted ? room.project(anchorOf(id)) : null;
+            const show = !!at?.visible;
+            element.hidden = !show;
+            if (at && show) element.style.transform = `translate3d(${at.x}px, ${at.y}px, 0)`;
+        }
+    }
+    function hideHotspots() {
+        root.removeAttribute("data-exploring");
+        for (const { element } of hotspots) element.hidden = true;
+    }
+
+    // ── Skip to the end ──────────────────────────────────────────────────
+    let snap = false;
+    function skipToEnd() {
+        const rect = track.getBoundingClientRect();
+        scrollTo({ top: scrollY + rect.top + rect.height - innerHeight, behavior: "instant" as ScrollBehavior });
+        // Cut, don't sweep the camera through the whole tour on the way.
+        snap = true;
+    }
+    root.querySelector("[data-skip]")?.addEventListener("click", skipToEnd, { signal });
+
+    // ── The gallery: walking the wall ────────────────────────────────────
+    const inGallery = () => mode === "place" && place === "photographs";
     const step = (direction: 1 | -1) => {
         const next = Math.min(room.gallery.count - 1, Math.max(0, room.gallery.nearest(walkTarget) + direction));
         walkTarget = room.gallery.at(next);
@@ -351,21 +473,19 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     addEventListener(
         "wheel",
         (event) => {
-            if (mode === "film") return;
-            event.preventDefault();
-            if (mode === "gallery" && !hall.open) nudge(event.deltaY + event.deltaX);
+            if (inGallery() && !hall.open) nudge(event.deltaY + event.deltaX);
         },
-        { signal, passive: false },
+        { signal, passive: true },
     );
     let touch = { x: 0, y: 0 };
     addEventListener("touchstart", (event) => (touch = { x: event.touches[0].clientX, y: event.touches[0].clientY }), { signal, passive: true });
     addEventListener(
         "touchmove",
         (event) => {
-            if (mode === "film" || hall.open) return;
+            if (!inGallery() || hall.open) return;
             event.preventDefault();
             const { clientX: x, clientY: y } = event.touches[0];
-            if (mode === "gallery") nudge((touch.y - y + (touch.x - x)) * 1.6);
+            nudge((touch.y - y + (touch.x - x)) * 1.6);
             touch = { x, y };
         },
         { signal, passive: false },
@@ -374,11 +494,12 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         "keydown",
         (event) => {
             if (mode === "film" || hall.open) return;
+            if ((event.target as Element).closest?.("input, textarea, [contenteditable]")) return;
+            if (event.key === "Escape") return goBack();
+            if (!inGallery()) return;
             const forward = ["ArrowRight", "ArrowDown", "PageDown", " "];
             const backward = ["ArrowLeft", "ArrowUp", "PageUp"];
-            if (event.key === "Escape") goBack();
-            else if (mode !== "gallery") event.preventDefault();
-            else if (forward.includes(event.key)) step(1);
+            if (forward.includes(event.key)) step(1);
             else if (backward.includes(event.key)) step(-1);
             else if (event.key === "Home") walkTarget = 0;
             else if (event.key === "End") walkTarget = 1;
@@ -387,7 +508,8 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         },
         { signal },
     );
-    // Click a photograph to look closer; the camera stops in front of it.
+
+    // Clicking in the scene: a photograph in the gallery, a stop on the rug.
     const canvasPoint = (event: MouseEvent) => {
         const box = canvas.getBoundingClientRect();
         return [event.clientX - box.left, event.clientY - box.top] as const;
@@ -395,32 +517,68 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     canvas.addEventListener(
         "click",
         (event) => {
-            if (mode !== "gallery") return;
-            const index = room.pickPhoto(...canvasPoint(event));
-            if (index < 0) return;
-            walkTarget = room.gallery.at(index);
-            hall.lightbox(index);
+            if (inGallery()) {
+                const index = room.pickPhoto(...canvasPoint(event));
+                if (index < 0) return;
+                walkTarget = room.gallery.at(index);
+                hall.lightbox(index);
+            } else if (mode === "place" && place === "path") {
+                const index = room.pickStop(...canvasPoint(event));
+                if (index >= 0) selectStop(index, true);
+            }
         },
         { signal },
     );
     canvas.addEventListener(
         "pointermove",
         (event) => {
-            if (mode !== "gallery") return;
-            canvas.style.cursor = room.pickPhoto(...canvasPoint(event)) >= 0 ? "zoom-in" : "";
+            const point = canvasPoint(event);
+            if (inGallery()) canvas.style.cursor = room.pickPhoto(...point) >= 0 ? "zoom-in" : "";
+            else if (mode === "place" && place === "path") canvas.style.cursor = room.pickStop(...point) >= 0 ? "pointer" : "";
         },
         { signal },
     );
     hall.onBrowse = (index) => (walkTarget = room.gallery.at(index));
     // The photographs come in once the room is settled, not during its load.
-    setTimeout(() => room.gallery.load(() => (hallDirty = true)), 1200);
+    setTimeout(() => room.gallery.load(() => (dirty = true)), 1200);
 
-    /** Everything but the film: flying between rooms, or walking the gallery. */
+    // ── The path on the rug ──────────────────────────────────────────────
+    let selectedStop = 0;
+    const stopItems = [...root.querySelectorAll<HTMLButtonElement>("[data-stop]")];
+    function selectStop(index: number, fromRug = false) {
+        selectedStop = index;
+        room.showStop(index);
+        stopItems.forEach((item, i) => item.setAttribute("aria-expanded", String(i === index)));
+        if (fromRug) stopItems[index]?.scrollIntoView({ block: "nearest", behavior: reduced.matches ? "auto" : "smooth" });
+        dirty = true;
+    }
+    stopItems.forEach((item, i) => item.addEventListener("click", () => selectStop(i), { signal }));
+
+    // ── The gear: the bag opens, then the loadout ────────────────────────
+    gearSheet.querySelector("[data-place-close]")?.addEventListener("click", goBack, { signal });
+
+    /** Everything but the film: flying between places, or being at one. */
     function elsewhere(now: number, dt: number) {
         const state = stateAt(filmShown);
-        desktop.show(0);
-        let changed = hallDirty;
-        hallDirty = false;
+        const atDesk = mode === "place" && place === "desk";
+        desktop.show(atDesk ? 1 : 0);
+        let changed = dirty;
+        dirty = false;
+        // The bag's lid, on its own easing; the loadout comes up once it's open.
+        if (bag !== bagTarget) {
+            bag = reduced.matches ? bagTarget : bag + (bagTarget - bag) * (1 - Math.exp(-dt * 6));
+            if (Math.abs(bagTarget - bag) < 0.002) bag = bagTarget;
+            room.openBag(smoother(bag));
+            changed = true;
+        }
+        if (mode === "place" && place === "gear" && bag > 0.85 && gearSheet.hidden) {
+            gearSheet.hidden = false;
+            gearSheet.querySelector<HTMLElement>("[data-place-close]")?.focus({ preventScroll: true });
+        }
+        if (mode === "place" && place === "music") {
+            room.music.spin(dt);
+            changed = true;
+        }
         if (mode === "fly" && flight) {
             const t = flight.duration ? clamp01((now - flight.start) / flight.duration) : 1;
             const e = smoother(t);
@@ -431,11 +589,17 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             shot.fov = flight.fovs[i] + (flight.fovs[i + 1] - flight.fovs[i]) * (f - i);
             changed = true;
             if (t >= 1) {
-                mode = flight.to;
+                const to = flight.to;
                 flight = null;
-                if (mode === "film") lastShown = -1;
+                if (to) arrive(to);
+                else {
+                    mode = "film";
+                    place = null;
+                    html.style.overflow = "";
+                    lastShown = -1;
+                }
             }
-        } else if (mode === "gallery") {
+        } else if (inGallery()) {
             const before = walk;
             walk = reduced.matches ? walkTarget : walk + (walkTarget - walk) * (1 - Math.exp(-dt * 6));
             if (Math.abs(walkTarget - walk) < 1e-5) walk = walkTarget;
@@ -444,8 +608,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             shot.target.copy(at.target);
             shot.fov = at.fov;
             hall.describe(room.gallery.nearest(walk));
-            changed ||= walk !== before || lastShown !== -2;
-            lastShown = -2;
+            changed ||= walk !== before;
         }
         if (!changed) return;
         showChapters(10);
@@ -464,7 +627,8 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         }
         const target = frozen ?? progress();
         // A critically-damped-ish follow: about a quarter second to settle.
-        shown = reduced.matches ? target : shown + (target - shown) * (1 - Math.exp(-dt * 7));
+        shown = reduced.matches || snap ? target : shown + (target - shown) * (1 - Math.exp(-dt * 7));
+        snap = false;
         if (Math.abs(target - shown) < 1e-5) shown = target;
         const state = stateAt(shown);
         desktop.show(state.desk);
@@ -482,6 +646,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             showChapters(shown);
             overlay();
             room.render(shot, { screen: { typed: state.typed, windows: desktop.windows, version: desktop.version }, daylight: state.daylight, lamp: state.lamp });
+            placeHotspots(shown);
             lastShown = shown;
             if (state.desk < 1) lastVersion = desktop.version;
         } else if (liftMoving) {
@@ -498,7 +663,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         keys = shotsFor(room, canvas.clientWidth / canvas.clientHeight);
         placeDesktop();
         lastShown = -1;
-        hallDirty = true;
+        dirty = true;
     };
     new ResizeObserver(resize).observe(canvas);
 
@@ -507,6 +672,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     root.querySelector("[data-os-leave]")!.addEventListener(
         "click",
         () => {
+            if (mode === "place") return goBack();
             const rect = track.getBoundingClientRect();
             const p = (BEATS.pullOut.from + BEATS.pullOut.to) / 2;
             scrollTo({ top: scrollY + rect.top + p * (rect.height - innerHeight), behavior: reduced.matches ? "auto" : "smooth" });
@@ -514,8 +680,16 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         { signal },
     );
 
-    // Arriving at /room#photographs goes straight to the gallery.
-    if (location.hash === "#photographs") enterGallery(false);
+    // Arriving at /room#music (or any place) skips the tour and walks straight there,
+    // once the loading screen has stepped aside.
+    const arrived = hashPlace();
+    if (arrived) {
+        const ready = () => (root.dataset.loader === "off" ? Promise.resolve() : new Promise<void>((resolve) => setTimeout(() => ready().then(resolve), 120)));
+        ready().then(() => {
+            skipToEnd();
+            requestAnimationFrame(() => requestAnimationFrame(() => go(arrived, false)));
+        });
+    }
 
     // Tabbing to a link in a chapter that's off-screen brings its moment back.
     root.addEventListener(

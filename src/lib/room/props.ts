@@ -75,13 +75,13 @@ export const materials = () => ({
 });
 export type Materials = ReturnType<typeof materials>;
 
-function box(w: number, h: number, d: number, material: THREE.Material, x = 0, y = 0, z = 0) {
+export function box(w: number, h: number, d: number, material: THREE.Material, x = 0, y = 0, z = 0) {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
     mesh.position.set(x, y, z);
     return mesh;
 }
 
-function rounded(w: number, h: number, d: number, r: number, material: THREE.Material) {
+export function rounded(w: number, h: number, d: number, r: number, material: THREE.Material) {
     // A chamfer-free box reads as CG. A 1–3 mm radius catches a highlight on every edge.
     const shape = new THREE.Shape();
     const x = -w / 2;
@@ -207,7 +207,7 @@ export function bench(m: Materials) {
     return group;
 }
 
-function tube(points: V3[], radius: number, material: THREE.Material, closed = false) {
+export function tube(points: V3[], radius: number, material: THREE.Material, closed = false) {
     const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p)), closed, "centripetal");
     return new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(24, points.length * 24), radius, 14, closed), material);
 }

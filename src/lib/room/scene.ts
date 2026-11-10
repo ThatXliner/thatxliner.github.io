@@ -9,6 +9,8 @@ import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUnifo
 import { loadModelLibrary } from "../gear/models";
 import { lenses, bodies } from "../gear/catalog";
 import * as props from "./props";
+import { awardShelf, cameraBag, pathRug, type RugStop } from "./furnishings";
+import { MUSIC_DOOR, createMusicRoom, type MusicRoom, type Release } from "./music";
 import { DOOR, createGallery, type Gallery, type GalleryPhoto } from "./gallery";
 import { createGlass, type Lens, type Scrim } from "./glass";
 import { createScreen, type ScreenImages, type ScreenLabels, type ScreenState } from "./screen";
@@ -39,7 +41,7 @@ export interface RoomScene {
     screenShot(aspect: number, fit: "cover" | "contain"): Shot;
     /** Where the display lands on the page, in CSS pixels, seen from `shot`. */
     screenRect(shot: Shot, width: number, height: number): { left: number; top: number; width: number; height: number };
-    anchors: Record<"laptop" | "r7" | "piano" | "trombone" | "c200" | "prints", THREE.Vector3>;
+    anchors: Record<"laptop" | "r7" | "piano" | "trombone" | "c200" | "prints" | "bag" | "rug" | "shelf", THREE.Vector3>;
     render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number }): void;
     /** What floats over the room: scrims behind words, glass under buttons. */
     overlay(layers: { lenses: Lens[]; scrims: Scrim[] }): void;
@@ -49,6 +51,16 @@ export interface RoomScene {
     gallery: Gallery;
     /** The photograph under a point on the canvas (CSS pixels), or -1. */
     pickPhoto(x: number, y: number): number;
+    /** The stop on the rug's path under a point on the canvas, or -1. */
+    pickStop(x: number, y: number): number;
+    /** Light one stop on the rug (-1 for none). */
+    showStop(index: number): void;
+    /** The camera bag's lid, 0 shut to 1 open. */
+    openBag(t: number): void;
+    /** The music room, through the left wall. */
+    music: MusicRoom;
+    /** Where a point in the room lands on the canvas from the last rendered shot. */
+    project(point: THREE.Vector3): { x: number; y: number; visible: boolean };
     resize(): void;
     dispose(): void;
 }
@@ -60,6 +72,10 @@ interface Inputs {
     prints: { image: HTMLImageElement; aspect: number }[];
     /** Every photograph, for the gallery through the door. */
     photographs: GalleryPhoto[];
+    /** The path's stops, woven into the rug. */
+    story: RugStop[];
+    /** Releases for the music room's records. */
+    releases: Release[];
     /** 0–1 across every model download. */
     onProgress?: (fraction: number) => void;
 }
@@ -77,7 +93,7 @@ const loadImage = (src: string) =>
     });
 export { loadImage };
 
-export async function createRoom({ canvas, screen: screenImages, labels, prints, photographs, onProgress }: Inputs): Promise<RoomScene> {
+export async function createRoom({ canvas, screen: screenImages, labels, prints, photographs, story, releases, onProgress }: Inputs): Promise<RoomScene> {
     const downloads = new Map(Object.entries(EXPECTED_BYTES).map(([id, total]) => [id, { loaded: 0, total }]));
     const progress = (id: string, loaded: number, total: number) => {
         downloads.set(id, { loaded, total: total || downloads.get(id)!.total });
@@ -188,9 +204,12 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         leftWall.add(piece);
     };
     wallPiece(ROOM.back, win.z0, 0, ROOM.height);
-    wallPiece(win.z1, ROOM.front, 0, ROOM.height);
+    wallPiece(win.z1, MUSIC_DOOR.z0, 0, ROOM.height);
     wallPiece(win.z0, win.z1, 0, win.y0);
     wallPiece(win.z0, win.z1, win.y1, ROOM.height);
+    // The door to the music room.
+    wallPiece(MUSIC_DOOR.z1, ROOM.front, 0, ROOM.height);
+    wallPiece(MUSIC_DOOR.z0, MUSIC_DOOR.z1, MUSIC_DOOR.height, ROOM.height);
     scene.add(leftWall);
     // Mullions and sill.
     const trim = new THREE.MeshStandardMaterial({ color: 0xf1eee8, roughness: 0.7 });
@@ -215,9 +234,10 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     skyCanvas.height = 256;
     const skyTex = new THREE.CanvasTexture(skyCanvas);
     skyTex.colorSpace = THREE.SRGBColorSpace;
-    const sky = new THREE.Mesh(new THREE.PlaneGeometry(8, 5), new THREE.MeshBasicMaterial({ map: skyTex, toneMapped: false }));
+    // Wide enough for the window, short of the music room behind the wall.
+    const sky = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 5), new THREE.MeshBasicMaterial({ map: skyTex, toneMapped: false }));
     sky.rotation.y = Math.PI / 2;
-    sky.position.set(ROOM.left - 2.5, 1.6, -0.6);
+    sky.position.set(ROOM.left - 2.5, 1.6, -2.3);
     scene.add(sky);
     owned.push(skyTex);
     const skyStops = {
@@ -243,21 +263,13 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         skyTex.needsUpdate = true;
     }
 
-    // Rug under the piano bench.
-    const rugTex = props.canvasTexture(512, 512, (g) => {
-        g.fillStyle = "#3b3a37";
-        g.fillRect(0, 0, 512, 512);
-        for (let i = 0; i < 9000; i++) {
-            g.fillStyle = `rgba(${Math.random() < 0.5 ? "255,255,255" : "0,0,0"},0.05)`;
-            g.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
-        }
-        g.strokeStyle = "rgba(230,220,200,0.25)";
-        g.lineWidth = 6;
-        g.strokeRect(26, 26, 460, 460);
-    });
-    const rug = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.6), new THREE.MeshStandardMaterial({ map: rugTex, roughness: 1 }));
+    // The rug, out on the open floor, with the path woven into it.
+    const rugSize = { width: 2.4, depth: 1.6 };
+    const pathOnRug = pathRug(story, rugSize.width, rugSize.depth);
+    owned.push(pathOnRug.texture);
+    const rug = new THREE.Mesh(new THREE.PlaneGeometry(rugSize.width, rugSize.depth), new THREE.MeshStandardMaterial({ map: pathOnRug.texture, roughness: 1 }));
     rug.rotation.x = -Math.PI / 2;
-    rug.position.set(0.6, 0.004, -0.75);
+    rug.position.set(0.1, 0.004, 0.6);
     rug.receiveShadow = true;
     scene.add(rug);
 
@@ -300,6 +312,22 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     const coffee = props.mug();
     coffee.position.set(-0.5, deskY, -1.86);
     scene.add(coffee);
+
+    // A camera bag on the floor under the desk, lid shut until it's asked for.
+    const bag = cameraBag(m);
+    bag.group.position.set(-1.12, 0, -1.62);
+    bag.group.rotation.y = 0.12;
+    scene.add(bag.group);
+
+    // Two floating shelves of awards on the right wall, between the piano and the gallery door.
+    const shelf = awardShelf(m, new THREE.MeshStandardMaterial({ map: props.woodTexture("#5a3a22", "#24140a", 13), roughness: 0.55 }));
+    shelf.position.set(ROOM.right, 0, -0.3);
+    scene.add(shelf);
+    // A small picture light over the shelf, so the awards read after dark.
+    const shelfLight = new THREE.SpotLight(0xffd9a8, 6, 2.2, 0.75, 0.6, 1.5);
+    shelfLight.position.set(ROOM.right - 0.35, 2.15, -0.3);
+    shelfLight.target.position.set(ROOM.right - 0.1, 1.3, -0.3);
+    scene.add(shelfLight, shelfLight.target);
 
     // Prints over the desk, his own photographs.
     const printTextures = prints.map(({ image }) => {
@@ -356,6 +384,35 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
 
     const gallery = createGallery(photographs);
     scene.add(gallery.group);
+
+    const music = createMusicRoom(m, releases);
+    scene.add(music.group);
+    // The music room's door gets a casing and a plaque, like the gallery's.
+    for (const z of [MUSIC_DOOR.z0 - 0.03, MUSIC_DOOR.z1 + 0.03]) {
+        const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.2, MUSIC_DOOR.height + 0.06, 0.06), casing);
+        jamb.position.set(ROOM.left - 0.08, (MUSIC_DOOR.height + 0.06) / 2, z);
+        jamb.castShadow = jamb.receiveShadow = true;
+        scene.add(jamb);
+    }
+    const musicHead = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, MUSIC_DOOR.z1 - MUSIC_DOOR.z0 + 0.12), casing);
+    musicHead.position.set(ROOM.left - 0.08, MUSIC_DOOR.height + 0.03, (MUSIC_DOOR.z0 + MUSIC_DOOR.z1) / 2);
+    scene.add(musicHead);
+    const musicPlaqueTex = props.canvasTexture(512, 160, (g) => {
+        g.fillStyle = "#1b1b1d";
+        g.fillRect(0, 0, 512, 160);
+        g.fillStyle = "#e8e4dc";
+        g.font = `500 56px ${getComputedStyle(document.body).fontFamily}`;
+        g.textAlign = "center";
+        g.fillText("Music room", 256, 84);
+        g.fillStyle = "rgba(232,228,220,0.55)";
+        g.font = `400 30px ${getComputedStyle(document.body).fontFamily}`;
+        g.fillText("← this way", 256, 128);
+    });
+    const musicPlaque = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.075), new THREE.MeshStandardMaterial({ map: musicPlaqueTex, roughness: 0.5 }));
+    musicPlaque.rotation.y = Math.PI / 2;
+    musicPlaque.position.set(ROOM.left + 0.001, 1.45, MUSIC_DOOR.z1 + 0.28);
+    scene.add(musicPlaque);
+    owned.push(musicPlaqueTex);
 
     // ── Models ───────────────────────────────────────────────────────────
     const gltf = new GLTFLoader();
@@ -534,6 +591,9 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         trombone: centerOf(trombone),
         c200: centerOf(c200),
         prints: centerOf(printGroup),
+        bag: centerOf(bag.group),
+        rug: rug.position.clone(),
+        shelf: centerOf(shelf),
     };
 
     // ── Hour of day ──────────────────────────────────────────────────────
@@ -620,5 +680,42 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         return gallery.pick(camera, ndc);
     }
 
-    return { screenShot, screenRect, anchors, render, overlay, present, gallery, pickPhoto, resize, dispose };
+    const rayFrom = new THREE.Raycaster();
+    function pickStop(x: number, y: number) {
+        ndc.set((x / canvas.clientWidth) * 2 - 1, -(y / canvas.clientHeight) * 2 + 1);
+        rayFrom.setFromCamera(ndc, camera);
+        const hit = rayFrom.intersectObject(rug, false)[0];
+        return hit?.uv ? pathOnRug.stopAt(hit.uv) : -1;
+    }
+    const projected = new THREE.Vector3();
+    const facing = new THREE.Vector3();
+    function project(point: THREE.Vector3) {
+        projected.copy(point).project(camera);
+        // In front of the camera, and inside the frame.
+        camera.getWorldDirection(facing);
+        const ahead = facing.dot(point.clone().sub(camera.position)) > 0;
+        return {
+            x: ((projected.x + 1) / 2) * canvas.clientWidth,
+            y: ((1 - projected.y) / 2) * canvas.clientHeight,
+            visible: ahead && Math.abs(projected.x) < 0.95 && Math.abs(projected.y) < 0.95,
+        };
+    }
+
+    return {
+        screenShot,
+        screenRect,
+        anchors,
+        render,
+        overlay,
+        present,
+        gallery,
+        pickPhoto,
+        pickStop,
+        showStop: (index: number) => pathOnRug.paint(index),
+        openBag: (t: number) => bag.open(t),
+        music,
+        project,
+        resize,
+        dispose,
+    };
 }

@@ -1,11 +1,8 @@
 ---
 import PlayableTrombone from "./PlayableTrombone.astro";
 import { Icon } from "astro-icon/components";
+import { instruments } from "../data/music";
 const year = new Date().getFullYear();
-const instruments = [
-    { name: "Piano", since: 2017, role: "Solo pianist", awards: ["Certificate of Merit Level 10, State Honors", "3rd place, USOMC Intermediate Baroque (2023)"] },
-    { name: "Trombone", since: 2018, role: "Concert band & jazz band", awards: ["2nd place, Folsom Jazz Festival (2025)"] },
-];
 ---
 
 <section class="music pin" data-pin id="music" aria-labelledby="music-title">
