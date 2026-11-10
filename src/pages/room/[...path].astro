@@ -29,7 +29,7 @@ const framed = prints;
 const releases = await getReleases();
 const room = {
     // The path, stitched into the rug; the releases, on the music room's records.
-    story: stops.map(({ year, title }) => ({ year, title })),
+    story: stops.map(({ year, title, icon }) => ({ year, title, icon })),
     releases: releases.map(({ title, artwork }) => ({ title, artwork })),
     wallpaper: await web(prints[1].image, 2048),
     // How the two product sites looked when captured; the live ones load in iframes at the desk.

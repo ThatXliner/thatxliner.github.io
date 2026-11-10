@@ -208,7 +208,120 @@ function frcRobot(m: Materials) {
 export interface RugStop {
     year: string;
     title: string;
+    icon: string;
 }
+
+/**
+ * Line drawings for the rug's badges, in a box of `s` centred on the origin.
+ * Drawn as thread: one stroke weight, round ends, nothing filled.
+ */
+const ICONS: Record<string, (g: CanvasRenderingContext2D, s: number) => void> = {
+    music(g, s) {
+        // Two beamed eighth notes.
+        const h = s * 0.42;
+        g.beginPath();
+        g.ellipse(-s * 0.2, h * 0.55, s * 0.12, s * 0.09, -0.4, 0, Math.PI * 2);
+        g.ellipse(s * 0.22, h * 0.4, s * 0.12, s * 0.09, -0.4, 0, Math.PI * 2);
+        g.moveTo(-s * 0.09, h * 0.5);
+        g.lineTo(-s * 0.09, -h);
+        g.lineTo(s * 0.33, -h * 1.15);
+        g.lineTo(s * 0.33, h * 0.35);
+        g.moveTo(-s * 0.09, -h * 0.62);
+        g.lineTo(s * 0.33, -h * 0.77);
+        g.stroke();
+    },
+    code(g, s) {
+        const w = s * 0.42;
+        g.beginPath();
+        g.moveTo(-w * 0.45, -w * 0.6);
+        g.lineTo(-w, 0);
+        g.lineTo(-w * 0.45, w * 0.6);
+        g.moveTo(w * 0.45, -w * 0.6);
+        g.lineTo(w, 0);
+        g.lineTo(w * 0.45, w * 0.6);
+        g.moveTo(w * 0.18, -w * 0.75);
+        g.lineTo(-w * 0.18, w * 0.75);
+        g.stroke();
+    },
+    school(g, s) {
+        const w = s * 0.4;
+        g.beginPath();
+        g.rect(-w, -w * 0.1, w * 2, w * 0.95);
+        g.moveTo(-w * 1.15, -w * 0.1);
+        g.lineTo(0, -w * 0.75);
+        g.lineTo(w * 1.15, -w * 0.1);
+        g.rect(-w * 0.2, w * 0.35, w * 0.4, w * 0.5);
+        g.moveTo(0, -w * 0.75);
+        g.lineTo(0, -w * 1.15);
+        g.lineTo(w * 0.35, -w * 1.02);
+        g.lineTo(0, -w * 0.9);
+        for (const x of [-w * 0.65, w * 0.65]) g.rect(x - w * 0.15, w * 0.1, w * 0.3, w * 0.25);
+        g.stroke();
+    },
+    club(g, s) {
+        // Three people, the middle one a step forward.
+        const person = (x: number, y: number, r: number) => {
+            g.moveTo(x + r, y);
+            g.arc(x, y, r, 0, Math.PI * 2);
+            g.moveTo(x - r * 1.7, y + r * 3.2);
+            g.quadraticCurveTo(x, y + r * 0.9, x + r * 1.7, y + r * 3.2);
+        };
+        g.beginPath();
+        person(-s * 0.26, -s * 0.12, s * 0.09);
+        person(s * 0.26, -s * 0.12, s * 0.09);
+        person(0, -s * 0.2, s * 0.11);
+        g.stroke();
+    },
+    robot(g, s) {
+        const w = s * 0.32;
+        g.beginPath();
+        g.roundRect(-w, -w * 0.55, w * 2, w * 1.5, w * 0.25);
+        g.moveTo(0, -w * 0.55);
+        g.lineTo(0, -w * 1.05);
+        g.moveTo(w * 0.12, -w * 1.15);
+        g.arc(0, -w * 1.15, w * 0.12, 0, Math.PI * 2);
+        g.moveTo(-w * 0.3 + w * 0.16, w * 0.05);
+        g.arc(-w * 0.4, w * 0.05, w * 0.16, 0, Math.PI * 2);
+        g.moveTo(w * 0.56, w * 0.05);
+        g.arc(w * 0.4, w * 0.05, w * 0.16, 0, Math.PI * 2);
+        g.moveTo(-w * 0.4, w * 0.6);
+        g.lineTo(w * 0.4, w * 0.6);
+        g.moveTo(-w, w * 0.2);
+        g.lineTo(-w * 1.3, w * 0.2);
+        g.moveTo(w, w * 0.2);
+        g.lineTo(w * 1.3, w * 0.2);
+        g.stroke();
+    },
+    app(g, s) {
+        // A phone with a bar chart: an app that explains what's changing.
+        const w = s * 0.26;
+        const h = s * 0.46;
+        g.beginPath();
+        g.roundRect(-w, -h, w * 2, h * 2, w * 0.35);
+        g.moveTo(-w * 0.3, -h * 0.78);
+        g.lineTo(w * 0.3, -h * 0.78);
+        for (const [x, top] of [[-w * 0.45, 0.25], [0, -0.15], [w * 0.45, -0.45]] as const) {
+            g.moveTo(x, h * 0.55);
+            g.lineTo(x, h * top);
+        }
+        g.stroke();
+    },
+    flag(g, s) {
+        const h = s * 0.46;
+        g.beginPath();
+        g.moveTo(-s * 0.22, h);
+        g.lineTo(-s * 0.22, -h);
+        g.moveTo(-s * 0.22, -h * 0.95);
+        g.quadraticCurveTo(0, -h * 1.15, s * 0.1, -h * 0.85);
+        g.quadraticCurveTo(s * 0.22, -h * 0.6, s * 0.36, -h * 0.75);
+        g.lineTo(s * 0.36, -h * 0.05);
+        g.quadraticCurveTo(s * 0.22, h * 0.1, s * 0.1, -h * 0.12);
+        g.quadraticCurveTo(0, -h * 0.4, -s * 0.22, -h * 0.2);
+        g.moveTo(-s * 0.4, h);
+        g.lineTo(-s * 0.04, h);
+        g.stroke();
+    },
+};
 
 /**
  * The rug, with the path woven in: a stitched line that winds through every
@@ -254,51 +367,71 @@ export function pathRug(stops: RugStop[], width: number, depth: number) {
     b.strokeRect(62, 62, W - 124, H - 124);
 
     let painted = -2;
+    const R = 62; // badge radius, in texture pixels
     function paint(selected: number) {
         if (selected === painted) return;
         painted = selected;
         g.drawImage(base, 0, 0);
-        // The path: a running stitch through every stop.
+        const thread = "rgba(226,214,190,0.85)";
+        const gold = "#f3c76b";
+        // The path: a running stitch that passes through every stop. Catmull–Rom
+        // through the points, as Béziers, so it meets each badge dead centre.
+        const at = points.map((p) => ({ x: p.x * W, y: p.y * H }));
         g.save();
-        g.strokeStyle = "rgba(226,214,190,0.75)";
+        g.strokeStyle = "rgba(226,214,190,0.6)";
         g.lineWidth = 5;
         g.setLineDash([18, 12]);
         g.lineCap = "round";
         g.beginPath();
-        points.forEach((p, i) => {
-            const x = p.x * W;
-            const y = p.y * H;
-            if (i === 0) g.moveTo(x, y);
-            else {
-                const prev = points[i - 1];
-                const mx = ((prev.x + p.x) / 2) * W;
-                g.quadraticCurveTo(prev.x * W, prev.y * H, mx, ((prev.y + p.y) / 2) * H);
-                if (i === points.length - 1) g.lineTo(x, y);
-            }
-        });
+        g.moveTo(at[0].x, at[0].y);
+        for (let i = 0; i < at.length - 1; i++) {
+            const p0 = at[Math.max(0, i - 1)];
+            const p1 = at[i];
+            const p2 = at[i + 1];
+            const p3 = at[Math.min(at.length - 1, i + 2)];
+            g.bezierCurveTo(p1.x + (p2.x - p0.x) / 6, p1.y + (p2.y - p0.y) / 6, p2.x - (p3.x - p1.x) / 6, p2.y - (p3.y - p1.y) / 6, p2.x, p2.y);
+        }
         g.stroke();
         g.restore();
         const hand = `"Patrick Hand", "Segoe Print", cursive`;
-        points.forEach((p, i) => {
-            const x = p.x * W;
-            const y = p.y * H;
+        at.forEach(({ x, y }, i) => {
             const lit = i === selected;
+            const ink = lit ? gold : thread;
+            g.save();
+            g.translate(x, y);
+            // The badge: a darker patch with a stitched edge, the icon inside.
             g.beginPath();
-            g.arc(x, y, lit ? 22 : 15, 0, Math.PI * 2);
-            g.fillStyle = lit ? "#f3c76b" : "#e2d6be";
+            g.arc(0, 0, R, 0, Math.PI * 2);
+            g.fillStyle = lit ? "#3b3224" : "#2b2a27";
             g.fill();
+            g.lineWidth = lit ? 6 : 4;
+            g.strokeStyle = ink;
+            g.setLineDash(lit ? [] : [10, 7]);
+            g.stroke();
+            g.setLineDash([]);
+            g.beginPath();
+            g.arc(0, 0, R - 11, 0, Math.PI * 2);
+            g.lineWidth = 1.5;
+            g.strokeStyle = lit ? "rgba(243,199,107,0.45)" : "rgba(226,214,190,0.25)";
+            g.stroke();
             if (lit) {
                 g.beginPath();
-                g.arc(x, y, 34, 0, Math.PI * 2);
-                g.strokeStyle = "rgba(243,199,107,0.6)";
-                g.lineWidth = 4;
+                g.arc(0, 0, R + 16, 0, Math.PI * 2);
+                g.strokeStyle = "rgba(243,199,107,0.35)";
+                g.lineWidth = 3;
                 g.stroke();
             }
-            g.fillStyle = lit ? "#f6dca0" : "rgba(226,214,190,0.85)";
-            g.font = `${lit ? 52 : 44}px ${hand}`;
+            g.strokeStyle = ink;
+            g.lineWidth = lit ? 6 : 5;
+            g.lineCap = g.lineJoin = "round";
+            (ICONS[stops[i].icon] ?? ICONS.flag)(g, R * 1.15);
+            g.restore();
+            // The year sits on the outside of the curve, clear of the path.
+            const above = i === 0 ? at[1].y > y : i === at.length - 1 ? at[i - 1].y > y : (at[i - 1].y + at[i + 1].y) / 2 > y;
+            g.fillStyle = ink;
+            g.font = `${lit ? 54 : 46}px ${hand}`;
             g.textAlign = "center";
-            const above = p.y > 0.5;
-            g.fillText(stops[i].year, x, above ? y - 44 : y + 74);
+            g.fillText(stops[i].year, x, above ? y - R - 22 : y + R + 52);
         });
         texture.needsUpdate = true;
     }
