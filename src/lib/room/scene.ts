@@ -9,7 +9,8 @@ import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUnifo
 import { loadModelLibrary } from "../gear/models";
 import { lenses, bodies } from "../gear/catalog";
 import * as props from "./props";
-import { createScreen, type Bounds, type ScreenImages } from "./screen";
+import { createGlass, type Lens, type Scrim } from "./glass";
+import { createScreen, type ScreenImages, type ScreenLabels, type ScreenState } from "./screen";
 
 /**
  * The room, in metres. Back wall at z = -2, window in the left wall at
@@ -30,9 +31,19 @@ export interface Shot {
 
 export interface RoomScene {
     /** Where the camera must be for the laptop display to fill a viewport of this aspect. */
-    screenShot(aspect: number, fit: "cover" | "contain"): Shot & { visible: { x: number; y: number } };
+    /**
+     * The camera square-on to the display. "contain" fits it in the viewport
+     * with a margin, for sitting at the desk; "cover" fills the viewport.
+     */
+    screenShot(aspect: number, fit: "cover" | "contain"): Shot;
+    /** Where the display lands on the page, in CSS pixels, seen from `shot`. */
+    screenRect(shot: Shot, width: number, height: number): { left: number; top: number; width: number; height: number };
     anchors: Record<"laptop" | "r7" | "piano" | "trombone" | "c200" | "prints", THREE.Vector3>;
-    render(shot: Shot, state: { typed: number; apps: number; bounds: Bounds; daylight: number; lamp: number }, now: number): void;
+    render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number }): void;
+    /** What floats over the room: scrims behind words, glass under buttons. */
+    overlay(layers: { lenses: Lens[]; scrims: Scrim[] }): void;
+    /** Redraw only the overlay, over the last rendered room. */
+    present(): void;
     resize(): void;
     dispose(): void;
 }
@@ -40,6 +51,7 @@ export interface RoomScene {
 interface Inputs {
     canvas: HTMLCanvasElement;
     screen: ScreenImages;
+    labels: ScreenLabels;
     prints: { image: HTMLImageElement; aspect: number }[];
     /** 0–1 across every model download. */
     onProgress?: (fraction: number) => void;
@@ -58,7 +70,7 @@ const loadImage = (src: string) =>
     });
 export { loadImage };
 
-export async function createRoom({ canvas, screen: screenImages, prints, onProgress }: Inputs): Promise<RoomScene> {
+export async function createRoom({ canvas, screen: screenImages, labels, prints, onProgress }: Inputs): Promise<RoomScene> {
     const downloads = new Map(Object.entries(EXPECTED_BYTES).map(([id, total]) => [id, { loaded: 0, total }]));
     const progress = (id: string, loaded: number, total: number) => {
         downloads.set(id, { loaded, total: total || downloads.get(id)!.total });
@@ -287,7 +299,7 @@ export async function createRoom({ canvas, screen: screenImages, prints, onProgr
     owned.push(library);
 
     const macbook = macbookResult.value.scene;
-    const screen = createScreen(screenImages);
+    const screen = createScreen(screenImages, labels);
     owned.push(screen.texture);
     let display: THREE.Mesh | undefined;
     macbook.traverse((node) => {
@@ -402,24 +414,42 @@ export async function createRoom({ canvas, screen: screenImages, prints, onProgr
     if (normal.z < 0) normal.negate();
     screenGlow.position.copy(displayCenter).addScaledVector(normal, 0.25);
 
-    /**
-     * The camera square-on to the display, close enough that it fills the
-     * viewport ("cover") or fits inside it. `visible` is how much of the
-     * picture's width and height ends up on screen.
-     */
-    function screenShot(aspect: number, fit: "cover" | "contain"): Shot & { visible: { x: number; y: number } } {
+    function screenShot(aspect: number, fit: "cover" | "contain"): Shot {
         const fov = 32;
         const tan = Math.tan(THREE.MathUtils.degToRad(fov / 2));
-        const byHeight = panelHeight / 2 / tan;
-        const byWidth = panelWidth / 2 / (tan * aspect);
-        const distance = fit === "cover" ? Math.min(byHeight, byWidth) : Math.max(byHeight, byWidth) * 1.08;
-        const viewHeight = 2 * distance * tan;
+        // At the desk the display takes at most 86% of the height and 94% of
+        // the width, leaving the bezel, a little desk, and room for a note.
+        const byHeight = panelHeight / 2 / tan / (fit === "cover" ? 1 : 0.86);
+        const byWidth = panelWidth / 2 / (tan * aspect) / (fit === "cover" ? 1 : 0.94);
+        const distance = fit === "cover" ? Math.min(byHeight, byWidth) : Math.max(byHeight, byWidth);
         return {
             position: displayCenter.clone().addScaledVector(normal, distance),
             target: displayCenter.clone(),
             fov,
-            visible: { x: (viewHeight * aspect) / panelWidth, y: viewHeight / panelHeight },
         };
+    }
+
+    const probe = new THREE.PerspectiveCamera();
+    const corners = [origin, origin.clone().add(across), origin.clone().add(down), origin.clone().add(across).add(down)];
+    function screenRect(shot: Shot, width: number, height: number) {
+        probe.fov = shot.fov;
+        probe.aspect = width / height;
+        probe.near = 0.01;
+        probe.far = 40;
+        probe.position.copy(shot.position);
+        probe.lookAt(shot.target);
+        probe.updateProjectionMatrix();
+        probe.updateMatrixWorld();
+        const xs: number[] = [];
+        const ys: number[] = [];
+        for (const corner of corners) {
+            const p = corner.clone().project(probe);
+            xs.push(((p.x + 1) / 2) * width);
+            ys.push(((1 - p.y) / 2) * height);
+        }
+        const left = Math.min(...xs);
+        const top = Math.min(...ys);
+        return { left, top, width: Math.max(...xs) - left, height: Math.max(...ys) - top };
     }
 
     const centerOf = (object: THREE.Object3D) => new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3());
@@ -468,7 +498,13 @@ export async function createRoom({ canvas, screen: screenImages, prints, onProgr
     ao.updateGtaoMaterial({ radius: 0.35, distanceExponent: 1.5, thickness: 1, scale: 1.1 });
     composer.addPass(ao);
     composer.addPass(new OutputPass());
+    // The room renders into a texture; the glass pass puts it on screen.
+    composer.renderToScreen = false;
     owned.push(composer);
+    const glass = createGlass();
+    owned.push(glass);
+    const present = () => glass.draw(renderer, composer.readBuffer.texture);
+    const overlay = (layers: { lenses: Lens[]; scrims: Scrim[] }) => glass.set(layers, canvas.clientHeight, renderer.getPixelRatio());
 
     function resize() {
         const width = canvas.clientWidth;
@@ -481,14 +517,15 @@ export async function createRoom({ canvas, screen: screenImages, prints, onProgr
     }
     resize();
 
-    function render(shot: Shot, state: { typed: number; apps: number; bounds: Bounds; daylight: number; lamp: number }, now: number) {
-        screen.paint(state.typed, state.apps, state.bounds, now);
+    function render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number }) {
+        screen.paint(state.screen);
         light(state.daylight, state.lamp);
         camera.position.copy(shot.position);
         camera.fov = shot.fov;
         camera.updateProjectionMatrix();
         camera.lookAt(shot.target);
         composer.render();
+        present();
     }
 
     function dispose() {
@@ -503,5 +540,5 @@ export async function createRoom({ canvas, screen: screenImages, prints, onProgr
         for (const thing of owned) thing.dispose();
     }
 
-    return { screenShot, anchors, render, resize, dispose };
+    return { screenShot, screenRect, anchors, render, overlay, present, resize, dispose };
 }

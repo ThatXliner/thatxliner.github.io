@@ -1,0 +1,911 @@
+---
+import { Icon } from "astro-icon/components";
+import { getAllRepositories, getGitHubStats } from "@/lib/github";
+import { projects } from "@/data/projects";
+import { apps } from "@/data/apps";
+import { libraries, tools } from "@/data/libraries";
+import { skills } from "@/data/skills";
+import { resume } from "@/data/resume";
+import { APPS, DOCK, TERMINAL_INTRO, PROMPT, type AppId } from "@/lib/room/desktop";
+
+/**
+ * The laptop in /room, as a desktop you can use. Rendered here, driven by
+ * lib/room/os.ts, and laid exactly over the 3D display while the camera holds.
+ */
+
+// Public repositories only, ever.
+const repos = (await getAllRepositories()).filter((repo) => repo.isPublic).sort((a, b) => b.starCount - a.starCount);
+const stats = await getGitHubStats();
+const stars = repos.reduce((sum, repo) => sum + repo.starCount, 0);
+const skillRepos = skills.map((skill) =>
+    repos
+        .filter((repo) => skill.repos.some((name) => name.toLowerCase() === repo.name.toLowerCase()) || skill.languages.includes(repo.language ?? ""))
+        .slice(0, 5),
+);
+const updated = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
+const dockIcons: Record<AppId, string> = {
+    billion: "lucide:landmark",
+    quillium: "lucide:feather",
+    projects: "lucide:folder",
+    repos: "simple-icons:github",
+    skills: "lucide:sparkles",
+    terminal: "lucide:terminal",
+};
+
+/** What the terminal can answer, baked at build time so it needs no network. */
+const terminalData = {
+    repos: repos.slice(0, 8).map((repo) => ({ name: repo.name, stars: repo.starCount, language: repo.language ?? "" })),
+    stars,
+    publicRepos: repos.length,
+    contributions: stats.totalContributions,
+    projects: projects.map((project) => ({ name: project.name, tagline: project.tagline })),
+    skills: skills.map((skill) => skill.name),
+    email: resume.email,
+};
+---
+
+<div class="os" data-os data-terminal={JSON.stringify(terminalData)} aria-label="Bryan’s desktop" role="region">
+    <div class="os-screen" data-os-screen>
+        <div class="os-menubar">
+            <b>Bryan</b>
+            <span class="os-menu">File</span><span class="os-menu">Edit</span><span class="os-menu">View</span><span class="os-menu">Window</span><span class="os-menu">Help</span>
+            <button type="button" class="os-leave" data-os-leave>Done <span aria-hidden="true">↓</span></button>
+            <time class="os-clock tnum" data-os-clock></time>
+        </div>
+
+        <div class="os-files">
+            <a class="os-file" href="/resume.pdf"><Icon name="lucide:file-text" aria-hidden="true" /><span>Résumé.pdf</span></a>
+            <a class="os-file" href="/photography"><Icon name="lucide:image" aria-hidden="true" /><span>Photographs</span></a>
+            <a class="os-file" href="/"><Icon name="lucide:globe" aria-hidden="true" /><span>The regular site</span></a>
+        </div>
+
+        <!-- Billion -->
+        <section class="os-window" data-window="billion" aria-label="Billion">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Billion"></button><button type="button" data-min aria-label="Minimize Billion"></button><button type="button" data-zoom aria-label="Zoom Billion"></button></div>
+                <span class="os-title">Billion — billion-news.app</span>
+                <a class="os-out" href="/products/billion" title="Read about Billion"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Read about Billion</span></a>
+            </header>
+            <div class="os-body os-web"><iframe data-src="https://www.billion-news.app/" title="Billion’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <!-- Quillium -->
+        <section class="os-window" data-window="quillium" aria-label="Quillium">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Quillium"></button><button type="button" data-min aria-label="Minimize Quillium"></button><button type="button" data-zoom aria-label="Zoom Quillium"></button></div>
+                <span class="os-title">Quillium — quillium.bryanhu.com</span>
+                <a class="os-out" href="/products/quillium" title="Read about Quillium"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Read about Quillium</span></a>
+            </header>
+            <div class="os-body os-web"><iframe data-src="https://quillium.bryanhu.com/" title="Quillium’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <!-- Projects, Finder-style -->
+        <section class="os-window os-light" data-window="projects" aria-label="Projects">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Projects"></button><button type="button" data-min aria-label="Minimize Projects"></button><button type="button" data-zoom aria-label="Zoom Projects"></button></div>
+                <span class="os-title">Projects</span>
+            </header>
+            <div class="os-body os-finder">
+                <nav class="finder-side" aria-label="Project folders">
+                    <a href="#os-products">Products</a>
+                    <a href="#os-featured">Featured</a>
+                    <a href="#os-apps">Apps</a>
+                    <a href="#os-libraries">Libraries &amp; tools</a>
+                </nav>
+                <div class="finder-main" data-scroll>
+                    <h3 id="os-products">Products</h3>
+                    <ul class="finder-list">
+                        <li><button type="button" data-open="billion"><b>Billion</b><span>Bills, executive orders and court rulings, made easier to follow.</span><i>Open</i></button></li>
+                        <li><button type="button" data-open="quillium"><b>Quillium</b><span>Version control for prose. Every draft stays in the document.</span><i>Open</i></button></li>
+                    </ul>
+                    <h3 id="os-featured">Featured</h3>
+                    <ul class="finder-list">
+                        {projects.map((project) => (
+                            <li><a href={project.url}><b>{project.name}</b><span>{project.tagline}</span><i style={`--dot:${project.languageColor}`}>{project.language}</i></a></li>
+                        ))}
+                    </ul>
+                    <h3 id="os-apps">Apps</h3>
+                    <ul class="finder-list">
+                        {apps.map((app) => (
+                            <li><a href={app.url ?? app.repo}><b>{app.name}</b><span>{app.tagline}</span><i>{app.platform}</i></a></li>
+                        ))}
+                    </ul>
+                    <h3 id="os-libraries">Libraries &amp; tools</h3>
+                    <ul class="finder-list">
+                        {[...libraries, ...tools].map((item) => (
+                            <li><a href={item.repo}><b>{item.name}</b><span>{item.tagline}</span><i>{item.ecosystem}</i></a></li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <!-- Repositories -->
+        <section class="os-window" data-window="repos" aria-label="Repositories">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Repositories"></button><button type="button" data-min aria-label="Minimize Repositories"></button><button type="button" data-zoom aria-label="Zoom Repositories"></button></div>
+                <span class="os-title">github.com/{resume.github}</span>
+                <a class="os-out" href={`https://github.com/${resume.github}`} title="Open on GitHub"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Open on GitHub</span></a>
+            </header>
+            <div class="os-body os-repos" data-scroll>
+                <p class="repos-stats tnum">
+                    <span><b>{repos.length}</b> public repos</span>
+                    <span><b>{stars}</b> stars</span>
+                    <span><b>{stats.totalContributions.toLocaleString("en-US")}</b> contributions this year</span>
+                </p>
+                <ul class="repo-list">
+                    {repos.map((repo) => (
+                        <li>
+                            <a href={`https://github.com/${resume.github}/${repo.name}`}>
+                                <b>{repo.name}</b>
+                                <span>{repo.body}</span>
+                                <small class="tnum">
+                                    {repo.language && <i style={`--dot:${repo.languageColor ?? "#888"}`}>{repo.language}</i>}
+                                    <em>★ {repo.starCount}</em>
+                                    <em>{updated(repo.updatedAt)}</em>
+                                </small>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <!-- Skills -->
+        <section class="os-window" data-window="skills" aria-label="Skills">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Skills"></button><button type="button" data-min aria-label="Minimize Skills"></button><button type="button" data-zoom aria-label="Zoom Skills"></button></div>
+                <span class="os-title">Skills</span>
+            </header>
+            <div class="os-body os-skills">
+                <div class="skills-grid" role="tablist" aria-label="Skills">
+                    {skills.map((skill, i) => (
+                        <button type="button" role="tab" aria-selected={i === 0 ? "true" : "false"} aria-controls={`os-skill-${i}`} data-skill={i} style={`--skill:${skill.color}`}>
+                            <Icon name={skill.icon.includes(":") ? skill.icon : `simple-icons:${skill.icon}`} aria-hidden="true" />
+                            <span>{skill.name}</span>
+                        </button>
+                    ))}
+                </div>
+                <div class="skills-detail" data-scroll>
+                    {skills.map((skill, i) => (
+                        <section id={`os-skill-${i}`} role="tabpanel" hidden={i !== 0}>
+                            <h3>{skill.name}</h3>
+                            <p>{skill.body}</p>
+                            {(skillRepos[i].length > 0 || skill.extra) && (
+                                <ul>
+                                    {skillRepos[i].map((repo) => <li><a href={`https://github.com/${resume.github}/${repo.name}`}>{repo.name} <span aria-hidden="true">↗</span></a></li>)}
+                                    {skill.extra && <li><a href={skill.extra.url}>{skill.extra.name} <span aria-hidden="true">↗</span></a></li>}
+                                </ul>
+                            )}
+                        </section>
+                    ))}
+                </div>
+            </div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <!-- Terminal -->
+        <section class="os-window os-term" data-window="terminal" aria-label="Terminal">
+            <header class="os-titlebar" data-drag>
+                <div class="os-lights"><button type="button" data-close aria-label="Close Terminal"></button><button type="button" data-min aria-label="Minimize Terminal"></button><button type="button" data-zoom aria-label="Zoom Terminal"></button></div>
+                <span class="os-title">bryan — zsh</span>
+            </header>
+            <div class="os-body term-body" data-term data-scroll>
+                <div class="term-log" data-term-log aria-live="polite">
+                    <p><span class="term-prompt">{PROMPT}</span> {TERMINAL_INTRO.command}</p>
+                    {TERMINAL_INTRO.output.map((line) => <p>{line || " "}</p>)}
+                </div>
+                <label class="term-line"><span class="term-prompt">{PROMPT}</span><input data-term-input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Terminal command" /></label>
+            </div>
+            <div class="os-resize" data-resize aria-hidden="true"></div>
+        </section>
+
+        <nav class="os-dock" aria-label="Dock">
+            {DOCK.map((id) => (
+                <button type="button" class={`dock-app dock-${id}`} data-open={id} aria-label={`Open ${APPS[id].title}`}>
+                    <span class="dock-tile"><Icon name={dockIcons[id]} aria-hidden="true" /></span>
+                    <span class="dock-label">{APPS[id].title}</span>
+                </button>
+            ))}
+        </nav>
+    </div>
+    <p class="os-note" aria-hidden="true"><span class="hand">it’s a real computer. click around.</span> <span>Scroll on when you’re done.</span></p>
+</div>
+
+<style>
+    /* Placed and sized by os.ts to match the 3D display exactly. Everything
+       inside is measured in container units, so it scales like a real screen. */
+    .os {
+        position: fixed;
+        z-index: 4;
+        left: 0;
+        top: 0;
+        width: 0;
+        height: 0;
+        container-type: size;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .os[data-live] {
+        visibility: visible;
+    }
+    .os[data-interactive] {
+        pointer-events: auto;
+    }
+    .os-screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        font-size: clamp(10px, 1.55cqh, 15px);
+        color: #f5f5f7;
+        background: #000 var(--wallpaper) center / cover;
+        border-radius: 0.4cqh;
+    }
+    .os-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    .os-menubar {
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: 50;
+        height: 3.4cqh;
+        display: flex;
+        align-items: center;
+        gap: 1.4em;
+        padding: 0 1.2em;
+        font-size: 0.92em;
+        background: rgb(20 20 22 / 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+    .os-menu {
+        color: rgb(255 255 255 / 0.8);
+    }
+    .os-leave {
+        margin-left: auto;
+        padding: 0.1em 0.7em;
+        border: 0;
+        border-radius: 0.4em;
+        background: rgb(255 255 255 / 0.14);
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+    }
+    .os-leave:hover {
+        background: rgb(255 255 255 / 0.24);
+    }
+    .os-clock {
+        color: rgb(255 255 255 / 0.85);
+        white-space: nowrap;
+    }
+
+    .os-files {
+        position: absolute;
+        top: 6cqh;
+        right: 1.5cqw;
+        display: grid;
+        gap: 1.4cqh;
+        justify-items: center;
+    }
+    .os-file {
+        display: grid;
+        justify-items: center;
+        gap: 0.35em;
+        width: 7em;
+        padding: 0.5em 0.3em;
+        border-radius: 0.5em;
+        text-align: center;
+        font-size: 0.85em;
+        text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
+    }
+    .os-file :global(svg) {
+        width: 2.6em;
+        height: 2.6em;
+        stroke-width: 1.4;
+    }
+    .os-file:hover,
+    .os-file:focus-visible {
+        background: rgb(255 255 255 / 0.12);
+    }
+
+    /* Windows */
+    .os-window {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        border-radius: 0.75em;
+        overflow: hidden;
+        background: #1c1c1f;
+        box-shadow:
+            0 0 0 1px rgb(255 255 255 / 0.12),
+            0 1.5em 4em rgb(0 0 0 / 0.55);
+        transform-origin: 50% 100%;
+        transition:
+            opacity 220ms ease,
+            scale 380ms var(--spring),
+            translate 380ms var(--spring),
+            left 380ms var(--spring),
+            top 380ms var(--spring),
+            width 380ms var(--spring),
+            height 380ms var(--spring),
+            visibility 0s;
+    }
+    .os-window[data-closed] {
+        opacity: 0;
+        scale: 0.9;
+        translate: 0 4cqh;
+        visibility: hidden;
+        pointer-events: none;
+        transition:
+            opacity 180ms ease,
+            scale 220ms ease-in,
+            translate 220ms ease-in,
+            visibility 0s 220ms;
+    }
+    /* Following the pointer has to be immediate. */
+    .os[data-dragging] .os-window {
+        transition: none;
+    }
+    .os[data-dragging] iframe {
+        pointer-events: none;
+    }
+    .os-window:not([data-focused]) .os-titlebar {
+        opacity: 0.75;
+    }
+    .os-titlebar {
+        position: relative;
+        flex: none;
+        height: 2.5em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.9em;
+        background: #2a2a2e;
+        border-bottom: 1px solid rgb(0 0 0 / 0.4);
+        cursor: grab;
+        touch-action: none;
+        user-select: none;
+    }
+    .os[data-dragging] .os-titlebar {
+        cursor: grabbing;
+    }
+    .os-title {
+        font-size: 0.88em;
+        font-weight: 500;
+        color: rgb(255 255 255 / 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
+    }
+    .os-lights {
+        position: absolute;
+        left: 0.9em;
+        display: flex;
+        gap: 0.5em;
+    }
+    .os-lights button {
+        width: 0.95em;
+        height: 0.95em;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: #ff5f57;
+        cursor: pointer;
+    }
+    .os-lights button[data-min] {
+        background: #febc2e;
+    }
+    .os-lights button[data-zoom] {
+        background: #28c840;
+    }
+    .os-lights button:focus-visible {
+        outline: 2px solid #7fa8ff;
+        outline-offset: 2px;
+    }
+    .os-out {
+        position: absolute;
+        right: 0.8em;
+        display: grid;
+        place-items: center;
+        width: 1.7em;
+        height: 1.7em;
+        border-radius: 0.4em;
+        color: rgb(255 255 255 / 0.6);
+    }
+    .os-out:hover {
+        background: rgb(255 255 255 / 0.1);
+        color: #fff;
+    }
+    .os-out :global(svg) {
+        width: 1.05em;
+        height: 1.05em;
+    }
+    .os-body {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+    }
+    [data-scroll] {
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+    .os-web iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #0b0b0c;
+    }
+    .os-resize {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 1.4em;
+        height: 1.4em;
+        cursor: nwse-resize;
+        touch-action: none;
+    }
+
+    /* Projects */
+    .os-light {
+        background: #f6f5f2;
+        color: #1d1d1f;
+    }
+    .os-light .os-titlebar {
+        background: #e9e7e2;
+        border-bottom-color: rgb(0 0 0 / 0.08);
+    }
+    .os-light .os-title {
+        color: rgb(0 0 0 / 0.6);
+    }
+    .os-finder {
+        display: grid;
+        grid-template-columns: 11em 1fr;
+    }
+    .finder-side {
+        display: grid;
+        align-content: start;
+        gap: 0.15em;
+        padding: 0.9em 0.6em;
+        background: #ecebe7;
+        border-right: 1px solid rgb(0 0 0 / 0.07);
+        font-size: 0.92em;
+    }
+    .finder-side a {
+        padding: 0.35em 0.6em;
+        border-radius: 0.4em;
+        color: rgb(0 0 0 / 0.75);
+    }
+    .finder-side a:hover {
+        background: rgb(0 0 0 / 0.06);
+    }
+    .finder-main {
+        padding: 0.4em 1.2em 1.2em;
+    }
+    .finder-main h3 {
+        margin: 1.1em 0 0.4em;
+        font-size: 0.78em;
+        font-weight: 600;
+        color: rgb(0 0 0 / 0.45);
+    }
+    .finder-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .finder-list :is(a, button) {
+        display: grid;
+        grid-template-columns: 9.5em 1fr auto;
+        gap: 1em;
+        align-items: baseline;
+        width: 100%;
+        padding: 0.55em 0.6em;
+        border: 0;
+        border-radius: 0.4em;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+    .finder-list li:nth-child(odd) :is(a, button) {
+        background: rgb(0 0 0 / 0.025);
+    }
+    .finder-list :is(a, button):hover {
+        background: rgb(36 89 220 / 0.1);
+    }
+    .finder-list b {
+        font-weight: 600;
+    }
+    .finder-list span {
+        color: rgb(0 0 0 / 0.6);
+        font-size: 0.92em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .finder-list i {
+        font-style: normal;
+        font-size: 0.82em;
+        color: rgb(0 0 0 / 0.5);
+        white-space: nowrap;
+    }
+    .finder-list i[style]::before {
+        content: "";
+        display: inline-block;
+        width: 0.6em;
+        height: 0.6em;
+        margin-right: 0.4em;
+        border-radius: 50%;
+        background: var(--dot);
+    }
+    .finder-list button i {
+        color: #2459dc;
+        font-weight: 600;
+    }
+
+    /* Repositories */
+    .os-repos {
+        padding: 0 1.2em 1.2em;
+    }
+    .repos-stats {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4em 1.6em;
+        margin: 0 -1.2em;
+        padding: 0.9em 1.2em;
+        background: #1c1c1f;
+        border-bottom: 1px solid rgb(255 255 255 / 0.08);
+        color: rgb(255 255 255 / 0.6);
+        font-size: 0.9em;
+    }
+    .repos-stats b {
+        color: #fff;
+        font-weight: 600;
+    }
+    .repo-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+    .repo-list a {
+        display: grid;
+        gap: 0.25em;
+        padding: 0.8em 0;
+        border-bottom: 1px solid rgb(255 255 255 / 0.07);
+    }
+    .repo-list a:hover b {
+        color: #7fa8ff;
+    }
+    .repo-list b {
+        font-weight: 600;
+    }
+    .repo-list span {
+        color: rgb(255 255 255 / 0.6);
+        font-size: 0.92em;
+    }
+    .repo-list small {
+        display: flex;
+        gap: 1.2em;
+        color: rgb(255 255 255 / 0.45);
+        font-size: 0.8em;
+    }
+    .repo-list i,
+    .repo-list em {
+        font-style: normal;
+    }
+    .repo-list i::before {
+        content: "";
+        display: inline-block;
+        width: 0.65em;
+        height: 0.65em;
+        margin-right: 0.4em;
+        border-radius: 50%;
+        background: var(--dot);
+    }
+
+    /* Skills */
+    .os-skills {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    }
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(5.2em, 1fr));
+        align-content: start;
+        gap: 0.4em;
+        padding: 1em;
+        overflow: auto;
+        border-right: 1px solid rgb(255 255 255 / 0.08);
+    }
+    .skills-grid button {
+        display: grid;
+        justify-items: center;
+        gap: 0.4em;
+        padding: 0.7em 0.2em;
+        border: 0;
+        border-radius: 0.6em;
+        background: none;
+        color: rgb(255 255 255 / 0.75);
+        font: inherit;
+        font-size: 0.78em;
+        cursor: pointer;
+    }
+    .skills-grid button :global(svg) {
+        width: 2.2em;
+        height: 2.2em;
+        color: color-mix(in srgb, var(--skill) 55%, white);
+    }
+    .skills-grid button:hover {
+        background: rgb(255 255 255 / 0.06);
+    }
+    .skills-grid button[aria-selected="true"] {
+        background: rgb(255 255 255 / 0.11);
+        color: #fff;
+    }
+    .skills-detail {
+        padding: 1.2em 1.4em;
+    }
+    .skills-detail h3 {
+        margin: 0 0 0.5em;
+        font-size: 1.3em;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .skills-detail p {
+        margin: 0 0 1em;
+        color: rgb(255 255 255 / 0.72);
+        line-height: 1.5;
+    }
+    .skills-detail ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.3em;
+    }
+    .skills-detail a {
+        color: #7fa8ff;
+    }
+
+    /* Terminal */
+    .os-term {
+        background: #0c0c0e;
+    }
+    .os-term .os-titlebar {
+        background: #1d1d20;
+    }
+    .term-body {
+        padding: 0.8em 1em;
+        font-family: "SF Mono", ui-monospace, Menlo, monospace;
+        font-size: 0.92em;
+        line-height: 1.5;
+        cursor: text;
+    }
+    .term-log :global(p) {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #e6e6ea;
+    }
+    .term-log :global(.term-dim) {
+        color: rgb(230 230 234 / 0.55);
+    }
+    .term-log :global(.term-accent) {
+        color: #7fa8ff;
+    }
+    .term-log :global(a) {
+        color: #7fa8ff;
+        text-decoration: underline;
+    }
+    .term-prompt,
+    .term-log :global(.term-prompt) {
+        color: #28c840;
+    }
+    .term-line {
+        display: flex;
+        gap: 0.6em;
+    }
+    .term-line input {
+        flex: 1;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        background: none;
+        color: #f5f5f7;
+        font: inherit;
+        caret-color: #f5f5f7;
+    }
+
+    /* Dock */
+    .os-dock {
+        position: absolute;
+        left: 50%;
+        bottom: 1.1cqh;
+        z-index: 60;
+        translate: -50% 0;
+        display: flex;
+        gap: 0.5em;
+        padding: 0.45em;
+        border-radius: 1.2em;
+        background: rgb(40 40 44 / 0.55);
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+    }
+    .dock-app {
+        position: relative;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+    }
+    .dock-tile {
+        display: grid;
+        place-items: center;
+        width: 5.2cqh;
+        height: 5.2cqh;
+        min-width: 30px;
+        min-height: 30px;
+        border-radius: 22%;
+        color: #fff;
+        background: linear-gradient(#3a3a40, #232327);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15);
+        transition: translate 300ms var(--spring-lively);
+    }
+    .dock-tile :global(svg) {
+        width: 55%;
+        height: 55%;
+    }
+    .dock-billion .dock-tile {
+        background: linear-gradient(#1b2a5c, #0d1636);
+    }
+    .dock-quillium .dock-tile {
+        background: linear-gradient(#3a3330, #1c1917);
+    }
+    .dock-projects .dock-tile {
+        background: linear-gradient(#5fa7ff, #2b6fe0);
+    }
+    .dock-repos .dock-tile {
+        background: linear-gradient(#2c2c30, #0d0d0f);
+    }
+    .dock-skills .dock-tile {
+        background: linear-gradient(#b08cff, #6b45d9);
+    }
+    .dock-terminal .dock-tile {
+        background: linear-gradient(#26262a, #060607);
+    }
+    .dock-app:hover .dock-tile,
+    .dock-app:focus-visible .dock-tile {
+        translate: 0 -0.5em;
+    }
+    .dock-app::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -0.35em;
+        width: 0.3em;
+        height: 0.3em;
+        translate: -50% 0;
+        border-radius: 50%;
+        background: rgb(255 255 255 / 0.8);
+        opacity: 0;
+    }
+    .dock-app[data-running]::after {
+        opacity: 1;
+    }
+    .dock-label {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 0.9em);
+        translate: -50% 0;
+        padding: 0.25em 0.6em;
+        border-radius: 0.4em;
+        background: rgb(30 30 33 / 0.9);
+        font-size: 0.8em;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 150ms;
+    }
+    .dock-app:hover .dock-label,
+    .dock-app:focus-visible .dock-label {
+        opacity: 1;
+    }
+
+    .os-note {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 1.4vh);
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 1rem;
+        color: var(--color-fg-muted);
+        font-size: 0.875rem;
+        pointer-events: none;
+    }
+    .os-note .hand {
+        color: #7fa8ff;
+        font-size: 1.15rem;
+    }
+
+    /* On a phone the display is too small to use in place, so the desktop
+       fills the screen and windows open one at a time. */
+    .os[data-compact] .os-screen {
+        border-radius: 0;
+        font-size: 14px;
+    }
+    .os[data-compact] .os-menubar {
+        height: 32px;
+    }
+    .os[data-compact] .os-menu {
+        display: none;
+    }
+    .os[data-compact] .os-window {
+        left: 0 !important;
+        top: 32px !important;
+        width: 100% !important;
+        height: calc(100% - 32px - 76px) !important;
+        border-radius: 0;
+    }
+    .os[data-compact] .os-lights button[data-zoom],
+    .os[data-compact] .os-resize,
+    .os[data-compact] .os-files {
+        display: none;
+    }
+    .os[data-compact] .os-dock {
+        bottom: 10px;
+        gap: 0.35em;
+    }
+    .os[data-compact] .dock-tile {
+        width: 44px;
+        height: 44px;
+    }
+    .os[data-compact] .os-finder,
+    .os[data-compact] .os-skills {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+    .os[data-compact] .finder-side {
+        display: flex;
+        overflow-x: auto;
+        border-right: 0;
+        border-bottom: 1px solid rgb(0 0 0 / 0.07);
+    }
+    .os[data-compact] .finder-side a {
+        white-space: nowrap;
+    }
+    .os[data-compact] .finder-list :is(a, button) {
+        grid-template-columns: 1fr auto;
+    }
+    .os[data-compact] .finder-list span {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+    .os[data-compact] .skills-grid {
+        max-height: 38cqh;
+        border-right: 0;
+        border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    }
+    .os[data-compact] .os-note {
+        display: none;
+    }
+</style>

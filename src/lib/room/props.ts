@@ -68,7 +68,7 @@ export const materials = () => ({
     ebony: new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.28 }),
     felt: new THREE.MeshStandardMaterial({ color: 0x5a1416, roughness: 1 }),
     // Lacquered yellow brass: a metal under a clear coat.
-    brass: new THREE.MeshPhysicalMaterial({ color: 0xe2b462, metalness: 1, roughness: 0.16, clearcoat: 1, clearcoatRoughness: 0.08 }),
+    brass: new THREE.MeshPhysicalMaterial({ color: 0xebc36e, metalness: 1, roughness: 0.13, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.9 }),
     nickel: new THREE.MeshStandardMaterial({ color: 0xd2d5d8, metalness: 1, roughness: 0.24 }),
     blackMetal: new THREE.MeshStandardMaterial({ color: 0x18181a, metalness: 0.6, roughness: 0.45 }),
     rubber: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }),
@@ -262,9 +262,10 @@ export function trombone(m: Materials) {
     const add = <T extends THREE.Object3D>(object: T) => (horn.add(object), object);
     const brass = m.brass;
     const S = 0.095; // slide tube spacing, centre to centre
-    const B = 0.125; // how far the bell section sits to the player's left of the slide
-    const neck = -0.035; // the bell section's lower (neckpipe) tube
-    const tail = 0.045; // its upper tube, which becomes the bell
+    // The bell section rides above and beside the slide, never in its plane.
+    const B = 0.1; // toward the player's left
+    const neck = 0.03; // the bell section's neckpipe tube
+    const tail = 0.1; // the tube that becomes the bell
     const bore = 0.0072;
 
     // Mouthpiece: cup, rim, throat and a long taper into the receiver.
@@ -282,25 +283,24 @@ export function trombone(m: Materials) {
     mouthpiece.position.x = -0.09;
     add(mouthpiece);
 
-    // Inner slide (nickel), mostly hidden; the stationary brace and cork barrels.
-    for (const y of [0, -S]) add(tube([[0, y, 0], [0.11, y, 0]], bore, m.nickel));
+    // Inner slide: closed, the outer slide covers it but for a finger's width
+    // below the cork barrels and the stationary brace.
+    for (const y of [0, -S]) add(tube([[0, y, 0], [0.09, y, 0]], bore, m.nickel));
     add(collar(0.008, 0, 0, 0.0102, 0.02, brass)); // mouthpiece receiver
-    add(collar(0.052, 0, 0, 0.0096, 0.03, brass));
-    add(collar(0.052, -S, 0, 0.0096, 0.03, brass));
-    add(stay([0.052, -0.004, 0], [0.052, -S + 0.004, 0], 0.0042, brass));
-    // Slide lock, a knurled ring on the upper tube.
-    add(collar(0.085, 0, 0, 0.0108, 0.01, m.nickel));
+    for (const y of [0, -S]) add(collar(0.038, y, 0, 0.0095, 0.026, brass)); // cork barrels
+    add(stay([0.038, -0.004, 0], [0.038, -S + 0.004, 0], 0.0042, brass));
+    add(collar(0.062, 0, 0, 0.0106, 0.008, m.nickel)); // slide lock
 
     // Outer slide: two long tubes, the hand brace, and the crook.
     const outer = 0.0087;
-    const crookAt = 0.675;
+    const crookAt = 0.65;
     for (const y of [0, -S]) {
-        add(tube([[0.108, y, 0], [crookAt, y, 0]], outer, brass));
-        add(collar(0.112, y, 0, 0.0104, 0.016, brass)); // stocking ferrule at the open end
-        add(collar(0.165, y, 0, 0.0102, 0.022, brass)); // hand brace sleeves
+        add(tube([[0.074, y, 0], [crookAt, y, 0]], outer, brass));
+        add(collar(0.079, y, 0, 0.0103, 0.012, brass)); // stocking ferrule at the open end
+        add(collar(0.15, y, 0, 0.0102, 0.02, brass)); // hand brace sleeves
         add(collar(crookAt - 0.006, y, 0, 0.0102, 0.014, brass));
     }
-    add(stay([0.165, -0.006, 0], [0.165, -S + 0.006, 0], 0.0045, brass));
+    add(stay([0.15, -0.006, 0], [0.15, -S + 0.006, 0], 0.0045, brass));
     add(tube(bend(crookAt, 0, -S, 0, 1), 0.0092, brass));
     // Water key on the outside of the crook.
     const key = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.004, 0.007), m.nickel);
@@ -308,61 +308,65 @@ export function trombone(m: Materials) {
     key.rotation.z = -0.5;
     add(key);
 
-    // Gooseneck: leaves the lower slide tube through the bell lock nut, then an
-    // S-curve up and across into the bell section's plane.
+    // Gooseneck: leaves the lower slide tube through the bell lock nut, swings
+    // out past the mouthpiece, and rises into the bell section.
     add(collar(-0.006, -S, 0, 0.0118, 0.018, m.nickel)); // bell lock nut
     add(
         tube(
-            [[-0.004, -S, 0], [-0.03, -S, 0], [-0.058, -S + 0.01, 0.018], [-0.08, -0.064, 0.064], [-0.094, -0.044, 0.108], [-0.115, neck, B], [-0.15, neck, B]],
+            [[-0.004, -S, 0], [-0.03, -S, 0], [-0.058, -0.072, 0.036], [-0.08, -0.022, 0.082], [-0.1, 0.022, B], [-0.13, neck, B]],
             bore,
             brass,
         ),
     );
     // Neckpipe back toward the player's shoulder.
-    add(tube([[-0.15, neck, B], [-0.33, neck, B]], bore, brass));
+    add(tube([[-0.13, neck, B], [-0.32, neck, B]], bore, brass));
 
     // Tuning slide: two tubes and a crook, behind the player's head.
-    const tuneAt = -0.43;
+    const tuneAt = -0.42;
     for (const y of [neck, tail]) {
-        add(tube([[-0.33, y, B], [tuneAt, y, B]], 0.0086, brass));
-        add(collar(-0.333, y, B, 0.0102, 0.016, brass));
+        add(tube([[-0.32, y, B], [tuneAt, y, B]], 0.0086, brass));
+        add(collar(-0.323, y, B, 0.0102, 0.016, brass));
     }
     add(tube(bend(tuneAt, neck, tail, B, -1), 0.0088, brass));
-    add(stay([-0.405, neck + 0.006, B], [-0.405, tail - 0.006, B], 0.0038, brass));
-    // The bell section's own stay between its two tubes.
-    add(stay([-0.215, neck + 0.006, B], [-0.215, tail - 0.007, B], 0.0036, brass));
+    add(stay([-0.395, neck + 0.006, B], [-0.395, tail - 0.006, B], 0.0038, brass));
+    add(stay([-0.24, neck + 0.006, B], [-0.24, tail - 0.007, B], 0.0034, brass));
 
-    // Bell: one Bessel horn from the tuning slide to the rim, r = k·(d + c)^-m,
-    // where d is the distance back from the rim. It barely widens for most of
-    // its length and then opens fast in the last 15 cm, which is the shape.
-    const rim = 0.42;
-    const length = rim - -0.33;
-    const c = 0.0235;
-    const k = 0.00646;
-    const flare = 0.75;
+    // Bell: a slim tail that barely grows for most of its length, then a
+    // Bessel flare, r = k·(d + c)^-m with d the distance back from the rim,
+    // that does nearly all its opening in the last 25 cm.
+    const rim = 0.4;
+    const length = rim - -0.32;
+    const rimRadius = 0.108;
+    const flare = 1.3;
+    const c = 0.0545;
+    const k = rimRadius * Math.pow(c, flare);
+    const bellRadius = (d: number) => {
+        const opening = k * Math.pow(d + c, -flare);
+        const taper = 0.0095 - (Math.max(0, d - 0.3) / (length - 0.3)) * (0.0095 - 0.0076);
+        return Math.max(opening, taper);
+    };
     const profile: THREE.Vector2[] = [];
-    for (let i = 0; i <= 120; i++) {
-        const t = i / 120;
+    for (let i = 0; i <= 140; i++) {
+        const t = i / 140;
         const d = length * (1 - t) * (1 - t); // denser samples toward the rim
-        profile.push(new THREE.Vector2(k * Math.pow(d + c, -flare), length - d));
+        profile.push(new THREE.Vector2(bellRadius(d), length - d));
     }
     const bellMat = brass.clone();
     bellMat.side = THREE.DoubleSide;
     const bell = new THREE.Mesh(new THREE.LatheGeometry(profile, 72), bellMat);
     bell.rotation.z = -Math.PI / 2;
-    bell.position.set(-0.33, tail, B);
+    bell.position.set(-0.32, tail, B);
     add(bell);
-    const rimRadius = k * Math.pow(c, -flare);
     const bead = new THREE.Mesh(new THREE.TorusGeometry(rimRadius, 0.0032, 12, 96), brass);
     bead.rotation.y = Math.PI / 2;
     bead.position.set(rim, tail, B);
     add(bead);
-    // Bell brace: from the bell tail across to the slide, by the receiver.
-    add(stay([-0.035, tail - 0.008, B - 0.004], [0.012, 0.009, 0.006], 0.0042, brass));
+    // Bell brace: from the bell tail down to the slide, by the receiver.
+    add(stay([-0.03, tail - 0.009, B - 0.004], [0.012, 0.009, 0.006], 0.0042, brass));
 
     // ── Stand ────────────────────────────────────────────────────────────
     // Bell and slide both hang down: player's X becomes world -Y.
-    const top = 0.8;
+    const top = 0.78;
     horn.rotation.z = -Math.PI / 2;
     horn.position.y = top;
     const group = new THREE.Group();
@@ -377,7 +381,7 @@ export function trombone(m: Materials) {
     const conePoints: THREE.Vector2[] = [new THREE.Vector2(0, 0.012)];
     for (let i = 0; i <= 12; i++) {
         const depth = 0.012 + (0.075 * i) / 12;
-        conePoints.push(new THREE.Vector2(0.85 * k * Math.pow(depth + c, -flare), depth));
+        conePoints.push(new THREE.Vector2(0.85 * bellRadius(depth), depth));
     }
     conePoints.push(new THREE.Vector2(0, 0.087));
     const cone = new THREE.Mesh(new THREE.LatheGeometry(conePoints.reverse(), 40), felt);
