@@ -525,7 +525,8 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             if (!drag || event.pointerId !== drag.id) return;
             // Dragging pulls the room with your hand, like turning a photo sphere.
             const per = (canvas.clientWidth / 2 / Math.tan(THREE.MathUtils.degToRad(shot.fov) / 2)) * 1.1;
-            turnTo(drag.yaw + (event.clientX - drag.x) / per, drag.pitch + (event.clientY - drag.y) / per);
+            // Both axes move the room the way your hand does: drag up and the view tilts down.
+            turnTo(drag.yaw + (event.clientX - drag.x) / per, drag.pitch - (event.clientY - drag.y) / per);
         },
         { signal },
     );
