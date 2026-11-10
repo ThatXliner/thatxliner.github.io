@@ -14,6 +14,13 @@ permissions:
   pages: write
   id-token: write
 
+# One deploy at a time. Every build contains everything pushed before it, so a
+# newer push makes an older run pointless: cancel it rather than let the two
+# collide over the single Pages deployment slot.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
