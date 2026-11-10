@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { createRoom, loadImage, type RoomScene, type Shot } from "./scene";
 import { createDesktop } from "./os";
 import { createHall, type HallPhoto } from "./hall";
+import { DOOR } from "./gallery";
+import { MUSIC_DOOR } from "./music";
 import { createLoader } from "./loader";
 
 /**
@@ -430,8 +432,11 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         element.addEventListener("click", () => go(id), { signal });
         return { element, id };
     });
-    const anchorOf = (id: PlaceId) => {
+    /** Once you're exploring, the music room's mark moves from the piano to its door. */
+    const musicDoor = v(MUSIC_DOOR.x + 0.05, 1.35, (MUSIC_DOOR.z0 + MUSIC_DOOR.z1) / 2);
+    const anchorOf = (id: PlaceId, explore = false) => {
         const a = room.anchors;
+        if (id === "music" && explore) return musicDoor;
         return { desk: a.laptop, gear: a.r7, path: a.rug.clone().add(v(0.35, 0.02, -0.35)), recognition: a.shelf, music: a.piano.clone().add(v(-0.2, 0.55, 0)), photographs: a.prints }[id];
     };
     const exploring = (p: number) => p >= BEATS.end.arrive;
@@ -439,14 +444,130 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     function placeHotspots(p: number) {
         const explore = exploring(p);
         root.toggleAttribute("data-exploring", explore);
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const edges: { element: HTMLElement; x: number; y: number; side: string; turn: number }[] = [];
         for (const { element, id } of hotspots) {
             const beat = duringTour[id];
             const wanted = mode === "film" && (explore || (beat !== undefined && p >= beat[0] && p <= beat[1]));
-            const at = wanted ? room.project(anchorOf(id)) : null;
-            const show = !!at?.visible;
-            element.hidden = !show;
-            if (at && show) element.style.transform = `translate3d(${at.x}px, ${at.y}px, 0)`;
+            const at = wanted ? room.project(anchorOf(id, explore)) : null;
+            // Out of frame while exploring: a tag on the nearest edge, pointing the way.
+            const edge = !!at && !at.visible && explore;
+            element.hidden = !at || (!at.visible && !edge);
+            element.toggleAttribute("data-edge", edge);
+            if (!at || element.hidden) continue;
+            if (!edge) {
+                element.style.transform = `translate3d(${at.x}px, ${at.y}px, 0)`;
+                continue;
+            }
+            // From the centre toward the point (flipped if it's behind us), out to the edge.
+            const cx = width / 2;
+            const cy = height / 2;
+            let dx = at.x - cx;
+            let dy = at.y - cy;
+            if (!at.ahead) [dx, dy] = [-dx, -dy];
+            // Mostly sideways, since you look around by turning.
+            dy *= 0.6;
+            const margin = 22;
+            const t = Math.min((cx - margin) / Math.max(1e-3, Math.abs(dx)), (cy - margin) / Math.max(1e-3, Math.abs(dy)));
+            const x = cx + dx * t;
+            const y = cy + dy * t;
+            const side = x > width - margin - 1 ? "right" : x < margin + 1 ? "left" : y < cy ? "top" : "bottom";
+            edges.push({ element, x, y, side, turn: Math.atan2(dy, dx) });
         }
+        // Tags on the same edge mustn't sit on one another: spread them along it.
+        const gap = 40;
+        for (const side of ["left", "right", "top", "bottom"]) {
+            const vertical = side === "left" || side === "right";
+            const group = edges.filter((e) => e.side === side).sort((a, b) => (vertical ? a.y - b.y : a.x - b.x));
+            for (let i = 1; i < group.length; i++) {
+                if (vertical) group[i].y = Math.max(group[i].y, group[i - 1].y + gap);
+                else group[i].x = Math.max(group[i].x, group[i - 1].x + 180);
+            }
+            // If the stack ran off the end, slide it back.
+            const limit = vertical ? height - 24 : width - 24;
+            const last = group.at(-1);
+            const over = last ? (vertical ? last.y : last.x) - limit : 0;
+            if (over > 0) for (const e of group) vertical ? (e.y -= over) : (e.x -= over);
+            for (const e of group) {
+                const ax = side === "right" ? 1 : side === "left" ? 0 : 0.5;
+                const ay = side === "bottom" ? 1 : side === "top" ? 0 : 0.5;
+                e.element.style.transform = `translate3d(${e.x}px, ${e.y}px, 0) translate(${-ax * 100}%, ${-ay * 100}%)`;
+                e.element.style.setProperty("--turn", `${e.turn}rad`);
+            }
+        }
+    }
+
+    // ── Looking around ───────────────────────────────────────────────────
+    // Once the tour's over you can turn your head: drag, or the left and
+    // right arrows. You stay where you're standing, so the room can't be
+    // seen from anywhere odd; scrolling back up eases your gaze back.
+    const look = { yaw: 0, pitch: 0, yawTo: 0, pitchTo: 0 };
+    const LIMIT = { yaw: 1.05, pitch: 0.32 };
+    const turnTo = (yaw: number, pitch: number) => {
+        look.yawTo = Math.max(-LIMIT.yaw, Math.min(LIMIT.yaw, yaw));
+        look.pitchTo = Math.max(-LIMIT.pitch, Math.min(LIMIT.pitch, pitch));
+    };
+    let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null;
+    canvas.addEventListener(
+        "pointerdown",
+        (event) => {
+            if (mode !== "film" || !exploring(shown) || event.button) return;
+            drag = { x: event.clientX, y: event.clientY, yaw: look.yawTo, pitch: look.pitchTo, id: event.pointerId };
+            canvas.setPointerCapture(event.pointerId);
+            root.dataset.looking = "";
+        },
+        { signal },
+    );
+    canvas.addEventListener(
+        "pointermove",
+        (event) => {
+            if (!drag || event.pointerId !== drag.id) return;
+            // Dragging pulls the room with your hand, like turning a photo sphere.
+            const per = (canvas.clientWidth / 2 / Math.tan(THREE.MathUtils.degToRad(shot.fov) / 2)) * 1.1;
+            turnTo(drag.yaw + (event.clientX - drag.x) / per, drag.pitch + (event.clientY - drag.y) / per);
+        },
+        { signal },
+    );
+    const endDrag = () => {
+        drag = null;
+        delete root.dataset.looking;
+    };
+    canvas.addEventListener("pointerup", endDrag, { signal });
+    canvas.addEventListener("pointercancel", endDrag, { signal });
+    addEventListener(
+        "keydown",
+        (event) => {
+            if (mode !== "film" || !exploring(shown) || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+            if ((event.target as Element).closest?.("input, textarea, [contenteditable], .playable-piano")) return;
+            event.preventDefault();
+            turnTo(look.yawTo + (event.key === "ArrowLeft" ? 0.25 : -0.25), look.pitchTo);
+        },
+        { signal },
+    );
+    const yawAxis = new THREE.Vector3(0, 1, 0);
+    const sideAxis = new THREE.Vector3();
+    const gaze = new THREE.Vector3();
+    /** Turn the shot's gaze by the current look, weighted by how far into exploring we are. */
+    function applyLook(target: Shot, weight: number) {
+        if (!weight || (!look.yaw && !look.pitch)) return;
+        gaze.subVectors(target.target, target.position);
+        gaze.applyAxisAngle(yawAxis, look.yaw * weight);
+        sideAxis.crossVectors(gaze, yawAxis).normalize();
+        gaze.applyAxisAngle(sideAxis, -look.pitch * weight);
+        target.target.addVectors(target.position, gaze);
+    }
+    /** Steps the look toward where it's aimed; true while it's still turning. */
+    function stepLook(dt: number) {
+        // Leaving the end of the tour lets go of the look, so coming back starts square.
+        if (!exploring(shown) && !drag) turnTo(0, 0);
+        const ease = reduced.matches ? 1 : 1 - Math.exp(-dt * 10);
+        const before = look.yaw + look.pitch * 7;
+        look.yaw += (look.yawTo - look.yaw) * ease;
+        look.pitch += (look.pitchTo - look.pitch) * ease;
+        if (Math.abs(look.yawTo - look.yaw) < 1e-4) look.yaw = look.yawTo;
+        if (Math.abs(look.pitchTo - look.pitch) < 1e-4) look.pitch = look.pitchTo;
+        return look.yaw + look.pitch * 7 !== before;
     }
     function hideHotspots() {
         root.removeAttribute("data-exploring");
@@ -613,7 +734,9 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         if (!changed) return;
         showChapters(10);
         overlay();
-        room.render(shot, { screen: { typed: state.typed, windows: desktop.windows, version: desktop.version }, daylight: state.daylight, lamp: state.lamp });
+        // Past the doorway, you're in the gallery.
+        const gallery = shot.position.x > DOOR.x + 0.25;
+        room.render(shot, { screen: { typed: state.typed, windows: desktop.windows, version: desktop.version }, daylight: state.daylight, lamp: state.lamp, gallery });
     }
 
     function frame(now: number) {
@@ -636,8 +759,10 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         // does and the painted screen is what's showing.
         const repaint = desktop.version !== lastVersion && state.desk < 1;
         const liftMoving = stepLenses(dt);
-        if (shown !== lastShown || repaint) {
+        const turning = stepLook(dt);
+        if (shown !== lastShown || repaint || turning) {
             sample(keys, shown, shot);
+            applyLook(shot, smoother(span(shown, BEATS.end.arrive - 0.03, BEATS.end.arrive)));
             if (pinned) {
                 shot.position.copy(pinned.position);
                 shot.target.copy(pinned.target);

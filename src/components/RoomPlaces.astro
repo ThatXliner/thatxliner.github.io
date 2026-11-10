@@ -39,6 +39,7 @@ const hotspots = [
             <button type="button" class="hotspot" data-hotspot={id} aria-label={label} hidden>
                 <span class="hotspot-dot" aria-hidden="true" />
                 <span class="hotspot-label" aria-hidden="true">{label}</span>
+                <span class="hotspot-arrow" aria-hidden="true">→</span>
             </button>
         ))
     }
@@ -279,6 +280,48 @@ const hotspots = [
     }
     .hotspot:focus-visible {
         outline: none;
+    }
+    .hotspot-arrow {
+        display: none;
+    }
+    /* Off screen: the same place, as a tag on the edge that points the way. */
+    .hotspot[data-edge] {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        width: auto;
+        height: auto;
+        margin: 0;
+        padding: 0.4rem 0.8rem;
+        border-radius: 980px;
+        background: rgb(18 18 21 / 0.82);
+        box-shadow:
+            0 0 0 1px rgb(255 255 255 / 0.18),
+            0 4px 16px rgb(0 0 0 / 0.35);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--color-fg);
+        transition: background-color 0.2s;
+    }
+    .hotspot[data-edge]:hover {
+        background: rgb(36 36 40 / 0.92);
+    }
+    .hotspot[data-edge] .hotspot-dot {
+        display: none;
+    }
+    .hotspot[data-edge] .hotspot-label {
+        position: static;
+        padding: 0;
+        background: none;
+        opacity: 1;
+        translate: none;
+        font-size: 0.8125rem;
+    }
+    .hotspot[data-edge] .hotspot-arrow {
+        display: block;
+        rotate: var(--turn, 0rad);
+        font-size: 0.9rem;
+        line-height: 1;
     }
     .hotspot:focus-visible .hotspot-dot {
         box-shadow:

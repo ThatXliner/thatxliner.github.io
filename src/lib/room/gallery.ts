@@ -35,13 +35,17 @@ function framedPhoto(aspect: number) {
     const outerW = w + mat * 2 + 0.03;
     const outerH = PHOTO_H + mat * 2 + 0.03;
     // A soft shadow down and right of the frame, as if lit from above-left.
+    const spread = 0.08;
     const shadow = new THREE.Mesh(
-        new THREE.PlaneGeometry(outerW + 0.06, outerH + 0.06),
-        new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false, toneMapped: false }),
+        new THREE.PlaneGeometry(outerW + spread * 2, outerH + spread * 2),
+        new THREE.MeshBasicMaterial({ map: shadowTexture(outerW, outerH, spread), transparent: true, depthWrite: false, toneMapped: false }),
     );
-    shadow.position.set(0.02, -0.035, 0.001);
+    shadow.position.set(0.012, -0.025, 0.001);
     group.add(shadow);
-    const moulding = new THREE.Mesh(new THREE.BoxGeometry(outerW, outerH, 0.03), new THREE.MeshBasicMaterial({ color: 0x1a1a1a, toneMapped: false }));
+    // Unlit, so the moulding's depth is painted in: its sides a shade lighter than its face.
+    const side = new THREE.MeshBasicMaterial({ color: 0x3a3a3a, toneMapped: false });
+    const face = new THREE.MeshBasicMaterial({ color: 0x161616, toneMapped: false });
+    const moulding = new THREE.Mesh(new THREE.BoxGeometry(outerW, outerH, 0.03), [side, side, side, side, face, face]);
     moulding.position.z = 0.015;
     group.add(moulding);
     const matBoard = new THREE.Mesh(new THREE.PlaneGeometry(w + mat * 2, PHOTO_H + mat * 2), new THREE.MeshBasicMaterial({ color: 0xf1eee7, toneMapped: false }));
@@ -53,16 +57,50 @@ function framedPhoto(aspect: number) {
     return { group, photo, width: outerW };
 }
 
-let shadowCache: THREE.Texture | undefined;
-function shadowTexture() {
-    shadowCache ??= canvasTexture(128, 128, (g) => {
-        const gradient = g.createRadialGradient(64, 64, 30, 64, 64, 64);
-        gradient.addColorStop(0, "rgba(0,0,0,0.35)");
-        gradient.addColorStop(1, "rgba(0,0,0,0)");
-        g.fillStyle = gradient;
-        g.fillRect(0, 0, 128, 128);
+/** A soft drop shadow for one frame: its rectangle, blurred, on a plane `spread` larger each side. */
+function shadowTexture(width: number, height: number, spread: number) {
+    const scale = 400; // texture pixels per metre
+    const w = Math.round((width + spread * 2) * scale);
+    const h = Math.round((height + spread * 2) * scale);
+    return canvasTexture(w, h, (g) => {
+        // Draw the rectangle far off the canvas and let only its blurred shadow land here.
+        const away = w + h;
+        g.shadowColor = "rgba(0,0,0,0.3)";
+        g.shadowBlur = spread * scale * 0.55;
+        g.shadowOffsetX = away;
+        g.fillStyle = "#000";
+        g.fillRect(spread * scale - away, spread * scale, width * scale, height * scale);
     });
-    return shadowCache;
+}
+
+/**
+ * Some of the photographs carry a white border in the file itself. On a wall
+ * that reads as a second mat, so find it (rows and columns that are flat and
+ * near-white, from each edge in) and return the fraction to crop from each side.
+ */
+function whiteBorder(image: HTMLImageElement) {
+    const size = 160;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const g = canvas.getContext("2d", { willReadFrequently: true })!;
+    g.drawImage(image, 0, 0, size, size);
+    const pixels = g.getImageData(0, 0, size, size).data;
+    const white = (x: number, y: number) => {
+        const i = (y * size + x) * 4;
+        return pixels[i] > 238 && pixels[i + 1] > 238 && pixels[i + 2] > 238;
+    };
+    const line = (fixed: number, vertical: boolean) => {
+        let count = 0;
+        for (let k = 0; k < size; k++) if (vertical ? white(fixed, k) : white(k, fixed)) count++;
+        return count > size * 0.94;
+    };
+    const scan = (vertical: boolean, from: number, step: number) => {
+        let n = 0;
+        while (n < size * 0.3 && line(from + n * step, vertical)) n++;
+        // A thin white line inside a photograph isn't a border.
+        return n >= 2 ? (n + 0.5) / size : 0;
+    };
+    return { left: scan(true, 0, 1), right: scan(true, size - 1, -1), top: scan(false, 0, 1), bottom: scan(false, size - 1, -1) };
 }
 
 export function createGallery(photos: GalleryPhoto[]) {
@@ -89,11 +127,11 @@ export function createGallery(photos: GalleryPhoto[]) {
 
     // The hall: walls, floor and ceiling, all carrying painted light.
     const wallTex = canvasTexture(4096, 512, (g) => {
-        g.fillStyle = "#e9e6df";
+        g.fillStyle = "#e6e4df";
         g.fillRect(0, 0, 4096, 512);
         // A wash from the ceiling down.
         const wash = g.createLinearGradient(0, 0, 0, 512);
-        wash.addColorStop(0, "rgba(255,250,240,0.35)");
+        wash.addColorStop(0, "rgba(255,252,246,0.25)");
         wash.addColorStop(0.55, "rgba(0,0,0,0)");
         wash.addColorStop(1, "rgba(60,50,40,0.18)");
         g.fillStyle = wash;
@@ -102,8 +140,8 @@ export function createGallery(photos: GalleryPhoto[]) {
         for (const x of centres) {
             const px = ((x - DOOR.x) / length) * 4096;
             const pool = g.createRadialGradient(px, 150, 10, px, 200, 220);
-            pool.addColorStop(0, "rgba(255,244,222,0.55)");
-            pool.addColorStop(1, "rgba(255,244,222,0)");
+            pool.addColorStop(0, "rgba(255,248,236,0.28)");
+            pool.addColorStop(1, "rgba(255,248,236,0)");
             g.fillStyle = pool;
             g.fillRect(px - 260, 0, 520, 512);
         }
@@ -156,7 +194,9 @@ export function createGallery(photos: GalleryPhoto[]) {
             // A phone sees a narrow slice, so it stands back with a wider lens
             // to take in a full column: one photograph from each row.
             position: new THREE.Vector3(x, VIEW.y, portrait ? HALL.z1 - 0.15 : VIEW.z),
-            target: new THREE.Vector3(x, VIEW.y + 0.02, HALL.z0),
+            // Dead level and square-on, so every frame edge is truly vertical: a hair
+            // of tilt shows as a one-pixel jog down the side of each frame.
+            target: new THREE.Vector3(x, VIEW.y, HALL.z0),
             fov: portrait ? 60 : 40,
         };
     }
@@ -182,6 +222,16 @@ export function createGallery(photos: GalleryPhoto[]) {
             loader.load(photo.thumb, (texture) => {
                 texture.colorSpace = THREE.SRGBColorSpace;
                 texture.anisotropy = 8;
+                // Crop a built-in white border and keep the picture's shape inside the mat.
+                const border = whiteBorder(texture.image as HTMLImageElement);
+                const keepX = 1 - border.left - border.right;
+                const keepY = 1 - border.top - border.bottom;
+                if (keepX < 1 || keepY < 1) {
+                    texture.offset.set(border.left, border.bottom);
+                    texture.repeat.set(keepX, keepY);
+                    const fit = 1 / Math.max(keepX, keepY);
+                    meshes[i].scale.set(keepX * fit, keepY * fit, 1);
+                }
                 meshes[i].material.map = texture;
                 meshes[i].material.color.set(0xffffff);
                 meshes[i].material.needsUpdate = true;

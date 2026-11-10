@@ -42,7 +42,8 @@ export interface RoomScene {
     /** Where the display lands on the page, in CSS pixels, seen from `shot`. */
     screenRect(shot: Shot, width: number, height: number): { left: number; top: number; width: number; height: number };
     anchors: Record<"laptop" | "r7" | "piano" | "trombone" | "c200" | "prints" | "bag" | "rug" | "shelf", THREE.Vector3>;
-    render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number }): void;
+    /** `gallery`: the camera is in the photographs' hall, which is shown untouched. */
+    render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number; gallery?: boolean }): void;
     /** What floats over the room: scrims behind words, glass under buttons. */
     overlay(layers: { lenses: Lens[]; scrims: Scrim[] }): void;
     /** Redraw only the overlay, over the last rendered room. */
@@ -60,7 +61,7 @@ export interface RoomScene {
     /** The music room, through the left wall. */
     music: MusicRoom;
     /** Where a point in the room lands on the canvas from the last rendered shot. */
-    project(point: THREE.Vector3): { x: number; y: number; visible: boolean };
+    project(point: THREE.Vector3): { x: number; y: number; visible: boolean; ahead: boolean };
     resize(): void;
     dispose(): void;
 }
@@ -302,8 +303,12 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     scene.add(lamp.group);
     const lampLight = new THREE.SpotLight(0xffc98a, 0, 5, 0.95, 0.6, 1.4);
     lampLight.castShadow = true;
-    lampLight.shadow.mapSize.set(1024, 1024);
-    lampLight.shadow.bias = -0.0004;
+    lampLight.shadow.mapSize.set(2048, 2048);
+    // The lamp sits against the left wall, so its light skims along it. Without a
+    // normal bias the wall shades itself in stair-steps ("shadow acne").
+    lampLight.shadow.bias = -0.0008;
+    lampLight.shadow.normalBias = 0.035;
+    lampLight.shadow.camera.near = 0.05;
     lampLight.shadow.radius = 6;
     scene.add(lampLight, lampLight.target);
     const lampFill = new THREE.PointLight(0xffb070, 0, 6, 1.4);
@@ -493,7 +498,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     sun.shadow.camera.near = 0.5;
     sun.shadow.camera.far = 16;
     sun.shadow.bias = -0.0003;
-    sun.shadow.normalBias = 0.02;
+    sun.shadow.normalBias = 0.035;
     sun.shadow.radius = 3;
     scene.add(sun, sun.target);
     // Window bounce: light that's come in and hit the floor.
@@ -651,9 +656,13 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     }
     resize();
 
-    function render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number }) {
+    function render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number; gallery?: boolean }) {
         screen.paint(state.screen);
         light(state.daylight, state.lamp);
+        // The hall shows photographs as they are: no filmic tone curve squeezing
+        // their colour, and no ambient occlusion greying the mats.
+        renderer.toneMapping = state.gallery ? THREE.NoToneMapping : THREE.AgXToneMapping;
+        ao.enabled = !state.gallery;
         camera.position.copy(shot.position);
         camera.fov = shot.fov;
         camera.updateProjectionMatrix();
@@ -698,6 +707,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
             x: ((projected.x + 1) / 2) * canvas.clientWidth,
             y: ((1 - projected.y) / 2) * canvas.clientHeight,
             visible: ahead && Math.abs(projected.x) < 0.95 && Math.abs(projected.y) < 0.95,
+            ahead,
         };
     }
 

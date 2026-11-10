@@ -40,8 +40,13 @@ export function createMusicRoom(m: Materials, releases: Release[]) {
     slab(width, 0.04, depth, cx, -0.02, cz, new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.6 }));
     slab(width, 0.04, depth, cx, ROOM.height + 0.02, cz, new THREE.MeshStandardMaterial({ color: 0x1f2024, roughness: 1 }));
     slab(0.12, ROOM.height, depth, ROOM.x0 - 0.06, ROOM.height / 2, cz); // far wall
-    slab(width, ROOM.height, 0.12, cx, ROOM.height / 2, ROOM.z0 - 0.06); // north
-    slab(width, ROOM.height, 0.12, cx, ROOM.height / 2, ROOM.z1 + 0.06); // south
+    // The side walls stop inside the main room's wall. Run them to its inner
+    // face and their ends sit in the same plane as it, and the two fight for
+    // every pixel there: dark jagged patches on the main room's wall.
+    const sideLength = width - 0.17;
+    const sideX = ROOM.x0 + sideLength / 2;
+    slab(sideLength, ROOM.height, 0.12, sideX, ROOM.height / 2, ROOM.z0 - 0.06); // north
+    slab(sideLength, ROOM.height, 0.12, sideX, ROOM.height / 2, ROOM.z1 + 0.06); // south
     const panel = new THREE.MeshStandardMaterial({ color: 0x3a3d44, roughness: 1 });
     for (let row = 0; row < 3; row++)
         for (let col = 0; col < 5; col++)
