@@ -22,6 +22,8 @@ const skillRepos = skills.map((skill) =>
         .filter((repo) => skill.repos.some((name) => name.toLowerCase() === repo.name.toLowerCase()) || skill.languages.includes(repo.language ?? ""))
         .slice(0, 5),
 );
+/** Every edge and corner of a window can be dragged to resize it. */
+const EDGES = ["n", "s", "e", "w", "ne", "nw", "se", "sw"] as const;
 const updated = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
 const dockIcons: Record<AppId, string> = {
@@ -65,10 +67,10 @@ const terminalData = {
             <header class="os-titlebar" data-drag>
                 <div class="os-lights"><button type="button" data-close aria-label="Close Billion"></button><button type="button" data-min aria-label="Minimize Billion"></button><button type="button" data-zoom aria-label="Zoom Billion"></button></div>
                 <span class="os-title">Billion — billion-news.app</span>
-                <a class="os-out" href="/products/billion" title="Read about Billion"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Read about Billion</span></a>
+                <a class="os-out" href="https://www.billion-news.app/" target="_blank" rel="noopener" title="Open billion-news.app in a new tab"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Open billion-news.app in a new tab</span></a>
             </header>
-            <div class="os-body os-web"><iframe data-src="https://www.billion-news.app/" title="Billion’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <div class="os-body os-web"><iframe data-src="https://www.billion-news.app/" title="Billion’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="os-shield" aria-hidden="true"></div></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <!-- Quillium -->
@@ -76,10 +78,10 @@ const terminalData = {
             <header class="os-titlebar" data-drag>
                 <div class="os-lights"><button type="button" data-close aria-label="Close Quillium"></button><button type="button" data-min aria-label="Minimize Quillium"></button><button type="button" data-zoom aria-label="Zoom Quillium"></button></div>
                 <span class="os-title">Quillium — quillium.bryanhu.com</span>
-                <a class="os-out" href="/products/quillium" title="Read about Quillium"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Read about Quillium</span></a>
+                <a class="os-out" href="https://quillium.bryanhu.com/" target="_blank" rel="noopener" title="Open quillium.bryanhu.com in a new tab"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Open quillium.bryanhu.com in a new tab</span></a>
             </header>
-            <div class="os-body os-web"><iframe data-src="https://quillium.bryanhu.com/" title="Quillium’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <div class="os-body os-web"><iframe data-src="https://quillium.bryanhu.com/" title="Quillium’s website" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="os-shield" aria-hidden="true"></div></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <!-- Projects, Finder-style -->
@@ -121,7 +123,7 @@ const terminalData = {
                     </ul>
                 </div>
             </div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <!-- Repositories -->
@@ -129,7 +131,7 @@ const terminalData = {
             <header class="os-titlebar" data-drag>
                 <div class="os-lights"><button type="button" data-close aria-label="Close Repositories"></button><button type="button" data-min aria-label="Minimize Repositories"></button><button type="button" data-zoom aria-label="Zoom Repositories"></button></div>
                 <span class="os-title">github.com/{resume.github}</span>
-                <a class="os-out" href={`https://github.com/${resume.github}`} title="Open on GitHub"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Open on GitHub</span></a>
+                <a class="os-out" href={`https://github.com/${resume.github}`} target="_blank" rel="noopener" title="Open on GitHub"><Icon name="lucide:arrow-up-right" aria-hidden="true" /><span class="sr-only">Open on GitHub</span></a>
             </header>
             <div class="os-body os-repos" data-scroll>
                 <p class="repos-stats tnum">
@@ -153,7 +155,7 @@ const terminalData = {
                     ))}
                 </ul>
             </div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <!-- Skills -->
@@ -186,7 +188,7 @@ const terminalData = {
                     ))}
                 </div>
             </div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <!-- Terminal -->
@@ -202,7 +204,7 @@ const terminalData = {
                 </div>
                 <label class="term-line"><span class="term-prompt">{PROMPT}</span><input data-term-input type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Terminal command" /></label>
             </div>
-            <div class="os-resize" data-resize aria-hidden="true"></div>
+            <Fragment>{EDGES.map((edge) => <div class={`os-resize os-resize-${edge}`} data-resize={edge} aria-hidden="true" />)}</Fragment>
         </section>
 
         <nav class="os-dock" aria-label="Dock">
@@ -446,14 +448,79 @@ const terminalData = {
         border: 0;
         background: #0b0b0c;
     }
+    /* Covers a site that isn't the front window, so the first click
+       brings it forward instead of disappearing into the iframe. */
+    .os-shield {
+        position: absolute;
+        inset: 0;
+        display: none;
+    }
+    .os-window:not([data-focused]) .os-shield,
+    .os[data-dragging] .os-shield {
+        display: block;
+    }
+    /* Edges are 6px bands just inside the frame; corners are larger squares on top. */
     .os-resize {
         position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 1.4em;
-        height: 1.4em;
-        cursor: nwse-resize;
+        z-index: 2;
         touch-action: none;
+    }
+    .os-resize-n,
+    .os-resize-s {
+        left: 10px;
+        right: 10px;
+        height: 6px;
+        cursor: ns-resize;
+    }
+    .os-resize-n {
+        top: 0;
+    }
+    .os-resize-s {
+        bottom: 0;
+    }
+    .os-resize-e,
+    .os-resize-w {
+        top: 10px;
+        bottom: 10px;
+        width: 6px;
+        cursor: ew-resize;
+    }
+    .os-resize-e {
+        right: 0;
+    }
+    .os-resize-w {
+        left: 0;
+    }
+    .os-resize-ne,
+    .os-resize-nw,
+    .os-resize-se,
+    .os-resize-sw {
+        width: 14px;
+        height: 14px;
+        z-index: 3;
+    }
+    .os-resize-ne {
+        top: 0;
+        right: 0;
+        cursor: nesw-resize;
+    }
+    .os-resize-sw {
+        bottom: 0;
+        left: 0;
+        cursor: nesw-resize;
+    }
+    .os-resize-nw {
+        top: 0;
+        left: 0;
+        cursor: nwse-resize;
+    }
+    .os-resize-se {
+        bottom: 0;
+        right: 0;
+        cursor: nwse-resize;
+    }
+    .os[data-dragging] {
+        user-select: none;
     }
 
     /* Projects */

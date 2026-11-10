@@ -5,6 +5,7 @@ import PlayablePiano from "@/components/PlayablePiano.astro";
 import { FEATURES } from "@/flags";
 import { resume } from "@/data/resume";
 import { prints } from "@/data/print-selection";
+import { photographs } from "@/data/photography";
 import RoomOS from "@/components/RoomOS.astro";
 import billionSite from "@/assets/room/billion-site.png";
 import quilliumSite from "@/assets/room/quillium-site.png";
@@ -20,7 +21,8 @@ export function getStaticPaths() {
 }
 
 const web = async (src: ImageMetadata, width: number) => (await getImage({ src, width, format: "webp" })).src;
-const framed = prints.slice(0, 3);
+// Every photograph Bryan has picked as featured hangs on the back wall.
+const framed = prints;
 const room = {
     wallpaper: await web(prints[1].image, 2048),
     // How the two product sites looked when captured; the live ones load in iframes at the desk.
@@ -28,6 +30,18 @@ const room = {
     quillium: await web(quilliumSite, 2200),
     // Quillium follows the visitor's light/dark setting, inside the iframe too.
     quilliumLight: await web(quilliumSiteLight, 2200),
+    // The gallery through the door: every photograph, in /photography's order.
+    photographs: await Promise.all(
+        photographs.map(async (photo) => ({
+            thumb: await web(photo.image, 640),
+            large: await web(photo.image, Math.min(2000, photo.image.width)),
+            aspect: photo.image.width / photo.image.height,
+            title: photo.title,
+            alt: photo.alt,
+            date: photo.date,
+            camera: photo.camera,
+        })),
+    ),
     labels: {
         projects: ["Billion", "Quillium", ...projects.map((p) => p.name), ...apps.map((a) => a.name)].slice(0, 14),
         repos: (await getAllRepositories())
@@ -37,7 +51,7 @@ const room = {
             .map((repo) => repo.name),
         skills: skills.map((skill) => ({ name: skill.name, color: skill.color })),
     },
-    prints: await Promise.all(framed.map(async (print) => ({ src: await web(print.image, 1024), aspect: print.image.width / print.image.height }))),
+    prints: await Promise.all(framed.map(async (print) => ({ src: await web(print.image, 768), aspect: print.image.width / print.image.height }))),
 };
 ---
 
@@ -64,13 +78,13 @@ const room = {
                     <h2 class="t-title">Look <span class="text-fg-muted">closer.</span></h2>
                     <p class="t-lede">I photograph, operate cameras, and switch live productions. Then comes the editing, color grading, and sound.</p>
                     <div class="links">
-                        <a class="btn btn-ghost" data-glass href="/photography">See the photographs <span aria-hidden="true">↗</span></a>
+                        <a class="btn btn-ghost" data-glass href="/photography">See the photographs <span aria-hidden="true">→</span></a>
                     </div>
                 </section>
 
                 <section class="chapter chapter-left" data-chapter="trombone">
                     <p class="hand">there’s usually music involved.</p>
-                    <h2 class="t-title">Slide, <span class="text-fg-muted">not valves.</span></h2>
+                    <h2 class="t-title">Trombone, <span class="text-fg-muted">jazz and classical.</span></h2>
                 </section>
 
                 <section class="chapter chapter-left" data-chapter="piano">
@@ -94,6 +108,32 @@ const room = {
         </div>
 
         <RoomOS />
+
+        <!-- The gallery through the door. The camera does the walking; these are the words. -->
+        <div class="hall" data-hall hidden>
+            <header class="hall-head">
+                <button type="button" class="hall-back" data-hall-back><span aria-hidden="true">←</span> Back to the room</button>
+                <div class="hall-title">
+                    <h2>Photographs</h2>
+                    <p>{photographs.length} photographs. Scroll to walk the wall, click one to look closer.</p>
+                </div>
+                <a class="hall-full" href="/photography">The full page <span aria-hidden="true">↗</span></a>
+            </header>
+            <p class="hall-caption" data-hall-caption aria-live="polite"></p>
+        </div>
+        <div class="lightbox" data-lightbox hidden role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+            <figure>
+                <img data-lightbox-img alt="" />
+                <figcaption>
+                    <h3 id="lightbox-title" data-lightbox-title></h3>
+                    <p class="lightbox-meta tnum" data-lightbox-meta></p>
+                    <p class="lightbox-alt" data-lightbox-alt></p>
+                </figcaption>
+            </figure>
+            <button type="button" class="lightbox-close" data-lightbox-close aria-label="Close">×</button>
+            <button type="button" class="lightbox-step lightbox-prev" data-lightbox-prev aria-label="Previous photograph">←</button>
+            <button type="button" class="lightbox-step lightbox-next" data-lightbox-next aria-label="Next photograph">→</button>
+        </div>
 
         <!-- Only shown once the script takes over; without it, the page is the static version. -->
         <div class="room-loader" data-room-loader>
@@ -309,7 +349,204 @@ const room = {
         margin-top: 0.5rem;
     }
 
+    /* The hall is pale, so its words are dark: ink on a gallery wall. */
+    .hall {
+        position: fixed;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        color: #1d1d1f;
+    }
+    .hall[hidden] {
+        display: none;
+    }
+    .hall-head {
+        position: absolute;
+        inset: 0 0 auto;
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 1.4rem var(--page-edge);
+    }
+    .hall-head > * {
+        pointer-events: auto;
+    }
+    .hall-back {
+        flex: none;
+        padding: 0.55rem 1.1rem;
+        border: 1px solid rgb(29 29 31 / 0.25);
+        border-radius: 980px;
+        background: rgb(255 255 255 / 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: inherit;
+        font: inherit;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .hall-back:hover {
+        background: rgb(255 255 255 / 0.85);
+    }
+    .hall-title h2 {
+        margin: 0;
+        font-size: 1.375rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .hall-title p {
+        margin: 0.2rem 0 0;
+        color: rgb(29 29 31 / 0.6);
+        font-size: 0.875rem;
+    }
+    .hall-full {
+        margin-left: auto;
+        padding-top: 0.55rem;
+        color: inherit;
+        font-size: 0.9375rem;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+        text-decoration-color: rgb(29 29 31 / 0.3);
+    }
+    .hall-caption {
+        position: absolute;
+        left: 50%;
+        bottom: 1.8rem;
+        translate: -50% 0;
+        margin: 0;
+        display: flex;
+        gap: 0.8rem;
+        align-items: baseline;
+        white-space: nowrap;
+        padding: 0.5rem 1.1rem;
+        border-radius: 980px;
+        background: rgb(255 255 255 / 0.62);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.08);
+        font-size: 0.9375rem;
+    }
+    .hall-caption:empty {
+        display: none;
+    }
+    .hall-caption :global(span) {
+        color: rgb(29 29 31 / 0.55);
+        font-size: 0.875rem;
+    }
+
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 8;
+        display: grid;
+        place-items: center;
+        padding: 4.5rem var(--page-edge) 2rem;
+        background: rgb(8 8 10 / 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        animation: lightbox-in 0.3s var(--spring);
+    }
+    .lightbox[hidden] {
+        display: none;
+    }
+    @keyframes lightbox-in {
+        from {
+            opacity: 0;
+        }
+    }
+    .lightbox figure {
+        margin: 0;
+        display: grid;
+        gap: 1rem;
+        justify-items: center;
+        max-width: min(1200px, 100%);
+        max-height: 100%;
+    }
+    .lightbox img {
+        display: block;
+        max-width: 100%;
+        max-height: calc(100svh - 13rem);
+        width: auto;
+        height: auto;
+        background: #1a1a1c;
+        box-shadow: 0 2rem 5rem rgb(0 0 0 / 0.5);
+    }
+    .lightbox figcaption {
+        max-width: 44rem;
+        text-align: center;
+    }
+    .lightbox h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+    .lightbox-meta {
+        margin: 0.2rem 0 0.5rem;
+        color: var(--color-fg-muted);
+        font-size: 0.875rem;
+    }
+    .lightbox-alt {
+        margin: 0;
+        color: var(--color-fg-dim);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+    .lightbox-close,
+    .lightbox-step {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border: 1px solid var(--color-hairline-strong);
+        border-radius: 50%;
+        background: rgb(255 255 255 / 0.06);
+        color: var(--color-fg);
+        font: inherit;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+    .lightbox-close:hover,
+    .lightbox-step:hover {
+        background: rgb(255 255 255 / 0.14);
+    }
+    .lightbox-close {
+        top: 1.2rem;
+        right: var(--page-edge);
+    }
+    .lightbox-step {
+        top: 50%;
+        translate: 0 -50%;
+    }
+    .lightbox-prev {
+        left: var(--page-edge);
+    }
+    .lightbox-next {
+        right: var(--page-edge);
+    }
+
     @media (max-width: 760px) {
+        .hall-head {
+            flex-wrap: wrap;
+            gap: 0.8rem 1rem;
+            padding-top: 1rem;
+        }
+        .hall-title {
+            order: 3;
+            width: 100%;
+        }
+        .hall-caption {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.1rem;
+        }
+        .lightbox-step {
+            top: auto;
+            bottom: 1.2rem;
+            translate: none;
+        }
         .room {
             --piano-h: clamp(5.5rem, 14svh, 7.25rem);
         }

@@ -100,6 +100,8 @@ export function createDesktop(root: HTMLElement, wallpaper: string, signal: Abor
     for (const win of windows) {
         const element = elements.get(win.id)!;
         element.addEventListener("pointerdown", () => win !== top() && focus(win), { signal });
+        // Tabbing into a window, its site included, brings it forward too.
+        element.addEventListener("focusin", () => win !== top() && focus(win), { signal });
         element.querySelector("[data-close]")!.addEventListener("click", () => close(win.id), { signal });
         element.querySelector("[data-min]")!.addEventListener("click", () => close(win.id), { signal });
         const zoom = () => {
@@ -111,7 +113,7 @@ export function createDesktop(root: HTMLElement, wallpaper: string, signal: Abor
         bar.addEventListener("dblclick", (event) => !(event.target as Element).closest("button, a") && zoom(), { signal });
 
         // Drag by the title bar, resize by the corner. Both in display fractions.
-        const track = (handle: HTMLElement, mode: "move" | "resize") =>
+        const track = (handle: HTMLElement, mode: string) =>
             handle.addEventListener(
                 "pointerdown",
                 (event) => {
@@ -130,8 +132,20 @@ export function createDesktop(root: HTMLElement, wallpaper: string, signal: Abor
                             win.x = Math.min(1 - 0.08, Math.max(0.08 - win.w, start.win.x + dx));
                             win.y = Math.min(1 - DOCK_H - 0.04, Math.max(MENU_H, start.win.y + dy));
                         } else {
-                            win.w = Math.min(1 - win.x, Math.max(MIN_W, start.win.w + dx));
-                            win.h = Math.min(1 - win.y, Math.max(MIN_H, start.win.h + dy));
+                            // `mode` names the edges being dragged: "e", "sw", "n"…
+                            const { x, y, w, h } = start.win;
+                            if (mode.includes("e")) win.w = Math.min(1 - x, Math.max(MIN_W, w + dx));
+                            if (mode.includes("s")) win.h = Math.min(1 - y, Math.max(MIN_H, h + dy));
+                            if (mode.includes("w")) {
+                                const left = Math.min(x + w - MIN_W, Math.max(0, x + dx));
+                                win.w = w + (x - left);
+                                win.x = left;
+                            }
+                            if (mode.includes("n")) {
+                                const topEdge = Math.min(y + h - MIN_H, Math.max(MENU_H, y + dy));
+                                win.h = h + (y - topEdge);
+                                win.y = topEdge;
+                            }
                         }
                         place(win);
                         version++;
@@ -149,7 +163,7 @@ export function createDesktop(root: HTMLElement, wallpaper: string, signal: Abor
                 { signal },
             );
         track(bar, "move");
-        track(element.querySelector<HTMLElement>("[data-resize]")!, "resize");
+        for (const handle of element.querySelectorAll<HTMLElement>("[data-resize]")) track(handle, handle.dataset.resize!);
     }
 
     // Skills: a tab list.
@@ -234,7 +248,12 @@ export function createDesktop(root: HTMLElement, wallpaper: string, signal: Abor
                     return print({ text: `Opening ${APPS[openable[name]].title}…`, tone: "dim" });
                 }
                 if (name === "resume") return (location.href = "/resume.pdf");
-                if (name === "photos" || name === "photographs") return (location.href = "/photography");
+                if (name === "photos" || name === "photographs") {
+                    // The room walks you to the gallery itself when it can.
+                    const handled = !root.dispatchEvent(new CustomEvent("room:open", { bubbles: true, cancelable: true, detail: "photographs" }));
+                    if (!handled) location.href = "/photography";
+                    return print({ text: "Walking over to the photographs…", tone: "dim" });
+                }
                 print(what ? `open: ${what}: no such app` : "open what? Try: open billion");
             },
         },

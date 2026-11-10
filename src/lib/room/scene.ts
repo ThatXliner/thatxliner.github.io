@@ -9,6 +9,7 @@ import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUnifo
 import { loadModelLibrary } from "../gear/models";
 import { lenses, bodies } from "../gear/catalog";
 import * as props from "./props";
+import { DOOR, createGallery, type Gallery, type GalleryPhoto } from "./gallery";
 import { createGlass, type Lens, type Scrim } from "./glass";
 import { createScreen, type ScreenImages, type ScreenLabels, type ScreenState } from "./screen";
 
@@ -44,6 +45,10 @@ export interface RoomScene {
     overlay(layers: { lenses: Lens[]; scrims: Scrim[] }): void;
     /** Redraw only the overlay, over the last rendered room. */
     present(): void;
+    /** The photographs' hall, through the door in the right wall. */
+    gallery: Gallery;
+    /** The photograph under a point on the canvas (CSS pixels), or -1. */
+    pickPhoto(x: number, y: number): number;
     resize(): void;
     dispose(): void;
 }
@@ -53,6 +58,8 @@ interface Inputs {
     screen: ScreenImages;
     labels: ScreenLabels;
     prints: { image: HTMLImageElement; aspect: number }[];
+    /** Every photograph, for the gallery through the door. */
+    photographs: GalleryPhoto[];
     /** 0–1 across every model download. */
     onProgress?: (fraction: number) => void;
 }
@@ -70,7 +77,7 @@ const loadImage = (src: string) =>
     });
 export { loadImage };
 
-export async function createRoom({ canvas, screen: screenImages, labels, prints, onProgress }: Inputs): Promise<RoomScene> {
+export async function createRoom({ canvas, screen: screenImages, labels, prints, photographs, onProgress }: Inputs): Promise<RoomScene> {
     const downloads = new Map(Object.entries(EXPECTED_BYTES).map(([id, total]) => [id, { loaded: 0, total }]));
     const progress = (id: string, loaded: number, total: number) => {
         downloads.set(id, { loaded, total: total || downloads.get(id)!.total });
@@ -131,11 +138,45 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     back.receiveShadow = true;
     scene.add(back);
 
-    const right = new THREE.Mesh(new THREE.PlaneGeometry(depth, ROOM.height), wallMat);
-    right.rotation.y = -Math.PI / 2;
-    right.position.set(ROOM.right, ROOM.height / 2, (ROOM.front + ROOM.back) / 2);
-    right.receiveShadow = true;
-    scene.add(right);
+    // Right wall, built around the door to the gallery. Solid, so neither
+    // room shows through it from the other side.
+    const rightPiece = (z0: number, z1: number, y0: number, y1: number) => {
+        const piece = new THREE.Mesh(new THREE.BoxGeometry(0.16, y1 - y0, z1 - z0), wallMat);
+        piece.position.set(ROOM.right + 0.08, (y0 + y1) / 2, (z0 + z1) / 2);
+        piece.castShadow = piece.receiveShadow = true;
+        scene.add(piece);
+    };
+    rightPiece(ROOM.back, DOOR.z0, 0, ROOM.height);
+    rightPiece(DOOR.z1, ROOM.front, 0, ROOM.height);
+    rightPiece(DOOR.z0, DOOR.z1, DOOR.height, ROOM.height);
+    // Door casing, and a small plaque beside it.
+    const casing = new THREE.MeshStandardMaterial({ color: 0xf1eee8, roughness: 0.7 });
+    for (const z of [DOOR.z0 - 0.03, DOOR.z1 + 0.03]) {
+        const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.2, DOOR.height + 0.06, 0.06), casing);
+        jamb.position.set(ROOM.right + 0.08, (DOOR.height + 0.06) / 2, z);
+        jamb.castShadow = jamb.receiveShadow = true;
+        scene.add(jamb);
+    }
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, DOOR.z1 - DOOR.z0 + 0.12), casing);
+    head.position.set(ROOM.right + 0.08, DOOR.height + 0.03, (DOOR.z0 + DOOR.z1) / 2);
+    head.castShadow = true;
+    scene.add(head);
+    const plaqueTex = props.canvasTexture(512, 160, (g) => {
+        g.fillStyle = "#1b1b1d";
+        g.fillRect(0, 0, 512, 160);
+        g.fillStyle = "#e8e4dc";
+        g.font = `500 56px ${getComputedStyle(document.body).fontFamily}`;
+        g.textAlign = "center";
+        g.fillText("Photographs", 256, 84);
+        g.fillStyle = "rgba(232,228,220,0.55)";
+        g.font = `400 30px ${getComputedStyle(document.body).fontFamily}`;
+        g.fillText("this way →", 256, 128);
+    });
+    const plaque = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.075), new THREE.MeshStandardMaterial({ map: plaqueTex, roughness: 0.5 }));
+    plaque.rotation.y = -Math.PI / 2;
+    plaque.position.set(ROOM.right - 0.001, 1.45, DOOR.z1 + 0.28);
+    scene.add(plaque);
+    owned.push(plaqueTex);
 
     // Left wall, built around a window opening.
     const win = { z0: -1.55, z1: 0.35, y0: 0.9, y1: 2.3 };
@@ -270,18 +311,51 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         return texture;
     });
     const printGroup = new THREE.Group();
-    const printPlaces = [
-        { x: -1.38, y: 1.62, h: 0.36 },
-        { x: -0.72, y: 1.56, h: 0.26 },
-        { x: 0.95, y: 1.82, h: 0.3 },
-    ];
-    printPlaces.forEach((place, i) => {
-        const p = prints[i % prints.length];
-        const framed = props.frame(printTextures[i % printTextures.length], p.aspect, place.h);
-        framed.position.set(place.x, place.y, ROOM.back + 0.001);
-        printGroup.add(framed);
+    // The back wall as a gallery: every print, in justified rows, centred in
+    // the band of wall above the lamp and the piano. Each row is split by the
+    // photos' total width so the rows balance, then scaled to fill the wall
+    // edge to edge. `frame` adds a mat of 12% a side and a 1.5 cm moulding.
+    const wall = { width: 3.9, bottom: 1.36, top: 2.36, gap: 0.07 };
+    const outerWidth = (aspect: number, h: number) => h * aspect + h * 0.24 + 0.03;
+    const rowCount = Math.max(1, Math.round(Math.sqrt(prints.length / 2.2)));
+    const share = prints.reduce((sum, p) => sum + p.aspect + 0.24, 0) / rowCount;
+    const rows: number[][] = [[]];
+    let filled = 0;
+    prints.forEach((p, i) => {
+        if (filled >= share * 0.92 && rows.length < rowCount) {
+            rows.push([]);
+            filled = 0;
+        }
+        rows[rows.length - 1].push(i);
+        filled += p.aspect + 0.24;
+    });
+    // The photo height that makes each row exactly the wall's width.
+    let heights = rows.map((row) => {
+        const fixed = row.length * 0.03 + (row.length - 1) * wall.gap;
+        return Math.min(0.34, (wall.width - fixed) / row.reduce((sum, i) => sum + prints[i].aspect + 0.24, 0));
+    });
+    const blockHeight = (hs: number[]) => hs.reduce((sum, h) => sum + h * 1.24 + 0.03, 0) + (hs.length - 1) * wall.gap;
+    const fit = Math.min(1, (wall.top - wall.bottom) / blockHeight(heights));
+    heights = heights.map((h) => h * fit);
+    let rowTop = (wall.top + wall.bottom) / 2 + blockHeight(heights) / 2;
+    rows.forEach((row, r) => {
+        const h = heights[r];
+        const rowWidth = row.reduce((sum, i) => sum + outerWidth(prints[i].aspect, h), 0) + (row.length - 1) * wall.gap;
+        let x = -rowWidth / 2;
+        const y = rowTop - (h * 1.24 + 0.03) / 2;
+        for (const i of row) {
+            const w = outerWidth(prints[i].aspect, h);
+            const framed = props.frame(printTextures[i], prints[i].aspect, h);
+            framed.position.set(x + w / 2, y, ROOM.back + 0.001);
+            printGroup.add(framed);
+            x += w + wall.gap;
+        }
+        rowTop -= h * 1.24 + 0.03 + wall.gap;
     });
     scene.add(printGroup);
+
+    const gallery = createGallery(photographs);
+    scene.add(gallery.group);
 
     // ── Models ───────────────────────────────────────────────────────────
     const gltf = new GLTFLoader();
@@ -540,5 +614,11 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         for (const thing of owned) thing.dispose();
     }
 
-    return { screenShot, screenRect, anchors, render, overlay, present, resize, dispose };
+        const ndc = new THREE.Vector2();
+    function pickPhoto(x: number, y: number) {
+        ndc.set((x / canvas.clientWidth) * 2 - 1, -(y / canvas.clientHeight) * 2 + 1);
+        return gallery.pick(camera, ndc);
+    }
+
+    return { screenShot, screenRect, anchors, render, overlay, present, gallery, pickPhoto, resize, dispose };
 }
