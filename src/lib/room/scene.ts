@@ -84,7 +84,7 @@ interface Inputs {
 }
 
 /** Rough sizes, so the bar moves sensibly before each server reports a length. */
-const EXPECTED_BYTES: Record<string, number> = { macbook: 11e6, r7: 4.5e6, c200: 6e6, "28-135": 2.3e6, adapter: 0.5e6 };
+const EXPECTED_BYTES: Record<string, number> = { macbook: 11e6, r7: 2.5e6, c200: 2.5e6, "28-135": 2.3e6, adapter: 0.5e6 };
 
 const loadImage = (src: string) =>
     new Promise<HTMLImageElement>((resolve, reject) => {
@@ -515,7 +515,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     const gltf = new GLTFLoader();
     const [macbookResult, libraryResult] = await Promise.allSettled([
         gltf.loadAsync("/models/macbook.glb", (event) => progress("macbook", event.loaded, event.lengthComputable ? event.total : 0)),
-        loadModelLibrary(["r7", "c200", "28-135", "adapter"], progress),
+        loadModelLibrary(["r7", "c200", "28-135", "adapter"], progress, true),
     ]);
     if (macbookResult.status === "rejected" || libraryResult.status === "rejected") {
         if (libraryResult.status === "fulfilled") libraryResult.value.dispose();

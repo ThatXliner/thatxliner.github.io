@@ -9,6 +9,8 @@ export async function loadModelLibrary(
   initialIds: string[],
   /** Bytes as they arrive, per model; `total` is 0 until the server says. */
   onProgress?: (id: string, loaded: number, total: number) => void,
+  /** Load the decimated copies where they exist. */
+  lite = false,
 ) {
   // Decode compressed meshes off the UI thread when workers are available.
   if (typeof Worker !== "undefined") MeshoptDecoder.useWorkers(1);
@@ -42,7 +44,7 @@ export async function loadModelLibrary(
         const existing = pending.get(id);
         if (existing) return existing;
         const request = (async () => {
-          const { scene } = await loader.loadAsync(modelUrl(id), (event) =>
+          const { scene } = await loader.loadAsync(modelUrl(id, lite), (event) =>
             onProgress?.(id, event.loaded, event.lengthComputable ? event.total : 0),
           );
           scene.traverse((object) => {
