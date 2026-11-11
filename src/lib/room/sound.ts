@@ -1,6 +1,6 @@
 /**
  * The room's sound, all of it made here: no files. There's very little of it.
- * A quiet room tone, a soft tick when something's pressed, one felted note on
+ * A soft tick when something's pressed, one felted note on
  * walking up to a place, and the click of the lamp. It starts only after the
  * first click or key press (browsers insist, and they're right), stops while
  * the tab's hidden, and a small switch in the corner turns it off for good.
@@ -27,22 +27,6 @@ export function createSound(root: HTMLElement, signal: AbortSignal) {
     };
     reflect();
 
-    /** Brown noise that loops without a seam: its first quarter second is cross-faded with what would have come next. */
-    function brownNoise(seconds: number) {
-        const length = Math.round(context!.sampleRate * seconds);
-        const overlap = Math.round(context!.sampleRate * 0.25);
-        const raw = new Float32Array(length + overlap);
-        let last = 0;
-        for (let i = 0; i < raw.length; i++) raw[i] = last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
-        const buffer = context!.createBuffer(1, length, context!.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < length; i++) {
-            const blend = Math.min(1, i / overlap);
-            data[i] = (raw[i] * blend + (i < overlap ? raw[length + i] * (1 - blend) : 0)) * 3.5;
-        }
-        return buffer;
-    }
-
     function start() {
         if (context || !on) return;
         const Context = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -68,17 +52,6 @@ export function createSound(root: HTMLElement, signal: AbortSignal) {
         wet.gain.value = 0.32;
         wet.connect(room).connect(dark).connect(master);
 
-        // Room tone: brown noise under a low ceiling. Felt more than heard.
-        const tone = context.createBufferSource();
-        tone.buffer = brownNoise(6);
-        tone.loop = true;
-        const ceiling = context.createBiquadFilter();
-        ceiling.type = "lowpass";
-        ceiling.frequency.value = 380;
-        const level = context.createGain();
-        level.gain.value = 0.09;
-        tone.connect(ceiling).connect(level).connect(master);
-        tone.start();
     }
 
     /** A voice: one enveloped oscillator into the dry mix and the room. */
