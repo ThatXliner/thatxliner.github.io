@@ -36,6 +36,7 @@ precision highp float;
 uniform sampler2D tScene;
 uniform vec2 uResolution;
 uniform float uDpr;
+uniform float uGrain;
 uniform int uLensCount;
 uniform vec4 uLens[${MAX_LENSES}];
 uniform vec2 uLensState[${MAX_LENSES}];
@@ -117,6 +118,12 @@ void main() {
         col = mix(col, glass, inside * alpha);
     }
 
+    // Fine grain, a little stronger in the shadows: it takes the plastic off
+    // smooth walls and keeps their gradients from banding.
+    float luma = dot(col, vec3(0.299, 0.587, 0.114));
+    float grain = fract(sin(dot(floor(frag / uDpr) + uGrain, vec2(12.9898, 78.233))) * 43758.5453) - 0.5;
+    col += grain * mix(0.034, 0.014, smoothstep(0.0, 0.7, luma));
+
     gl_FragColor = vec4(col, 1.0);
 }
 `;
@@ -131,6 +138,7 @@ export function createGlass() {
             tScene: { value: null },
             uResolution: { value: new THREE.Vector2(1, 1) },
             uDpr: { value: 1 },
+            uGrain: { value: 0 },
             uLensCount: { value: 0 },
             uLens: { value: lenses },
             uLensState: { value: lensState },
@@ -170,6 +178,8 @@ export function createGlass() {
         const size = renderer.getDrawingBufferSize(material.uniforms.uResolution.value);
         material.uniforms.uResolution.value.copy(size);
         material.uniforms.tScene.value = scene;
+        // New grain with each frame, the way film has it.
+        material.uniforms.uGrain.value = (material.uniforms.uGrain.value + 7.31) % 97;
         renderer.setRenderTarget(null);
         quad.render(renderer);
     }

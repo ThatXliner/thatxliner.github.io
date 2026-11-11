@@ -18,48 +18,114 @@ export function canvasTexture(width: number, height: number, draw: (g: CanvasRen
 }
 
 /** Seeded, so the grain doesn't reshuffle on every visit. */
-function random(seed: number) {
+export function random(seed: number) {
     return () => {
         seed = (seed * 16807) % 2147483647;
         return (seed - 1) / 2147483646;
     };
 }
 
-/** Long-grain wood: a base tone, slow colour bands, then fine wavering lines. */
-export function woodTexture(base: string, dark: string, seed: number, planks = 0) {
-    return canvasTexture(1024, 1024, (g) => {
+/**
+ * Long-grain wood, drawn twice from one stream of random numbers: the colour,
+ * and a pale "relief" of the same grain and joints. The relief goes on as
+ * both bump and roughness, so a low sun rakes across the boards and the
+ * gloss breaks up along the grain instead of lying on it like a sticker.
+ */
+export function woodSurface(base: string, dark: string, seed: number, planks = 0) {
+    const size = 1024;
+    const reliefCanvas = document.createElement("canvas");
+    reliefCanvas.width = reliefCanvas.height = size;
+    const r = reliefCanvas.getContext("2d")!;
+    r.fillStyle = "#f4f4f4";
+    r.fillRect(0, 0, size, size);
+    const map = canvasTexture(size, size, (g) => {
         const rand = random(seed);
         g.fillStyle = base;
-        g.fillRect(0, 0, 1024, 1024);
+        g.fillRect(0, 0, size, size);
         const rows = planks || 1;
-        const rowHeight = 1024 / rows;
+        const rowHeight = size / rows;
+        const board = (x0: number, x1: number, y0: number) => {
+            // Each board is its own tree: a shift in tone, and its own gloss.
+            const light = rand() < 0.5;
+            g.fillStyle = `rgba(${light ? "255,232,200" : "38,18,6"},${0.03 + rand() * (planks ? 0.08 : 0.05)})`;
+            g.fillRect(x0, y0, x1 - x0, rowHeight);
+            r.fillStyle = `rgba(0,0,0,${rand() * 0.14})`;
+            r.fillRect(x0, y0, x1 - x0, rowHeight);
+        };
         for (let row = 0; row < rows; row++) {
             const y0 = row * rowHeight;
-            // Each plank is a slightly different board.
-            g.fillStyle = `rgba(${rand() < 0.5 ? "255,235,210" : "40,20,8"},${0.04 + rand() * 0.08})`;
-            g.fillRect(0, y0, 1024, rowHeight);
-            for (let i = 0; i < 70; i++) {
-                const y = y0 + rand() * rowHeight;
-                const amp = 1 + rand() * 4;
-                const freq = 0.002 + rand() * 0.01;
-                const phase = rand() * 10;
-                g.strokeStyle = dark;
-                g.globalAlpha = 0.04 + rand() * 0.12;
-                g.lineWidth = 0.5 + rand() * 2.2;
-                g.beginPath();
-                for (let x = 0; x <= 1024; x += 16) g.lineTo(x, y + Math.sin(x * freq + phase) * amp);
-                g.stroke();
+            const joints = planks ? [0, ...Array.from({ length: 2 }, () => rand() * size).sort((a, b) => a - b), size] : [0, size];
+            for (let i = 0; i < joints.length - 1; i++) board(joints[i], joints[i + 1], y0);
+            // Slow bands of figure, then the fine lines of the grain itself.
+            for (let i = 0; i < 5; i++) {
+                g.fillStyle = `rgba(${rand() < 0.5 ? "255,230,196" : "50,26,10"},${0.025 + rand() * 0.04})`;
+                g.fillRect(0, y0 + rand() * rowHeight, size, rowHeight * (0.08 + rand() * 0.2));
             }
-            g.globalAlpha = 1;
+            const lines = Math.round(rowHeight / 2.4);
+            for (let i = 0; i < lines; i++) {
+                const y = y0 + rand() * rowHeight;
+                const amp = 0.6 + rand() * 3;
+                // Whole waves across the texture, so it tiles without a seam.
+                const freq = ((1 + Math.floor(rand() * 3)) * Math.PI * 2) / size;
+                const phase = rand() * 10;
+                const alpha = 0.03 + rand() * 0.1;
+                const width = 0.4 + rand() * 1.3;
+                for (const [ctx, style, a] of [[g, dark, alpha], [r, "#000", alpha * 0.9]] as const) {
+                    ctx.strokeStyle = style;
+                    ctx.globalAlpha = a;
+                    ctx.lineWidth = width;
+                    ctx.beginPath();
+                    for (let x = 0; x <= size; x += 16) ctx.lineTo(x, y + Math.sin(x * freq + phase) * amp);
+                    ctx.stroke();
+                }
+            }
+            g.globalAlpha = r.globalAlpha = 1;
             if (planks) {
-                g.fillStyle = "rgba(20,10,4,0.55)";
-                g.fillRect(0, y0, 1024, 2);
-                // Butt joints, staggered.
-                const joint = rand() * 1024;
-                g.fillRect(joint, y0, 2, rowHeight);
+                // The gap between boards. Colour only: in the relief it would read as a glossy line.
+                g.fillStyle = "rgba(16,8,3,0.55)";
+                g.fillRect(0, y0, size, 2);
+                for (const joint of joints.slice(1, -1)) g.fillRect(joint, y0, 1.5, rowHeight);
             }
         }
     });
+    const relief = new THREE.CanvasTexture(reliefCanvas);
+    relief.anisotropy = 8;
+    return { map, relief };
+}
+
+/** A wood material: colour, with the grain as bump and as breaks in the gloss. */
+export function wood(base: string, dark: string, seed: number, options: { planks?: number; roughness?: number; repeat?: number; offset?: number; bump?: number } = {}) {
+    const { map, relief } = woodSurface(base, dark, seed, options.planks);
+    if (options.repeat) {
+        for (const texture of [map, relief]) {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(options.repeat, options.repeat);
+            texture.offset.set(options.offset ?? 0, options.offset ?? 0);
+        }
+    }
+    return new THREE.MeshStandardMaterial({ map, roughnessMap: relief, bumpMap: relief, bumpScale: options.bump ?? 0.6, roughness: options.roughness ?? 0.6 });
+}
+
+export const woodTexture = (base: string, dark: string, seed: number, planks = 0) => woodSurface(base, dark, seed, planks).map;
+
+/** Fine speckle for painted plaster: enough tooth that a wall isn't a flat fill. */
+export function plasterTexture(seed: number) {
+    const texture = canvasTexture(512, 512, (g) => {
+        const rand = random(seed);
+        g.fillStyle = "#808080";
+        g.fillRect(0, 0, 512, 512);
+        for (let i = 0; i < 9000; i++) {
+            const shade = rand() < 0.5 ? 255 : 0;
+            g.fillStyle = `rgba(${shade},${shade},${shade},${0.02 + rand() * 0.06})`;
+            const size = 1 + rand() * 5;
+            g.beginPath();
+            g.ellipse(rand() * 512, rand() * 512, size, size * (0.5 + rand()), rand() * 3, 0, 7);
+            g.fill();
+        }
+    });
+    texture.colorSpace = THREE.NoColorSpace;
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    return texture;
 }
 
 export const materials = () => ({
@@ -105,15 +171,22 @@ export function desk(top: THREE.Material, frame: THREE.Material) {
     const width = 1.5;
     const depth = 0.72;
     const height = 0.75;
-    const surface = rounded(width, 0.032, depth, 0.004, top);
+    const surface = rounded(width, depth, 0.032, 0.004, top);
+    // Extruded lying down, so the grain runs the length of the top.
+    surface.rotation.x = -Math.PI / 2;
     surface.position.y = height - 0.016;
     group.add(surface);
     for (const sx of [-1, 1]) {
         // A steel sled leg on each side: two posts and a foot rail.
         const x = sx * (width / 2 - 0.08);
-        for (const sz of [-1, 1]) group.add(box(0.03, height - 0.032, 0.03, frame, x, (height - 0.032) / 2, sz * (depth / 2 - 0.06)));
-        group.add(box(0.03, 0.03, depth - 0.09, frame, x, 0.015, 0));
-        group.add(box(0.03, 0.03, depth - 0.09, frame, x, height - 0.047, 0));
+        const part = (w: number, h: number, d: number, y: number, z: number) => {
+            const bar = rounded(w, h, d, 0.003, frame);
+            bar.position.set(x, y, z);
+            group.add(bar);
+        };
+        for (const sz of [-1, 1]) part(0.03, height - 0.032, 0.03, (height - 0.032) / 2, sz * (depth / 2 - 0.06));
+        part(0.03, 0.03, depth - 0.09, 0.015, 0);
+        part(0.03, 0.03, depth - 0.09, height - 0.047, 0);
     }
     group.add(box(width - 0.2, 0.06, 0.02, frame, 0, height - 0.062, -depth / 2 + 0.06));
     return group;
@@ -156,7 +229,7 @@ export function piano(m: Materials) {
     fall.rotation.x = -0.12;
     add(fall);
     // Music desk ledge.
-    add(rounded(width - 0.3, 0.02, 0.08, 0.004, m.lacquer)).position.set(0, keyY + 0.24, -0.03);
+    add(rounded(width - 0.3, 0.02, 0.1, 0.004, m.lacquer)).position.set(0, keyY + 0.24, -0.01);
 
     // 88 keys: 52 naturals, 36 sharps. Instanced, they cost one draw call each.
     const span = width - 0.12;
@@ -454,7 +527,7 @@ export function lamp(m: Materials) {
     shadeMat.side = THREE.DoubleSide;
     const shade = new THREE.Mesh(new THREE.LatheGeometry([new THREE.Vector2(0.018, 0.04), new THREE.Vector2(0.03, 0.02), new THREE.Vector2(0.065, -0.05), new THREE.Vector2(0.067, -0.055)], 40), shadeMat);
     head.add(shade);
-    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.028, 20, 14), new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0xffd7a1, emissiveIntensity: 0 }));
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.028, 20, 14), new THREE.MeshStandardMaterial({ color: 0xcfc8ba, roughness: 0.35, emissive: 0xffd7a1, emissiveIntensity: 0 }));
     bulb.position.y = -0.03;
     head.add(bulb);
     // Aim the head down and back toward the laptop.

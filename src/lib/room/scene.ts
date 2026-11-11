@@ -1,15 +1,17 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUniformsLib.js";
 import { loadModelLibrary } from "../gear/models";
 import { lenses, bodies } from "../gear/catalog";
 import * as props from "./props";
 import { awardShelf, cameraBag, pathRug, type RugStop } from "./furnishings";
+import { bookStack, curtain, pencil, pianoLamp, plant, sheetMusic, skirting } from "./details";
 import { MUSIC_DOOR, createMusicRoom, type MusicRoom, type Release } from "./music";
 import { DOOR, createGallery, type Gallery, type GalleryPhoto } from "./gallery";
 import { createGlass, type Lens, type Scrim } from "./glass";
@@ -49,7 +51,7 @@ export interface RoomScene {
     /** Redraw only the overlay, over the last rendered room. */
     present(): void;
     /** The photographs' hall, through the door in the right wall. */
-    gallery: Gallery;
+    gallery: Omit<Gallery, "load"> & { load(onEach: () => void): void };
     /** The photograph under a point on the canvas (CSS pixels), or -1. */
     pickPhoto(x: number, y: number): number;
     /** The stop on the rug's path under a point on the canvas, or -1. */
@@ -94,6 +96,27 @@ const loadImage = (src: string) =>
     });
 export { loadImage };
 
+/** The grade: how bright each source is, and how the picture is exposed. */
+const LOOK = { sun: 7.6, bounce: 3.4, hemi: 0.32, env: 0.8, sky: 2.6, exposure: 0.9, nightLift: 0.35, bloom: 0.075, bloomAt: 5 };
+
+/** A stand-in for the room, for reflections: warm walls, a dark floor, one bright window on the left. */
+function reflectedRoom() {
+    const scene = new THREE.Scene();
+    const shell = new THREE.Mesh(new THREE.BoxGeometry(6, 3.2, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.13, 0.105, 0.085), side: THREE.BackSide }));
+    scene.add(shell);
+    const panel = (width: number, height: number, color: [number, number, number], place: (mesh: THREE.Mesh) => void) => {
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshBasicMaterial({ color: new THREE.Color(...color), side: THREE.DoubleSide }));
+        place(mesh);
+        scene.add(mesh);
+    };
+    // The window, the ceiling it washes, the floor, and the paler wall opposite.
+    panel(2.4, 1.5, [15, 10.5, 6.5], (mesh) => (mesh.position.set(-2.95, 0.3, -0.6), (mesh.rotation.y = Math.PI / 2)));
+    panel(5.6, 5.6, [0.6, 0.54, 0.46], (mesh) => (mesh.position.set(0, 1.55, 0), (mesh.rotation.x = Math.PI / 2)));
+    panel(5.6, 5.6, [0.16, 0.09, 0.05], (mesh) => (mesh.position.set(0, -1.55, 0), (mesh.rotation.x = Math.PI / 2)));
+    panel(2.2, 1.2, [0.55, 0.47, 0.4], (mesh) => (mesh.position.set(1, 0.2, 2.95), (mesh.rotation.y = Math.PI)));
+    return scene;
+}
+
 export async function createRoom({ canvas, screen: screenImages, labels, prints, photographs, story, releases, onProgress }: Inputs): Promise<RoomScene> {
     const downloads = new Map(Object.entries(EXPECTED_BYTES).map(([id, total]) => [id, { loaded: 0, total }]));
     const progress = (id: string, loaded: number, total: number) => {
@@ -109,33 +132,41 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     RectAreaLightUniformsLib.init();
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
-    renderer.toneMapping = THREE.AgXToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    const toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMapping = toneMapping;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    // A phone gets smaller shadow maps and lighter anti-aliasing; the room is the same.
+    const small = Math.min(innerWidth, innerHeight) < 600;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x050506);
     const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 40);
 
+    // What the room's surfaces reflect: a warm box with one bright window in
+    // its left wall, like the room itself. It's what puts the window in the
+    // piano's lacquer and the brass.
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const environment = new RoomEnvironment();
-    const envMap = pmrem.fromScene(environment, 0.04).texture;
-    environment.dispose();
+    const envMap = pmrem.fromScene(reflectedRoom(), 0.03).texture;
     pmrem.dispose();
     scene.environment = envMap;
-    scene.environmentIntensity = 0.35;
 
     const m = props.materials();
     const owned: { dispose(): void }[] = [envMap, renderer];
 
     // ── Shell ────────────────────────────────────────────────────────────
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0xd8d2c8, roughness: 0.95 });
-    const floorTex = props.woodTexture("#7a5434", "#3a2010", 7, 8);
-    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-    floorTex.repeat.set(2.2, 2.2);
-    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.55 });
-    const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 1 });
+    const plaster = props.plasterTexture(31);
+    plaster.repeat.set(3, 3);
+    owned.push(plaster);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xe4dccf, roughness: 0.94 });
+    // The tooth of the plaster goes on the one unbroken wall. On the pieces
+    // around doors and the window it would stretch across their narrow ends.
+    const backWallMat = wallMat.clone();
+    backWallMat.bumpMap = plaster;
+    backWallMat.bumpScale = 0.35;
+    // Oak boards, twelve to the texture and a little over two textures across the room.
+    const floorMat = props.wood("#8a623f", "#3d2412", 7, { planks: 12, repeat: 2.6, roughness: 0.62, bump: 1.2 });
+    const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xece7de, roughness: 1 });
     const width = ROOM.right - ROOM.left;
     const depth = ROOM.front - ROOM.back;
 
@@ -150,10 +181,21 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     ceiling.position.set(0, ROOM.height, (ROOM.front + ROOM.back) / 2);
     scene.add(ceiling);
 
-    const back = new THREE.Mesh(new THREE.PlaneGeometry(width, ROOM.height), wallMat);
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(width, ROOM.height), backWallMat);
     back.position.set(0, ROOM.height / 2, ROOM.back);
     back.receiveShadow = true;
     scene.add(back);
+
+    // Skirting boards, wherever a wall meets the floor and there's no door.
+    const trim = new THREE.MeshStandardMaterial({ color: 0xf1ece3, roughness: 0.6 });
+    for (const [a, b] of [
+        [[ROOM.left, ROOM.back + 0.007], [ROOM.right, ROOM.back + 0.007]],
+        [[ROOM.left + 0.007, ROOM.back], [ROOM.left + 0.007, MUSIC_DOOR.z0 - 0.06]],
+        [[ROOM.left + 0.007, MUSIC_DOOR.z1 + 0.06], [ROOM.left + 0.007, ROOM.front]],
+        [[ROOM.right - 0.007, ROOM.back], [ROOM.right - 0.007, DOOR.z0 - 0.06]],
+        [[ROOM.right - 0.007, DOOR.z1 + 0.06], [ROOM.right - 0.007, ROOM.front]],
+    ] as [[number, number], [number, number]][])
+        scene.add(skirting(a, b, trim));
 
     // Right wall, built around the door to the gallery. Solid, so neither
     // room shows through it from the other side.
@@ -167,7 +209,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     rightPiece(DOOR.z1, ROOM.front, 0, ROOM.height);
     rightPiece(DOOR.z0, DOOR.z1, DOOR.height, ROOM.height);
     // Door casing, and a small plaque beside it.
-    const casing = new THREE.MeshStandardMaterial({ color: 0xf1eee8, roughness: 0.7 });
+    const casing = trim;
     for (const z of [DOOR.z0 - 0.03, DOOR.z1 + 0.03]) {
         const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.2, DOOR.height + 0.06, 0.06), casing);
         jamb.position.set(ROOM.right + 0.08, (DOOR.height + 0.06) / 2, z);
@@ -213,25 +255,33 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     wallPiece(MUSIC_DOOR.z0, MUSIC_DOOR.z1, MUSIC_DOOR.height, ROOM.height);
     scene.add(leftWall);
     // Mullions and sill.
-    const trim = new THREE.MeshStandardMaterial({ color: 0xf1eee8, roughness: 0.7 });
-    const sill = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.03, win.z1 - win.z0 + 0.1), trim);
+    const sill = props.rounded(0.3, 0.032, win.z1 - win.z0 + 0.12, 0.006, trim);
     sill.position.set(ROOM.left - 0.02, win.y0, (win.z0 + win.z1) / 2);
     sill.castShadow = sill.receiveShadow = true;
     scene.add(sill);
-    for (const z of [win.z0 + 0.02, (win.z0 + win.z1) / 2, win.z1 - 0.02]) {
-        const bar = new THREE.Mesh(new THREE.BoxGeometry(0.05, win.y1 - win.y0, 0.04), trim);
-        bar.position.set(ROOM.left - 0.06, (win.y0 + win.y1) / 2, z);
-        bar.castShadow = true;
+    // The sash: a frame round the opening, one mullion, one transom.
+    const sashAt = ROOM.left - 0.09;
+    const sash = (height: number, length: number, y: number, z: number) => {
+        const bar = props.rounded(0.045, height, length, 0.004, trim);
+        bar.position.set(sashAt, y, z);
+        bar.castShadow = bar.receiveShadow = true;
         scene.add(bar);
-    }
-    const transom = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, win.z1 - win.z0), trim);
-    transom.position.set(ROOM.left - 0.06, win.y0 + (win.y1 - win.y0) * 0.62, (win.z0 + win.z1) / 2);
-    transom.castShadow = true;
-    scene.add(transom);
+    };
+    const winMid = { y: (win.y0 + win.y1) / 2, z: (win.z0 + win.z1) / 2 };
+    for (const z of [win.z0 + 0.0225, winMid.z, win.z1 - 0.0225]) sash(win.y1 - win.y0, z === winMid.z ? 0.035 : 0.045, winMid.y, z);
+    for (const y of [win.y0 + 0.035, win.y0 + (win.y1 - win.y0) * 0.62, win.y1 - 0.0225]) sash(y === win.y1 - 0.0225 || y === win.y0 + 0.035 ? 0.045 : 0.03, win.z1 - win.z0, y, winMid.z);
+    // Linen curtains, drawn back to either side on a thin rail.
+    const rail = props.tube([[ROOM.left + 0.07, win.y1 + 0.16, win.z0 - 0.42], [ROOM.left + 0.07, win.y1 + 0.16, win.z1 + 0.36]], 0.008, m.blackMetal);
+    rail.castShadow = true;
+    scene.add(rail);
+    const drapes = [curtain(0.5, win.y1 + 0.14, 3), curtain(0.42, win.y1 + 0.14, 9)];
+    drapes[0].mesh.position.set(ROOM.left + 0.07, win.y1 + 0.16, win.z0 - 0.17);
+    drapes[1].mesh.position.set(ROOM.left + 0.07, win.y1 + 0.16, win.z1 + 0.13);
+    for (const drape of drapes) scene.add(drape.mesh);
 
     // The sky outside: a gradient card that changes with the hour.
     const skyCanvas = document.createElement("canvas");
-    skyCanvas.width = 4;
+    skyCanvas.width = 256;
     skyCanvas.height = 256;
     const skyTex = new THREE.CanvasTexture(skyCanvas);
     skyTex.colorSpace = THREE.SRGBColorSpace;
@@ -260,7 +310,20 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         gradient.addColorStop(0.55, blend(from[1], to[1], t));
         gradient.addColorStop(1, blend(from[0], to[0], t));
         g.fillStyle = gradient;
-        g.fillRect(0, 0, 4, 256);
+        g.fillRect(0, 0, 256, 256);
+        // Far hills and a nearer line of trees, soft, as through old glass.
+        g.filter = "blur(3px)";
+        for (const [base, rise, tone, alpha] of [[178, 9, "#5b5a78", 0.5], [192, 14, "#2c3440", 0.72]] as const) {
+            g.fillStyle = blend("#04060a", tone, 0.12 + daylight * 0.88);
+            g.globalAlpha = alpha;
+            g.beginPath();
+            g.moveTo(-8, 264);
+            for (let x = -8; x <= 264; x += 4) g.lineTo(x, base - rise * (0.5 + 0.5 * Math.sin(x * 0.045 + base)) - rise * 0.4 * Math.sin(x * 0.19 + rise));
+            g.lineTo(264, 264);
+            g.fill();
+        }
+        g.globalAlpha = 1;
+        g.filter = "none";
         skyTex.needsUpdate = true;
     }
 
@@ -275,8 +338,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     scene.add(rug);
 
     // ── Furniture ────────────────────────────────────────────────────────
-    const deskTop = props.woodTexture("#9c7550", "#4a2c14", 3);
-    const desk = props.desk(new THREE.MeshStandardMaterial({ map: deskTop, roughness: 0.5 }), m.blackMetal);
+    const desk = props.desk(props.wood("#a57c54", "#55331a", 3, { roughness: 0.52, bump: 0.5, repeat: 0.62, offset: 0.5 }), m.blackMetal);
     desk.position.set(-1.05, 0, -1.62);
     desk.traverse((node) => {
         if (node instanceof THREE.Mesh) node.castShadow = node.receiveShadow = true;
@@ -303,13 +365,13 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     scene.add(lamp.group);
     const lampLight = new THREE.SpotLight(0xffc98a, 0, 5, 0.95, 0.6, 1.4);
     lampLight.castShadow = true;
-    lampLight.shadow.mapSize.set(2048, 2048);
+    lampLight.shadow.mapSize.set(small ? 1024 : 2048, small ? 1024 : 2048);
     // The lamp sits against the left wall, so its light skims along it. Without a
     // normal bias the wall shades itself in stair-steps ("shadow acne").
     lampLight.shadow.bias = -0.0008;
-    lampLight.shadow.normalBias = 0.035;
+    lampLight.shadow.normalBias = 0.03;
     lampLight.shadow.camera.near = 0.05;
-    lampLight.shadow.radius = 6;
+    lampLight.shadow.radius = 5;
     scene.add(lampLight, lampLight.target);
     const lampFill = new THREE.PointLight(0xffb070, 0, 6, 1.4);
     scene.add(lampFill);
@@ -318,6 +380,36 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     coffee.position.set(-0.5, deskY, -1.86);
     scene.add(coffee);
 
+    // A day's worth of things left about: books and a pencil by the lamp,
+    // a rubber plant in the window's light.
+    const books = bookStack([
+        { color: 0x2b3f58, width: 0.23, depth: 0.165, thick: 0.03, turn: 0.04 },
+        { color: 0xb9a688, width: 0.21, depth: 0.15, thick: 0.022, turn: -0.09 },
+        { color: 0x7a2f26, width: 0.19, depth: 0.13, thick: 0.017, turn: 0.12 },
+    ]);
+    books.group.position.set(-1.58, deskY, -1.47);
+    books.group.rotation.y = 0.22;
+    scene.add(books.group);
+    const left = pencil();
+    left.position.set(-1.57, deskY + books.height, -1.46);
+    left.rotation.y = 0.9;
+    scene.add(left);
+    const fig = plant();
+    fig.position.set(-1.98, 0, -1.86);
+    fig.rotation.y = 0.6;
+    scene.add(fig);
+
+    // On the piano: music open on the desk, and a brass lamp over it.
+    const music88 = sheetMusic();
+    music88.position.set(1.2, 0.97 + 0.136, ROOM.back + 0.3 + 0.03);
+    music88.rotation.x = -0.05;
+    scene.add(music88);
+    const pianoLight = pianoLamp(m);
+    pianoLight.group.position.set(1.2, 1.285, ROOM.back + 0.3 - 0.2);
+    scene.add(pianoLight.group);
+    const pianoGlow = new THREE.SpotLight(0xffc58a, 0, 2.4, 1.05, 0.85, 1.6);
+    scene.add(pianoGlow, pianoGlow.target);
+
     // A camera bag on the floor under the desk, lid shut until it's asked for.
     const bag = cameraBag(m);
     bag.group.position.set(-1.12, 0, -1.62);
@@ -325,7 +417,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     scene.add(bag.group);
 
     // Two floating shelves of awards on the right wall, between the piano and the gallery door.
-    const shelf = awardShelf(m, new THREE.MeshStandardMaterial({ map: props.woodTexture("#5a3a22", "#24140a", 13), roughness: 0.55 }));
+    const shelf = awardShelf(m, props.wood("#5a3a22", "#24140a", 13, { roughness: 0.58, bump: 0.5 }));
     shelf.position.set(ROOM.right, 0, -0.3);
     scene.add(shelf);
     // A small picture light over the shelf, so the awards read after dark.
@@ -485,21 +577,28 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     scene.add(c200);
 
     // ── Light ────────────────────────────────────────────────────────────
-    const hemi = new THREE.HemisphereLight(0xfff2e0, 0x2a2018, 0.5);
+    const hemi = new THREE.HemisphereLight(0xfff0dc, 0x3a2414, 0.2);
     scene.add(hemi);
     // The sun comes through the window low and warm, from the left.
     const sun = new THREE.DirectionalLight(0xffb26b, 6);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -4;
-    sun.shadow.camera.right = 4;
-    sun.shadow.camera.top = 4;
-    sun.shadow.camera.bottom = -4;
-    sun.shadow.camera.near = 0.5;
-    sun.shadow.camera.far = 16;
-    sun.shadow.bias = -0.0003;
-    sun.shadow.normalBias = 0.035;
-    sun.shadow.radius = 3;
+    // Fitted to the room, so the window's bars land on the wall with an edge.
+    sun.shadow.mapSize.set(small ? 2048 : 4096, small ? 2048 : 4096);
+    sun.shadow.camera.left = -3.4;
+    sun.shadow.camera.right = 3.4;
+    sun.shadow.camera.top = 2.6;
+    sun.shadow.camera.bottom = -2.6;
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 13;
+    sun.shadow.bias = -0.0002;
+    sun.shadow.normalBias = 0.02;
+    sun.shadow.radius = 2.2;
+    // Nothing in the room moves on its own, so a shadow map is good until its
+    // light moves or the bag's lid does. Redrawing the room into both maps on
+    // every frame was the larger part of the frame.
+    sun.shadow.autoUpdate = lampLight.shadow.autoUpdate = false;
+    sun.shadow.needsUpdate = lampLight.shadow.needsUpdate = true;
+    let sunAt = -1;
     scene.add(sun, sun.target);
     // Window bounce: light that's come in and hit the floor.
     const bounce = new THREE.RectAreaLight(0xffd2a0, 0, 1.8, 1.3);
@@ -516,6 +615,9 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     lampLight.position.copy(lampWorld);
     lampLight.target.position.set(-1.1, deskY, -1.5);
     lampFill.position.copy(lampWorld).add(new THREE.Vector3(0, -0.05, 0.05));
+    pianoLight.group.updateMatrixWorld(true);
+    pianoLight.glow.getWorldPosition(pianoGlow.position);
+    pianoGlow.target.position.set(1.2, 0.7, ROOM.back + 0.62);
 
     // ── The display, as geometry ─────────────────────────────────────────
     scene.updateMatrixWorld(true);
@@ -602,7 +704,7 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
     };
 
     // ── Hour of day ──────────────────────────────────────────────────────
-    const sunColor = { day: new THREE.Color(0xffb46e), dusk: new THREE.Color(0xff7a4a), night: new THREE.Color(0x6f88c8) };
+    const sunColor = { day: new THREE.Color(0xffb46e), dusk: new THREE.Color(0xffb893), night: new THREE.Color(0x6f88c8) };
     const tmp = new THREE.Color();
     function light(daylight: number, lampOn: number) {
         paintSky(daylight);
@@ -618,25 +720,44 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
             .set(-Math.cos(elevation) * Math.cos(azimuth), Math.sin(elevation), Math.cos(elevation) * Math.sin(azimuth))
             .multiplyScalar(7)
             .add(sun.target.position);
-        sun.intensity = daylight > 0.25 ? 0.9 + Math.pow(daylight, 1.6) * 7.3 : 0.35 + daylight * 2.2;
+        if (daylight !== sunAt) sun.shadow.needsUpdate = true;
+        sunAt = daylight;
+        sun.intensity = daylight > 0.25 ? 0.9 + Math.pow(daylight, 1.6) * LOOK.sun : 0.35 + daylight * 2.2;
         bounce.color.copy(tmp);
-        bounce.intensity = 0.1 + daylight * 2.7;
-        hemi.intensity = 0.02 + daylight * 0.5;
-        scene.environmentIntensity = 0.02 + daylight * 0.33;
-        lampLight.intensity = lampOn * 30;
+        bounce.intensity = 0.1 + daylight * LOOK.bounce;
+        hemi.intensity = 0.03 + daylight * LOOK.hemi;
+        // After dark the lamps are what the lacquer and brass have to reflect.
+        scene.environmentIntensity = 0.05 + daylight * LOOK.env + lampOn * 0.1;
+        // Outside is far brighter than in: by day the window burns out, as it would on film.
+        (sky.material as THREE.MeshBasicMaterial).color.setScalar(1 + Math.pow(daylight, 2) * LOOK.sky);
+        for (const drape of drapes) drape.material.emissiveIntensity = Math.pow(daylight, 1.5) * 0.28;
+        lampLight.intensity = lampOn * 22;
         lampFill.intensity = lampOn * 2.5;
         (lamp.bulb.material as THREE.MeshStandardMaterial).emissiveIntensity = lampOn * 14;
+        pianoGlow.intensity = lampOn * 3.5;
+        (pianoLight.glow.material as THREE.MeshStandardMaterial).emissiveIntensity = lampOn * 10;
         screenGlow.intensity = 0.15 + (1 - daylight) * 0.35;
-        renderer.toneMappingExposure = 1.05 + (1 - daylight) * 0.15;
+        renderer.toneMappingExposure = LOOK.exposure + (1 - daylight) * LOOK.nightLift;
     }
 
     // Contact shadows where things meet: the thing that stops it reading as a render.
-    const composer = new EffectComposer(renderer);
+    // The room is drawn with its depth kept, so the occlusion pass can read it
+    // rather than draw two million triangles a second time to find it out.
+    const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthTexture: new THREE.DepthTexture(1, 1) }));
     composer.addPass(new RenderPass(scene, camera));
     const ao = new GTAOPass(scene, camera);
-    ao.updateGtaoMaterial({ radius: 0.35, distanceExponent: 1.5, thickness: 1, scale: 1.1 });
+    ao.setGBuffer(composer.readBuffer.depthTexture!);
+    ao.updateGtaoMaterial({ radius: 0.3, distanceExponent: 1.4, thickness: 1, scale: 1.05, samples: 12 });
+    // A wide denoise: grain in the occlusion is what gives a real-time render away.
+    ao.updatePdMaterial({ radius: 10, rings: 3, samples: 12, depthPhi: 2, normalPhi: 3, lumaPhi: 10 });
     composer.addPass(ao);
+    // A little halation round whatever's brighter than the walls: the window, a bulb, a glint on brass.
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), LOOK.bloom, 0.35, LOOK.bloomAt);
+    composer.addPass(bloom);
     composer.addPass(new OutputPass());
+    // Edges are smoothed last, on the finished picture, so the occlusion and the
+    // geometry agree about where every edge is.
+    composer.addPass(new SMAAPass());
     // The room renders into a texture; the glass pass puts it on screen.
     composer.renderToScreen = false;
     owned.push(composer);
@@ -650,23 +771,50 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         const height = canvas.clientHeight;
         if (!width || !height) return;
         renderer.setSize(width, height, false);
+        const ratio = renderer.getPixelRatio();
+        composer.setPixelRatio(ratio);
         composer.setSize(width, height);
+        // Occlusion is worked out at half size, which costs a quarter. The
+        // denoise that follows runs at full size and weighs by depth, so it
+        // doubles as the upscale and edges stay where they are.
+        const half = [Math.ceil((width * ratio) / 2), Math.ceil((height * ratio) / 2)] as const;
+        ao.gtaoRenderTarget.setSize(...half);
+        ao.gtaoMaterial.uniforms.resolution.value.set(...half);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
     }
     resize();
 
+    const frustum = new THREE.Frustum();
+    const viewProjection = new THREE.Matrix4();
+    const galleryDoorway = new THREE.Box3(new THREE.Vector3(ROOM.right - 0.05, 0, DOOR.z0), new THREE.Vector3(ROOM.right + 0.2, DOOR.height, DOOR.z1));
+    const musicDoorway = new THREE.Box3(new THREE.Vector3(ROOM.left - 0.2, 0, MUSIC_DOOR.z0), new THREE.Vector3(ROOM.left + 0.05, MUSIC_DOOR.height, MUSIC_DOOR.z1));
+    /**
+     * The other rooms are only drawn when you could see into them: with their
+     * doorway in frame, or from inside. (And whenever a shadow map is redrawn,
+     * so the maps never depend on where the camera happened to be.)
+     */
+    function cull() {
+        camera.updateMatrixWorld();
+        frustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+        const mapping = sun.shadow.needsUpdate || lampLight.shadow.needsUpdate;
+        gallery.group.visible = mapping || camera.position.x > ROOM.right - 0.4 || frustum.intersectsBox(galleryDoorway);
+        music.group.visible = mapping || camera.position.x < ROOM.left + 0.4 || frustum.intersectsBox(musicDoorway);
+    }
     function render(shot: Shot, state: { screen: ScreenState; daylight: number; lamp: number; gallery?: boolean }) {
         screen.paint(state.screen);
         light(state.daylight, state.lamp);
         // The hall shows photographs as they are: no filmic tone curve squeezing
         // their colour, and no ambient occlusion greying the mats.
-        renderer.toneMapping = state.gallery ? THREE.NoToneMapping : THREE.AgXToneMapping;
-        ao.enabled = !state.gallery;
+        renderer.toneMapping = state.gallery ? THREE.NoToneMapping : toneMapping;
+        ao.enabled = bloom.enabled = !state.gallery;
         camera.position.copy(shot.position);
         camera.fov = shot.fov;
         camera.updateProjectionMatrix();
         camera.lookAt(shot.target);
+        cull();
+        // The composer's two buffers trade places; the depth to read is in whichever is drawn into next.
+        ao.gtaoMaterial.uniforms.tDepth.value = ao.pdMaterial.uniforms.tDepth.value = composer.readBuffer.depthTexture;
         composer.render();
         present();
     }
@@ -711,6 +859,15 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         };
     }
 
+    // Build every shader and send every texture to the card now, behind the
+    // loading screen, so nothing has to be made the first time it's looked at.
+    scene.traverse((node) => {
+        if (!(node instanceof THREE.Mesh)) return;
+        for (const material of Array.isArray(node.material) ? node.material : [node.material])
+            for (const value of Object.values(material)) if (value instanceof THREE.Texture && value.image) renderer.initTexture(value);
+    });
+    await renderer.compileAsync(scene, camera);
+
     return {
         screenShot,
         screenRect,
@@ -718,11 +875,21 @@ export async function createRoom({ canvas, screen: screenImages, labels, prints,
         render,
         overlay,
         present,
-        gallery,
+        gallery: {
+            ...gallery,
+            load: (onEach: () => void) =>
+                gallery.load((texture) => {
+                    renderer.initTexture(texture);
+                    onEach();
+                }),
+        },
         pickPhoto,
         pickStop,
         showStop: (index: number) => pathOnRug.paint(index),
-        openBag: (t: number) => bag.open(t),
+        openBag: (t: number) => {
+            bag.open(t);
+            sun.shadow.needsUpdate = lampLight.shadow.needsUpdate = true;
+        },
         music,
         project,
         resize,

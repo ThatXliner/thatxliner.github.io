@@ -5,6 +5,7 @@ import { createHall, type HallPhoto } from "./hall";
 import { DOOR } from "./gallery";
 import { MUSIC_DOOR } from "./music";
 import { createLoader } from "./loader";
+import { createSound } from "./sound";
 
 /**
  * Scroll is the playhead. The page is one tall track; a sticky canvas shows
@@ -13,7 +14,12 @@ import { createLoader } from "./loader";
  * flick of the wheel reads as a dolly move rather than a jump cut.
  */
 
+// One easing family for every camera move: smootherstep, which starts and
+// stops with no velocity and no acceleration. Scroll-driven moves use it as is.
+// A walk to a place leans on it early, so it sets off promptly and takes its
+// time landing.
 const smoother = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+const glide = (t: number) => smoother(Math.pow(t, 0.78));
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const span = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -27,7 +33,7 @@ const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const BEATS = {
     // Camera holds on the room, then pushes in to sit at the laptop by `in`.
     hero: { hold: 0.045, words: [-1, 0.045] },
-    push: { at: 0.11, in: 0.2 },
+    push: { in: 0.2 },
     typing: [0.08, 0.19],
     // At the desk: the camera holds and the laptop's desktop is real and usable.
     desk: { from: 0.2, to: 0.33, fade: 0.008 },
@@ -57,17 +63,65 @@ const CHAPTERS: Record<string, readonly [number, number]> = {
 export type PlaceId = "desk" | "gear" | "path" | "recognition" | "music" | "photographs";
 const PLACES: PlaceId[] = ["desk", "gear", "path", "recognition", "music", "photographs"];
 
-interface Key {
-    at: number;
-    shot: Shot;
+/**
+ * A camera move through any number of shots, as one curve. Position, gaze
+ * and lens share one parameter and pass through every shot without a change
+ * of speed or direction (a Hermite spline with Catmull-Rom tangents), so a
+ * move by way of a doorway is a single sweep, not two moves end to end.
+ */
+class Path {
+    private at: number[] = [0];
+    private fovTangents: number[];
+    private positionTangents: THREE.Vector3[];
+    private targetTangents: THREE.Vector3[];
+    constructor(private shots: Shot[]) {
+        // Knots spaced by how far the camera travels (and turns) between them.
+        for (let i = 1; i < shots.length; i++)
+            this.at.push(this.at[i - 1] + shots[i].position.distanceTo(shots[i - 1].position) + 0.5 * shots[i].target.distanceTo(shots[i - 1].target) + 1e-4);
+        const total = this.at[this.at.length - 1];
+        this.at = this.at.map((u) => u / total);
+        const slope = <T>(pick: (shot: Shot) => T, difference: (a: T, b: T, scale: number) => T) =>
+            shots.map((_, i) => {
+                const before = Math.max(0, i - 1);
+                const after = Math.min(shots.length - 1, i + 1);
+                return difference(pick(shots[after]), pick(shots[before]), 1 / (this.at[after] - this.at[before]));
+            });
+        const vector = (a: THREE.Vector3, b: THREE.Vector3, scale: number) => a.clone().sub(b).multiplyScalar(scale);
+        this.positionTangents = slope((shot) => shot.position, vector);
+        this.targetTangents = slope((shot) => shot.target, vector);
+        this.fovTangents = slope((shot) => shot.fov, (a, b, scale) => (a - b) * scale);
+    }
+    sample(u: number, out: Shot) {
+        let i = 0;
+        while (i < this.at.length - 2 && u > this.at[i + 1]) i++;
+        const width = this.at[i + 1] - this.at[i];
+        const t = clamp01((u - this.at[i]) / width);
+        const a = (2 * t - 3) * t * t + 1;
+        const b = ((t - 2) * t + 1) * t * width;
+        const c = (3 - 2 * t) * t * t;
+        const d = (t - 1) * t * t * width;
+        const from = this.shots[i];
+        const to = this.shots[i + 1];
+        out.position.copy(from.position).multiplyScalar(a).addScaledVector(this.positionTangents[i], b).addScaledVector(to.position, c).addScaledVector(this.positionTangents[i + 1], d);
+        out.target.copy(from.target).multiplyScalar(a).addScaledVector(this.targetTangents[i], b).addScaledVector(to.target, c).addScaledVector(this.targetTangents[i + 1], d);
+        out.fov = from.fov * a + this.fovTangents[i] * b + to.fov * c + this.fovTangents[i + 1] * d;
+        return out;
+    }
 }
 
-function shotsFor(room: RoomScene, aspect: number): Key[] {
+/** One camera move of the tour: between two playhead positions, along a path. */
+interface Move {
+    from: number;
+    to: number;
+    path: Path;
+}
+
+function shotsFor(room: RoomScene, aspect: number): Move[] {
     const portrait = aspect < 0.9;
     const a = room.anchors;
     const screen = deskShot(room, aspect);
     // Backed off along the same line, so leaving the screen is a straight pull.
-    const out = screen.position.clone().sub(screen.target).setLength(0.75).add(screen.target);
+    const out = { position: screen.position.clone().sub(screen.target).setLength(0.75).add(screen.target), target: a.laptop.clone(), fov: 34 };
     const wide = portrait ? 52 : 40;
     const r7 = { position: a.r7.clone().add(v(0.34, 0.24, 0.46)), target: a.r7.clone().add(portrait ? v(0, -0.04, 0) : v(0.1, 0, -0.08)), fov: portrait ? 40 : 30 };
     // Square-on to the gallery, far enough back to take in the whole wall.
@@ -75,46 +129,37 @@ function shotsFor(room: RoomScene, aspect: number): Key[] {
     const trombone = { position: a.trombone.clone().add(v(0.15, 0.15, 1.75)), target: a.trombone.clone().add(portrait ? v(0, -0.1, 0) : v(-0.22, 0.05, 0)), fov: portrait ? 50 : 40 };
     const piano = { position: v(1.95, 1.45, 1.55), target: a.piano.clone().add(v(-0.15, 0, 0)), fov: portrait ? 50 : 38 };
     const establishing = { position: v(0.75, 1.55, 2.45), target: v(-0.25, 0.95, -1.4), fov: wide };
-    // Each subject is held still for its words; the camera only moves between holds.
+    const approach = { position: v(-0.3, 1.2, -0.25), target: a.laptop.clone().add(v(0, -0.05, 0)), fov: portrait ? 44 : 36 };
+    // The whole room in one look, rug and shelf included: where exploring starts.
+    const end = { position: v(0.45, 2.1, 2.45), target: v(0.05, 0.78, -0.9), fov: portrait ? 72 : 56 };
+    const drift = { ...end, position: v(0.45, 2.15, 2.5) };
+    const move = (from: number, to: number, ...shots: Shot[]): Move => ({ from, to, path: new Path(shots) });
+    // Each subject is held still for its words; the camera only moves between
+    // holds, and each move is one unbroken sweep however many shots it passes.
     return [
-        { at: 0, shot: establishing },
-        { at: BEATS.hero.hold, shot: establishing },
-        { at: BEATS.push.at, shot: { position: v(-0.3, 1.2, -0.25), target: a.laptop.clone().add(v(0, -0.05, 0)), fov: portrait ? 44 : 36 } },
-        { at: BEATS.push.in, shot: screen },
-        { at: BEATS.desk.to, shot: screen },
-        { at: BEATS.pullOut.to, shot: { position: out, target: a.laptop.clone(), fov: 34 } },
-        // Down onto the R7, lying where it was put down.
-        { at: BEATS.r7.arrive, shot: r7 },
-        { at: BEATS.r7.hold, shot: r7 },
+        move(BEATS.hero.hold, BEATS.push.in, establishing, approach, screen),
+        // Straight back from the screen, then down onto the R7, lying where it was put down.
+        move(BEATS.desk.to, BEATS.r7.arrive, screen, out, r7),
         // Up to the prints over the desk.
-        { at: BEATS.prints.arrive, shot: prints },
-        { at: BEATS.prints.hold, shot: prints },
+        move(BEATS.r7.hold, BEATS.prints.arrive, r7, prints),
         // Across to the trombone on its stand.
-        { at: BEATS.trombone.arrive, shot: trombone },
-        { at: BEATS.trombone.hold, shot: trombone },
+        move(BEATS.prints.hold, BEATS.trombone.arrive, prints, trombone),
         // The piano, with the C200 already pointed at it.
-        { at: BEATS.piano.arrive, shot: piano },
-        { at: BEATS.piano.hold, shot: piano },
-        // Everything at once, after dark, still drifting back.
-        // The whole room in one look, rug and shelf included: where exploring starts.
-        { at: BEATS.end.arrive, shot: { position: v(0.45, 2.1, 2.45), target: v(0.05, 0.78, -0.9), fov: portrait ? 72 : 56 } },
-        { at: 1, shot: { position: v(0.45, 2.15, 2.5), target: v(0.05, 0.78, -0.9), fov: portrait ? 72 : 56 } },
+        move(BEATS.trombone.hold, BEATS.piano.arrive, trombone, piano),
+        // Everything at once, after dark, then still drifting back.
+        move(BEATS.piano.hold, BEATS.end.arrive, piano, end),
+        move(BEATS.end.arrive, 1, end, drift),
     ];
 }
 
 /** Sitting at the laptop: square-on, the whole display in view. */
 const deskShot = (room: RoomScene, aspect: number) => room.screenShot(aspect, "contain");
 
-function sample(keys: Key[], p: number, out: Shot) {
+function sample(moves: Move[], p: number, out: Shot) {
+    // Between two moves the camera is holding where the earlier one left it.
     let i = 0;
-    while (i < keys.length - 2 && p > keys[i + 1].at) i++;
-    const a = keys[i];
-    const b = keys[i + 1];
-    const t = smoother(span(p, a.at, b.at));
-    out.position.lerpVectors(a.shot.position, b.shot.position, t);
-    out.target.lerpVectors(a.shot.target, b.shot.target, t);
-    out.fov = a.shot.fov + (b.shot.fov - a.shot.fov) * t;
-    return out;
+    while (i < moves.length - 1 && p >= moves[i + 1].from) i++;
+    return moves[i].path.sample(smoother(span(p, moves[i].from, moves[i].to)), out);
 }
 
 /** What else the playhead controls, besides the camera. */
@@ -139,6 +184,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         return { element, from, to };
     });
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const sound = createSound(root, signal);
     const data = JSON.parse(root.dataset.room!);
     const desktop = createDesktop(root.querySelector<HTMLElement>("[data-os]")!, data.wallpaper, signal);
     const hall = createHall(root, data.photographs, signal);
@@ -174,7 +220,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     loader.ready();
     signal.addEventListener("abort", () => room.dispose());
 
-    let keys = shotsFor(room, canvas.clientWidth / canvas.clientHeight);
+    let moves = shotsFor(room, canvas.clientWidth / canvas.clientHeight);
     const compact = () => canvas.clientWidth < 761;
     /** Lay the real desktop exactly over the painted one, as seen from the desk. */
     const placeDesktop = () => {
@@ -193,9 +239,12 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     // ?p=0.5 freezes the playhead, for checking a single frame.
     const frozen = params.has("p") ? Number(params.get("p")) : null;
     let shown = frozen ?? progress();
+    /** The playhead's speed, in playhead units a second. */
+    let pace = 0;
     let lastTime = performance.now();
     let lastShown = -1;
     let lastVersion = -1;
+    let lit = stateAt(shown).lamp > 0.5;
 
     // Glass buttons: each rides its chapter's opacity and has a springy lift.
     // Pressing pushes past "hovered", like pressing into something soft.
@@ -270,7 +319,10 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     // a place. "place": it's there, and the page doesn't scroll underneath.
     let mode: "film" | "fly" | "place" = "film";
     let place: PlaceId | null = null;
-    let flight: { positions: THREE.CatmullRomCurve3; targets: THREE.CatmullRomCurve3; fovs: number[]; start: number; duration: number; to: PlaceId | null } | null = null;
+    let flight: { path: Path; start: number; duration: number; to: PlaceId | null; carry: Shot | null } | null = null;
+    /** How fast the camera was last moving, per second, so a redirected walk doesn't stop dead. */
+    const drift: Shot = { position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 0 };
+    const previous: Shot = { position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 40 };
     /** Where the film was when we left it, so coming back lands in the same moment. */
     let filmShown = 0;
     let walk = 0;
@@ -323,25 +375,32 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
 
     function fly(stops: Shot[], to: PlaceId | null) {
         flight = {
-            positions: new THREE.CatmullRomCurve3(stops.map((s) => s.position), false, "centripetal"),
-            targets: new THREE.CatmullRomCurve3(stops.map((s) => s.target), false, "centripetal"),
-            fovs: stops.map((s) => s.fov),
+            path: new Path(stops),
             start: performance.now(),
-            duration: reduced.matches ? 0 : 1600 + 500 * Math.min(2, stops.length - 2),
+            duration: reduced.matches ? 0 : 1700 + 450 * Math.min(2, stops.length - 2),
             to,
+            // Turned round mid-walk: keep the camera's momentum and let it die away.
+            carry: mode === "fly" && !reduced.matches ? copy(drift) : null,
         };
         mode = "fly";
     }
 
+    /** Walking to a place, or already on the way back from one: either can be redirected. */
+    const returning = () => mode === "fly" && flight?.to === null;
     function go(id: PlaceId, push = true) {
-        if (mode !== "film") return;
+        if (mode !== "film" && !returning()) return;
         if (push) history.pushState({ room: id }, "", `#${id}`);
-        filmShown = shown;
+        if (mode === "film") filmShown = shown;
         place = id;
         // The page holds still while you're somewhere else in the house.
         html.style.overflow = "hidden";
         hideHotspots();
         const from = copy(shot);
+        if (mode === "film") {
+            previous.position.copy(shot.position);
+            previous.target.copy(shot.target);
+            previous.fov = shot.fov;
+        }
         const stops = via(id);
         const dest = placeShot(id);
         fly([from, lift(from, stops[0] ?? dest), ...stops, dest], id);
@@ -351,6 +410,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
 
     function arrive(id: PlaceId) {
         mode = "place";
+        sound.arrive();
         panels.get(id)?.removeAttribute("hidden");
         if (id === "gear") bagTarget = 1;
         if (id === "path") room.showStop(selectedStop);
@@ -363,16 +423,20 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     }
 
     function leave() {
-        if (mode !== "place" || !place) return;
+        // From a place, or from halfway to one.
+        if (!place || mode === "film" || returning()) return;
         const id = place;
         panels.get(id)?.setAttribute("hidden", "");
         gearSheet.hidden = true;
         hall.show(false);
         bagTarget = 0;
         if (id === "path") room.showStop(-1);
-        const back = sample(keys, filmShown, { position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 40 });
-        const stops = via(id).reverse();
+        const back = sample(moves, filmShown, { position: new THREE.Vector3(), target: new THREE.Vector3(), fov: 40 });
+        // Turning back before the doorway means there's no doorway to come back through.
+        const through = id === "photographs" ? shot.position.x > DOOR.x - 0.6 : id === "music" ? shot.position.x < MUSIC_DOOR.x + 0.6 : false;
+        const stops = through ? via(id).reverse() : [];
         fly([copy(shot), ...stops, lift(back, stops.at(-1) ?? copy(shot)), back], null);
+        sound.leave();
         canvas.style.cursor = "";
     }
 
@@ -392,8 +456,8 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         "popstate",
         () => {
             const id = hashPlace();
-            if (id && mode === "film") go(id, false);
-            else if (!id && mode === "place") leave();
+            if (id) go(id, false);
+            else leave();
         },
         { signal },
     );
@@ -405,7 +469,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         "click",
         (event) => {
             const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
-            if (!link || mode !== "film" || event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            if (!link || (mode !== "film" && !returning()) || event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             const url = new URL(link.href);
             if (url.origin !== location.origin || url.pathname.replace(/\/$/, "") !== "/photography") return;
             event.preventDefault();
@@ -417,7 +481,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         "room:open",
         (event) => {
             const id = (event as CustomEvent).detail as PlaceId;
-            if (!PLACES.includes(id) || mode !== "film") return;
+            if (!PLACES.includes(id) || (mode !== "film" && !returning())) return;
             event.preventDefault();
             go(id);
         },
@@ -502,18 +566,29 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     // Once the tour's over you can turn your head: drag, or the left and
     // right arrows. You stay where you're standing, so the room can't be
     // seen from anywhere odd; scrolling back up eases your gaze back.
-    const look = { yaw: 0, pitch: 0, yawTo: 0, pitchTo: 0 };
+    const look = { yaw: 0, pitch: 0, yawTo: 0, pitchTo: 0, yawPace: 0, pitchPace: 0 };
     const LIMIT = { yaw: 1.05, pitch: 0.32 };
+    // How tightly the view follows: a held drag is nearly 1:1, a released one coasts.
+    const FOLLOW = { held: 26, free: 5 };
     const turnTo = (yaw: number, pitch: number) => {
         look.yawTo = Math.max(-LIMIT.yaw, Math.min(LIMIT.yaw, yaw));
         look.pitchTo = Math.max(-LIMIT.pitch, Math.min(LIMIT.pitch, pitch));
     };
-    let drag: { x: number; y: number; yaw: number; pitch: number; id: number } | null = null;
+    /** Past the limit the view still gives, less and less, like the end of a scroll. */
+    const stretch = (value: number, limit: number) => {
+        const over = Math.abs(value) - limit;
+        return over <= 0 ? value : Math.sign(value) * (limit + (0.18 * over) / (1 + over * 4));
+    };
+    let drag: { x: number; y: number; yaw: number; pitch: number; id: number; time: number } | null = null;
     canvas.addEventListener(
         "pointerdown",
         (event) => {
             if (mode !== "film" || !exploring(shown) || event.button) return;
-            drag = { x: event.clientX, y: event.clientY, yaw: look.yawTo, pitch: look.pitchTo, id: event.pointerId };
+            // Catching a coasting view stops it where it is.
+            look.yawTo = look.yaw;
+            look.pitchTo = look.pitch;
+            look.yawPace = look.pitchPace = 0;
+            drag = { x: event.clientX, y: event.clientY, yaw: look.yawTo, pitch: look.pitchTo, id: event.pointerId, time: event.timeStamp };
             canvas.setPointerCapture(event.pointerId);
             root.dataset.looking = "";
         },
@@ -526,13 +601,28 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             // Dragging pulls the room with your hand, like turning a photo sphere.
             const per = (canvas.clientWidth / 2 / Math.tan(THREE.MathUtils.degToRad(shot.fov) / 2)) * 1.1;
             // Both axes move the room the way your hand does: drag up and the view tilts down.
-            turnTo(drag.yaw + (event.clientX - drag.x) / per, drag.pitch - (event.clientY - drag.y) / per);
+            const yaw = stretch(drag.yaw + (event.clientX - drag.x) / per, LIMIT.yaw);
+            const pitch = stretch(drag.pitch - (event.clientY - drag.y) / per, LIMIT.pitch);
+            const elapsed = Math.max(1, event.timeStamp - drag.time) / 1000;
+            // A running average of the hand's speed, for the coast after letting go.
+            const blend = Math.min(1, elapsed / 0.06);
+            look.yawPace += ((yaw - look.yawTo) / elapsed - look.yawPace) * blend;
+            look.pitchPace += ((pitch - look.pitchTo) / elapsed - look.pitchPace) * blend;
+            drag.time = event.timeStamp;
+            look.yawTo = yaw;
+            look.pitchTo = pitch;
         },
         { signal },
     );
-    const endDrag = () => {
+    const endDrag = (event: PointerEvent) => {
+        if (!drag) return;
+        // A hand that stopped before letting go throws nothing.
+        const still = event.timeStamp - drag.time > 90;
         drag = null;
         delete root.dataset.looking;
+        // Let go and the view carries on a little, at the speed it was going.
+        const coast = still || reduced.matches ? 0 : 1 / FOLLOW.free - 1 / FOLLOW.held;
+        turnTo(look.yawTo + look.yawPace * coast, look.pitchTo + look.pitchPace * coast);
     };
     canvas.addEventListener("pointerup", endDrag, { signal });
     canvas.addEventListener("pointercancel", endDrag, { signal });
@@ -562,7 +652,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
     function stepLook(dt: number) {
         // Leaving the end of the tour lets go of the look, so coming back starts square.
         if (!exploring(shown) && !drag) turnTo(0, 0);
-        const ease = reduced.matches ? 1 : 1 - Math.exp(-dt * 10);
+        const ease = reduced.matches ? 1 : 1 - Math.exp(-dt * (drag ? FOLLOW.held : FOLLOW.free));
         const before = look.yaw + look.pitch * 7;
         look.yaw += (look.yawTo - look.yaw) * ease;
         look.pitch += (look.pitchTo - look.pitch) * ease;
@@ -702,13 +792,25 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             changed = true;
         }
         if (mode === "fly" && flight) {
-            const t = flight.duration ? clamp01((now - flight.start) / flight.duration) : 1;
-            const e = smoother(t);
-            flight.positions.getPoint(e, shot.position);
-            flight.targets.getPoint(e, shot.target);
-            const f = e * (flight.fovs.length - 1);
-            const i = Math.min(flight.fovs.length - 2, Math.floor(f));
-            shot.fov = flight.fovs[i] + (flight.fovs[i + 1] - flight.fovs[i]) * (f - i);
+            const elapsed = now - flight.start;
+            const t = flight.duration ? clamp01(elapsed / flight.duration) : 1;
+            flight.path.sample(glide(t), shot);
+            if (flight.carry && t < 1) {
+                // The old heading, fading out over the first half second of the new one.
+                const seconds = elapsed / 1000;
+                const reach = seconds * Math.exp(-seconds / 0.22) * (1 - t);
+                shot.position.addScaledVector(flight.carry.position, reach);
+                shot.target.addScaledVector(flight.carry.target, reach);
+                shot.fov += flight.carry.fov * reach;
+            }
+            if (dt > 0) {
+                drift.position.subVectors(shot.position, previous.position).divideScalar(dt);
+                drift.target.subVectors(shot.target, previous.target).divideScalar(dt);
+                drift.fov = (shot.fov - previous.fov) / dt;
+            }
+            previous.position.copy(shot.position);
+            previous.target.copy(shot.target);
+            previous.fov = shot.fov;
             changed = true;
             if (t >= 1) {
                 const to = flight.to;
@@ -750,11 +852,31 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
             return;
         }
         const target = frozen ?? progress();
-        // A critically-damped-ish follow: about a quarter second to settle.
-        shown = reduced.matches || snap ? target : shown + (target - shown) * (1 - Math.exp(-dt * 7));
+        if (reduced.matches || snap) {
+            shown = target;
+            pace = 0;
+        } else {
+            // A critically damped spring, solved exactly for the frame's length:
+            // the playhead has mass, so a wheel tick eases in as well as out,
+            // and it feels the same at 60 Hz and 120.
+            const stiffness = 11;
+            const gap = shown - target;
+            const pull = (pace + stiffness * gap) * dt;
+            const decay = Math.exp(-stiffness * dt);
+            pace = (pace - stiffness * pull) * decay;
+            shown = clamp01(target + (gap + pull) * decay);
+        }
         snap = false;
-        if (Math.abs(target - shown) < 1e-5) shown = target;
+        if (Math.abs(target - shown) < 1e-5 && Math.abs(pace) < 1e-4) {
+            shown = target;
+            pace = 0;
+        }
         const state = stateAt(shown);
+        // The lamp's switch, as the playhead passes it in either direction.
+        if (lit !== state.lamp > 0.5) {
+            lit = state.lamp > 0.5;
+            if (!snap && frozen === null) sound.lamp();
+        }
         desktop.show(state.desk);
         // Redraw when the playhead moves, or when the desktop's arrangement
         // does and the painted screen is what's showing.
@@ -762,7 +884,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
         const liftMoving = stepLenses(dt);
         const turning = stepLook(dt);
         if (shown !== lastShown || repaint || turning) {
-            sample(keys, shown, shot);
+            sample(moves, shown, shot);
             applyLook(shot, smoother(span(shown, BEATS.end.arrive - 0.03, BEATS.end.arrive)));
             if (pinned) {
                 shot.position.copy(pinned.position);
@@ -786,7 +908,7 @@ export async function initRoomFilm(root: HTMLElement, signal: AbortSignal) {
 
     const resize = () => {
         room.resize();
-        keys = shotsFor(room, canvas.clientWidth / canvas.clientHeight);
+        moves = shotsFor(room, canvas.clientWidth / canvas.clientHeight);
         placeDesktop();
         lastShown = -1;
         dirty = true;

@@ -28,6 +28,10 @@ const ROWS = [2.04, 1.12];
 const GAP = 0.34;
 const MARGIN = 1.1;
 
+const blank = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+blank.colorSpace = THREE.SRGBColorSpace;
+blank.needsUpdate = true;
+
 function framedPhoto(aspect: number) {
     const group = new THREE.Group();
     const w = PHOTO_H * aspect;
@@ -51,7 +55,8 @@ function framedPhoto(aspect: number) {
     const matBoard = new THREE.Mesh(new THREE.PlaneGeometry(w + mat * 2, PHOTO_H + mat * 2), new THREE.MeshBasicMaterial({ color: 0xf1eee7, toneMapped: false }));
     matBoard.position.z = 0.0305;
     group.add(matBoard);
-    const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, PHOTO_H), new THREE.MeshBasicMaterial({ color: 0x2a2a2c, toneMapped: false }));
+    // Blank until its photograph arrives; the stand-in map means that swap needs no new shader.
+    const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, PHOTO_H), new THREE.MeshBasicMaterial({ color: 0x2a2a2c, map: blank, toneMapped: false }));
     photo.position.z = 0.031;
     group.add(photo);
     return { group, photo, width: outerW };
@@ -78,7 +83,7 @@ function shadowTexture(width: number, height: number, spread: number) {
  * that reads as a second mat, so find it (rows and columns that are flat and
  * near-white, from each edge in) and return the fraction to crop from each side.
  */
-function whiteBorder(image: HTMLImageElement) {
+function whiteBorder(image: CanvasImageSource) {
     const size = 160;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
@@ -212,32 +217,56 @@ export function createGallery(photos: GalleryPhoto[]) {
         return best;
     }
 
-    // Photographs load once the room is up, nearest the door first.
-    const loader = new THREE.TextureLoader();
+    // Photographs load once the room is up.
     let loading = false;
-    function load(onEach: () => void) {
+    function load(onEach: (texture: THREE.Texture) => void) {
         if (loading) return;
         loading = true;
-        photos.forEach((photo, i) =>
-            loader.load(photo.thumb, (texture) => {
-                texture.colorSpace = THREE.SRGBColorSpace;
-                texture.anisotropy = 8;
-                // Crop a built-in white border and keep the picture's shape inside the mat.
-                const border = whiteBorder(texture.image as HTMLImageElement);
-                const keepX = 1 - border.left - border.right;
-                const keepY = 1 - border.top - border.bottom;
-                if (keepX < 1 || keepY < 1) {
-                    texture.offset.set(border.left, border.bottom);
-                    texture.repeat.set(keepX, keepY);
-                    const fit = 1 / Math.max(keepX, keepY);
-                    meshes[i].scale.set(keepX * fit, keepY * fit, 1);
+        // Hanging the hall must never cost the room a frame: each photograph is
+        // decoded off the main thread, and goes up one at a time, between frames.
+        const pending: (() => void)[] = [];
+        let draining = false;
+        const idle = (run: () => void) => ("requestIdleCallback" in window ? requestIdleCallback(run, { timeout: 400 }) : setTimeout(run, 60));
+        const drain = () => {
+            const next = pending.shift();
+            if (!next) return void (draining = false);
+            next();
+            idle(drain);
+        };
+        photos.forEach(async (photo, i) => {
+            try {
+                const blob = await (await fetch(photo.thumb)).blob();
+                // WebGL wants the first row at the bottom; a bitmap has to be made that way.
+                const [bitmap, probe] = await Promise.all([createImageBitmap(blob, { imageOrientation: "flipY" }), createImageBitmap(blob, { resizeWidth: 160, resizeHeight: 160 })]);
+                pending.push(() => {
+                    const texture = new THREE.Texture(bitmap);
+                    texture.flipY = false;
+                    texture.colorSpace = THREE.SRGBColorSpace;
+                    texture.anisotropy = 8;
+                    texture.needsUpdate = true;
+                    // Crop a built-in white border and keep the picture's shape inside the mat.
+                    const border = whiteBorder(probe);
+                    probe.close();
+                    const keepX = 1 - border.left - border.right;
+                    const keepY = 1 - border.top - border.bottom;
+                    if (keepX < 1 || keepY < 1) {
+                        texture.offset.set(border.left, border.bottom);
+                        texture.repeat.set(keepX, keepY);
+                        const fit = 1 / Math.max(keepX, keepY);
+                        meshes[i].scale.set(keepX * fit, keepY * fit, 1);
+                    }
+                    meshes[i].material.map = texture;
+                    meshes[i].material.color.set(0xffffff);
+                    onEach(texture);
+                });
+                if (!draining) {
+                    draining = true;
+                    idle(drain);
                 }
-                meshes[i].material.map = texture;
-                meshes[i].material.color.set(0xffffff);
-                meshes[i].material.needsUpdate = true;
-                onEach();
-            }),
-        );
+            } catch (error) {
+                console.error(error);
+            }
+        });
     }
 
     const raycaster = new THREE.Raycaster();

@@ -115,6 +115,10 @@ const room = {
             </div>
         </div>
 
+        <button type="button" class="sound" data-sound aria-pressed="true" aria-label="Turn sound off">
+            <span aria-hidden="true"><i></i><i></i><i></i></span>
+        </button>
+
         <RoomOS />
         <RoomPlaces releases={releases} />
 
@@ -275,11 +279,73 @@ const room = {
     .room[data-looking] .room-canvas {
         cursor: grabbing;
     }
+    /* The sound switch: three bars that lie down when it's off. */
+    .sound {
+        display: none;
+    }
+    .room[data-state="live"][data-loader="off"] .sound {
+        position: fixed;
+        right: var(--page-edge);
+        bottom: 1.25rem;
+        z-index: 4;
+        display: grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border: 1px solid rgb(255 255 255 / 0.16);
+        border-radius: 50%;
+        background: rgb(12 12 14 / 0.42);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: var(--color-fg);
+        cursor: pointer;
+        transition:
+            background-color 0.2s,
+            scale 0.3s var(--spring);
+    }
+    .sound:hover {
+        background: rgb(12 12 14 / 0.62);
+    }
+    .sound:active {
+        scale: 0.94;
+    }
+    .sound span {
+        display: flex;
+        align-items: center;
+        gap: 2.5px;
+        height: 0.8rem;
+    }
+    .sound i {
+        width: 2px;
+        height: 100%;
+        border-radius: 1px;
+        background: currentColor;
+        transition:
+            scale 0.35s var(--spring),
+            opacity 0.2s;
+    }
+    .sound i:nth-child(1) {
+        scale: 1 0.45;
+    }
+    .sound i:nth-child(3) {
+        scale: 1 0.7;
+    }
+    .sound[aria-pressed="false"] i {
+        scale: 1 0.16;
+        opacity: 0.55;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .sound,
+        .sound i {
+            transition: none;
+        }
+    }
     .room-shade {
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgb(0 0 0 / 0.55));
+        background: radial-gradient(120% 95% at 50% 45%, transparent 58%, rgb(0 0 0 / 0.42));
     }
     .room:is([data-state="loading"], [data-state="live"]) .room-chapters {
         position: fixed;
